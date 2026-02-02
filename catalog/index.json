@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "devices": [
+    {
+      "wikiTitle": "Pipe_Analyzer",
+      "file": "devices/Pipe_Analyzer.json",
+      "itemName": "StructurePipeAnalysizer",
+      "itemHash": 435685051
+    }
+  ]
+}
