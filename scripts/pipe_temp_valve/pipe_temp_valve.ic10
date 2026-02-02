@@ -1,6 +1,3 @@
-# NOTE: Canonical copy moved to: scripts/pipe_temp_valve/pipe_temp_valve.ic10
-# (This file remains for backwards compatibility / older links.)
-
 # Pipe temp valve control
 # d0 = Pipe Analyzer
 # d1 = Pipe Digital Valve
