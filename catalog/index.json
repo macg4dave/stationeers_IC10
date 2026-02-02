@@ -2,6 +2,18 @@
   "version": 1,
   "devices": [
     {
+      "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
+      "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
+      "itemName": "ItemLiquidPipeAnalysizer",
+      "itemHash": 226055671
+    },
+    {
+      "wikiTitle": "Liquid_Digital_Valve",
+      "file": "devices/Liquid_Digital_Valve.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Pipe_Analyzer",
       "file": "devices/Pipe_Analyzer.json",
       "itemName": "StructurePipeAnalysizer",

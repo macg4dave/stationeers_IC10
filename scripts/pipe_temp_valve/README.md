@@ -1,31 +1,49 @@
 # pipe_temp_valve
 
-Controls a pipe digital valve based on the pipe temperature measured by a Pipe Analyzer.
+## Purpose
 
-## In-game setup
+Open/close a **Pipe Digital Valve** based on pipe temperature from a **Pipe Analyzer**, using simple hysteresis (Schmitt-trigger style).
 
-1. Place and connect:
-   - a **Pipe Analyzer** on the pipe network you want to monitor
-   - a **Pipe Digital Valve** you want to open/close
-2. (Recommended) Rename the in-game devices so they’re easy to pick when wiring/assigning:
-   - rename the Pipe Analyzer to `read_pipe_temp_1`
-   - rename the Pipe Digital Valve to `read_pipe_temp_1_valve`
-3. Assign IC device registers:
-   - `d0` = Pipe Analyzer (`read_pipe_temp_1`)
-   - `d1` = Pipe Digital Valve (`read_pipe_temp_1_valve`)
-4. Copy/paste `pipe_temp_valve.ic10` into the in-game IC chip and run it.
+## Devices
 
-## Behavior
+Required:
 
-- Reads `d0 Temperature` (Kelvin) and converts to Celsius.
-- Opens the valve (**On = 1**) when temperature is below **10°C**.
-- Closes the valve (**On = 0**) when temperature is above **30°C**.
-- Between **10°C** and **30°C** it leaves the valve state unchanged (hysteresis).
+- Pipe Analyzer
+- Pipe Digital Valve
 
-## Customization
+## Device registers
 
-Edit `pipe_temp_valve.ic10`:
+- `d0` = Pipe Analyzer
+- `d1` = Pipe Digital Valve
 
-- Change the `define` constants:
-- Tune `TEMP_OPEN_BELOW_C` (default `10`) and `TEMP_CLOSE_ABOVE_C` (default `30`).
-- Change `d0` / `d1` mapping if you prefer different device register assignments.
+## Usage
+
+1. Place the Pipe Analyzer on the pipe network you want to monitor.
+2. Place a Pipe Digital Valve on the pipe network you want to control.
+3. (Recommended) Rename the devices so they’re easy to pick in the IC housing UI:
+   - Pipe Analyzer: `read_pipe_temp_1`
+   - Pipe Digital Valve: `read_pipe_temp_1_valve`
+4. In the IC housing, assign:
+   - `d0` = `read_pipe_temp_1`
+   - `d1` = `read_pipe_temp_1_valve`
+5. Copy/paste `pipe_temp_valve.ic10` into the in-game IC editor and run it.
+
+## Tuning
+
+Edit the constants at the top of `pipe_temp_valve.ic10`:
+
+- `TEMP_OPEN_BELOW_C` (°C): valve is forced **open** when `tempC < TEMP_OPEN_BELOW_C`
+- `TEMP_CLOSE_ABOVE_C` (°C): valve is forced **closed** when `tempC > TEMP_CLOSE_ABOVE_C`
+
+Temperature notes:
+
+- The Pipe Analyzer reports `Temperature` in Kelvin (K).
+- The script converts to Celsius using: $C = K - 273.15$.
+
+## Status
+
+Functional.
+
+## Credit
+
+Hysteresis pattern is the common IC10 “Schmitt trigger” approach (see the IC10 wiki examples).

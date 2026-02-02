@@ -1,22 +1,22 @@
-# pipe_temp_valve
+# liquid_temp_valve
 # Category: Controller
 # Status: Functional
 #
-# Purpose: Control a Pipe Digital Valve based on Pipe Analyzer temperature.
+# Purpose: Control a Liquid Digital Valve based on Liquid Pipe Analyzer temperature.
 #
 # Device registers:
-#   d0 = Pipe Analyzer
-#   d1 = Pipe Digital Valve
+#   d0 = Liquid Pipe Analyzer
+#   d1 = Liquid Digital Valve
 #
 # Notes:
-# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# - Liquid Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
 # - Hysteresis (Schmitt trigger style):
 #     * OPEN  when tempC < TEMP_OPEN_BELOW_C
 #     * CLOSE when tempC > TEMP_CLOSE_ABOVE_C
 #     * otherwise leave valve state unchanged
 
-alias pipe_read d0
-alias pipe_valve d1
+alias liquid_read d0
+alias liquid_valve d1
 
 alias tempC r0
 alias cond r1
@@ -24,15 +24,15 @@ alias desired_on r2
 alias current_on r3
 
 define KELVIN_TO_C 273.15
-define TEMP_OPEN_BELOW_C 10
+define TEMP_OPEN_BELOW_C 20
 define TEMP_CLOSE_ABOVE_C 30
 
 main:
-l tempC pipe_read Temperature
+l tempC liquid_read Temperature
 sub tempC tempC KELVIN_TO_C
 
 # default: keep current valve state
-l current_on pipe_valve On
+l current_on liquid_valve On
 move desired_on current_on
 
 # if tempC < TEMP_OPEN_BELOW_C => open valve
@@ -46,7 +46,7 @@ select desired_on cond 0 desired_on
 # avoid redundant writes (and network spam): only set when it changes
 sne cond desired_on current_on
 beqz cond skip_write
-s pipe_valve On desired_on
+s liquid_valve On desired_on
 skip_write:
 
 yield
