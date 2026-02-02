@@ -1,0 +1,119 @@
+# dual_analyzer_furnace_pulse
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - Read Temperature from BOTH a Liquid Pipe Analyzer and a (gas) Pipe Analyzer.
+# - If ANY temperature is below TEMP_LOW_C, AND NONE are above TEMP_HIGH_C:
+#     - Turn ON a Pipe Digital Valve
+#     - Set an Advanced Furnace to Activate = 1 for PULSE_TICKS (~5 seconds)
+#     - Then turn the valve back OFF
+# - Repeat the check every LOOP_TICKS (~30 seconds)
+#
+# Device registers:
+#   d0 = Liquid Pipe Analyzer
+#   d1 = Pipe Analyzer
+#   d2 = Pipe Digital Valve
+#   d3 = Advanced Furnace
+#
+# Timing note:
+# - IC10 only has tick-based waiting via `yield`.
+# - These constants assume ~2 ticks/second (so 10 ticks ≈ 5s, 60 ticks ≈ 30s).
+#   If your game tick timing differs, adjust LOOP_TICKS / PULSE_TICKS accordingly.
+
+alias liquid_read d0
+alias gas_read d1
+alias pipe_valve d2
+alias furnace d3
+
+alias liqC r0
+alias gasC r1
+alias cond r2
+alias low_any r3
+alias high_any r4
+alias ticks r5
+alias current_on r6
+alias desired_on r7
+
+define KELVIN_TO_C 273.15
+
+define TEMP_LOW_C 20
+define TEMP_HIGH_C 30
+
+# ~2 ticks/second defaults:
+define LOOP_TICKS 60
+define PULSE_TICKS 10
+define REMAIN_TICKS 50
+
+main:
+# read + convert to Celsius
+l liqC liquid_read Temperature
+sub liqC liqC KELVIN_TO_C
+l gasC gas_read Temperature
+sub gasC gasC KELVIN_TO_C
+
+# low_any = (liqC < TEMP_LOW_C) OR (gasC < TEMP_LOW_C)
+slt cond liqC TEMP_LOW_C
+move low_any cond
+slt cond gasC TEMP_LOW_C
+or low_any low_any cond
+
+# high_any = (liqC > TEMP_HIGH_C) OR (gasC > TEMP_HIGH_C)
+slt cond TEMP_HIGH_C liqC
+move high_any cond
+slt cond TEMP_HIGH_C gasC
+or high_any high_any cond
+
+# If ANY < low AND NONE > high => pulse valve + furnace
+beqz low_any no_pulse
+bnez high_any no_pulse
+
+# turn valve ON (avoid redundant writes)
+l current_on pipe_valve On
+move desired_on 1
+sne cond desired_on current_on
+beqz cond valve_on_done
+s pipe_valve On desired_on
+valve_on_done:
+
+# activate furnace
+s furnace Activate 1
+
+# hold for ~5 seconds
+move ticks PULSE_TICKS
+pulse_wait:
+yield
+sub ticks ticks 1
+bnez ticks pulse_wait
+
+# stop furnace pulse
+s furnace Activate 0
+
+# turn valve OFF (avoid redundant writes)
+l current_on pipe_valve On
+move desired_on 0
+sne cond desired_on current_on
+beqz cond valve_off_done
+s pipe_valve On desired_on
+valve_off_done:
+
+# wait remainder so the full cycle is ~30 seconds
+move ticks REMAIN_TICKS
+j delay
+
+no_pulse:
+# safety default: keep valve OFF (avoid redundant writes)
+l current_on pipe_valve On
+move desired_on 0
+sne cond desired_on current_on
+beqz cond delay_set
+s pipe_valve On desired_on
+
+delay_set:
+move ticks LOOP_TICKS
+
+delay:
+yield
+sub ticks ticks 1
+bnez ticks delay
+j main

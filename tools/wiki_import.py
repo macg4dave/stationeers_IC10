@@ -131,11 +131,19 @@ def _parse_io_table(table_html: str) -> List[IoField]:
 
     name_i = col_index("parameter name", "output name", "name")
     type_i = col_index("data type", "type")
+    access_i = col_index("access")
     desc_i = col_index("description", "desc")
 
     if name_i is None or type_i is None:
         # Can't reliably parse.
         return []
+
+    # Some pages (via Template:Data_Parameters) include enumerated/value rows such as:
+    #   | 0 | Off |
+    #   | 1 | On |
+    # These are not IO fields; skip them.
+    # Also skip rows where the parsed type isn't a known primitive.
+    allowed_types = {"boolean", "integer", "float", "double", "string"}
 
     fields: List[IoField] = []
     for r in rows[1:]:
@@ -144,11 +152,82 @@ def _parse_io_table(table_html: str) -> List[IoField]:
         name = r[name_i].strip()
         if not name:
             continue
+        if re.fullmatch(r"[0-9]+", name):
+            continue
+
         t = _normalize_type(r[type_i])
+        if t not in allowed_types:
+            continue
+
         desc = r[desc_i].strip() if desc_i is not None and desc_i < len(r) else ""
         fields.append(IoField(name=name, type=t, description=desc))
 
     return fields
+
+
+def _parse_data_parameters_table(table_html: str) -> tuple[List[IoField], List[IoField]]:
+    """Parse a 'Data Parameters' table.
+
+    If an Access column exists (Read / Write / Read Write), split fields into:
+      - parameters: writable
+      - outputs: readable
+    Otherwise, return all fields as parameters.
+    """
+
+    parser = _TableTextExtractor()
+    parser.feed(table_html)
+    rows = parser.rows
+    if not rows:
+        return [], []
+
+    header = [c.lower() for c in rows[0]]
+
+    def col_index(*candidates: str) -> Optional[int]:
+        for cand in candidates:
+            if cand.lower() in header:
+                return header.index(cand.lower())
+        return None
+
+    name_i = col_index("parameter name", "name")
+    type_i = col_index("data type", "type")
+    access_i = col_index("access")
+    desc_i = col_index("description", "desc")
+
+    if name_i is None or type_i is None:
+        return [], []
+
+    allowed_types = {"boolean", "integer", "float", "double", "string"}
+    params: List[IoField] = []
+    outs: List[IoField] = []
+
+    for r in rows[1:]:
+        if name_i >= len(r) or type_i >= len(r):
+            continue
+        name = r[name_i].strip()
+        if not name or re.fullmatch(r"[0-9]+", name):
+            continue
+
+        t = _normalize_type(r[type_i])
+        if t not in allowed_types:
+            continue
+
+        desc = r[desc_i].strip() if desc_i is not None and desc_i < len(r) else ""
+        field = IoField(name=name, type=t, description=desc)
+
+        if access_i is None or access_i >= len(r):
+            # No access column: treat as writable parameters.
+            params.append(field)
+            continue
+
+        access = r[access_i].strip().lower()
+        is_read = "read" in access
+        is_write = "write" in access
+        if is_write:
+            params.append(field)
+        if is_read:
+            outs.append(field)
+
+    return params, outs
 
 
 def _extract_identity(html: str) -> tuple[Optional[str], Optional[int]]:
@@ -234,8 +313,17 @@ def main(argv: List[str]) -> int:
     parameters_table = _extract_first_table_after_anchor(html, "Data_Parameters")
     outputs_table = _extract_first_table_after_anchor(html, "Data_Outputs")
 
-    params = _parse_io_table(parameters_table) if parameters_table else []
-    outs = _parse_io_table(outputs_table) if outputs_table else []
+    params: List[IoField] = []
+    outs: List[IoField] = []
+
+    if parameters_table:
+        p, o = _parse_data_parameters_table(parameters_table)
+        params.extend(p)
+        outs.extend(o)
+
+    # If a page also has a separate Data Outputs table, merge it in.
+    if outputs_table:
+        outs.extend(_parse_io_table(outputs_table))
 
     item_name, item_hash = _extract_identity(html)
 

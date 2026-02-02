@@ -2,6 +2,12 @@
   "version": 1,
   "devices": [
     {
+      "wikiTitle": "Advanced_Furnace",
+      "file": "devices/Advanced_Furnace.json",
+      "itemName": "ItemKitAdvancedFurnace",
+      "itemHash": -616758353
+    },
+    {
       "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
       "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
       "itemName": "ItemLiquidPipeAnalysizer",

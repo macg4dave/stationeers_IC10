@@ -1,0 +1,267 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Advanced_Furnace",
+    "wikiTitle": "Advanced_Furnace",
+    "retrievedAt": "2026-02-02T18:55:31+00:00"
+  },
+  "identity": {
+    "itemName": "ItemKitAdvancedFurnace",
+    "itemHash": -616758353
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Invalid"
+      },
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "ClearMemory",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "SettingInput",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "SettingOutput",
+        "type": "integer",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Unpowered"
+      },
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Invalid"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Temperature",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Reagents",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Maximum",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RecipeHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "TotalMoles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "SettingInput",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "SettingOutput",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteam",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutedWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}
