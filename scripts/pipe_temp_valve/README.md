@@ -17,14 +17,15 @@ Controls a pipe digital valve based on the pipe temperature measured by a Pipe A
 
 ## Behavior
 
-- Reads `d0 Temperature` (Kelvin) and converts to Celsius by subtracting `273.15`.
-- Turns the valve **ON** when temperature is below **10°C**.
-- Turns the valve **OFF** when temperature is above **30°C**.
-- Between 10°C and 30°C it leaves the valve state unchanged.
+- Reads `d0 Temperature` (Kelvin) and converts to Celsius.
+- Opens the valve (**On = 1**) when temperature is below **10°C**.
+- Closes the valve (**On = 0**) when temperature is above **30°C**.
+- Between **10°C** and **30°C** it leaves the valve state unchanged (hysteresis).
 
 ## Customization
 
 Edit `pipe_temp_valve.ic10`:
 
-- Change the `10` and `30` threshold constants.
+- Change the `define` constants:
+- Tune `TEMP_OPEN_BELOW_C` (default `10`) and `TEMP_CLOSE_ABOVE_C` (default `30`).
 - Change `d0` / `d1` mapping if you prefer different device register assignments.

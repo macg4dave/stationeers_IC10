@@ -81,6 +81,32 @@ Use a consistent structure so tooling (and the AI) can find details quickly:
 - Prefer `alias` for readability, but keep alias names short to stay under 90 columns.
 - When writing/reading device flags (Data Network Properties), prefer canonical names/types from `catalog/` over guessing.
 
+### Prefer `alias` + batch hashes (network-friendly scripts)
+When a script is intended to work with **many** devices on the data network (instead of hard-wiring everything to `d0..d5`), prefer this pattern:
+
+- Use `alias` for readability:
+  - `alias pipe_read_1 d0` (device)
+  - `alias tempC r0` (register)
+- Use batched instructions for “find all devices on the network” behaviors:
+  - `lb` / `sb` target **all** devices of a prefab/type hash.
+  - `lbn` / `sbn` target **all** devices of a prefab/type hash **and** a **name hash**.
+
+Important limitation (don’t fight the language):
+- `lbn`/`sbn` match by **exact name hash**, not substring/contains.
+  - If you want “all Pipe Analyzers whose name contains `pipe_read_1`”, you generally **can’t do contains matching in IC10**.
+  - Instead, pick one of these workable alternatives:
+    - Give every device in the group the **same exact in-game name** (duplicates are fine), and use `HASH("pipe_read_1")` as the `nameHash`.
+    - Use separate data networks (wiring) to isolate groups.
+    - Assign a specific device to `d0..d5` for one-off/single-device scripts.
+
+Example (batch write to all named devices):
+```ic10
+# Turn ON all wall lights named "base_lights"
+define WALL_LIGHT_HASH HASH("StructureWallLight")
+define BASE_LIGHTS_NAME_HASH HASH("base_lights")
+sbn WALL_LIGHT_HASH BASE_LIGHTS_NAME_HASH On 1
+```
+
 Documentation tip:
 - When a script uses constants (`define`) for tuning (thresholds, pressures, temperatures), annotate units and intent in the README (and optionally in comments near the defines).
 

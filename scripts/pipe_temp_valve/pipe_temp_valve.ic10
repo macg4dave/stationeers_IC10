@@ -1,29 +1,40 @@
-# Pipe temp valve control
-# d0 = Pipe Analyzer
-# d1 = Pipe Digital Valve
-# NOTE: Pipe Analyzer Temperature is Kelvin; we convert to Celsius.
+# pipe_temp_valve
+# Purpose: Control a Pipe Digital Valve based on Pipe Analyzer temperature.
+#
+# Device map:
+#   d0 = Pipe Analyzer
+#   d1 = Pipe Digital Valve
+#
+# Notes:
+# - Pipe Analyzer Temperature is Kelvin.
+# - This uses hysteresis:
+#     * OPEN  when tempC < TEMP_OPEN_BELOW_C
+#     * CLOSE when tempC > TEMP_CLOSE_ABOVE_C
+#     * otherwise leave valve state unchanged
 
-start:
-l r0 d0 Temperature
-sub r0 r0 273.15
+alias pipe_read d0
+alias pipe_valve d1
 
-# if tempC < 10 => valve ON
-slt r1 r0 10
-bnz r1 valve_on
+define KELVIN_TO_C 273.15
+define TEMP_OPEN_BELOW_C 10
+define TEMP_CLOSE_ABOVE_C 30
 
-# if tempC > 30 => valve OFF
-slt r1 30 r0
-bnz r1 valve_off
+loop:
+l r0 pipe_read Temperature
+sub r0 r0 KELVIN_TO_C
 
+# default: keep current valve state
+l r3 pipe_valve On
+move r2 r3
+
+# if tempC < TEMP_OPEN_BELOW_C => open valve
+slt r1 r0 TEMP_OPEN_BELOW_C
+select r2 r1 1 r2
+
+# if tempC > TEMP_CLOSE_ABOVE_C => close valve
+slt r1 TEMP_CLOSE_ABOVE_C r0
+select r2 r1 0 r2
+
+s pipe_valve On r2
 yield
-j start
-
-valve_on:
-s d1 On 1
-yield
-j start
-
-valve_off:
-s d1 On 0
-yield
-j start
+j loop
