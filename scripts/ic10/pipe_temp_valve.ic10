@@ -1,0 +1,29 @@
+# Pipe temp valve control
+# d0 = Pipe Analyzer
+# d1 = Pipe Digital Valve
+# NOTE: Pipe Analyzer Temperature is Kelvin; we convert to Celsius.
+
+start:
+l r0 d0 Temperature
+sub r0 r0 273.15
+
+# if tempC < 10 => valve ON
+slt r1 r0 10
+bnz r1 valve_on
+
+# if tempC > 30 => valve OFF
+slt r1 30 r0
+bnz r1 valve_off
+
+yield
+j start
+
+valve_on:
+s d1 On 1
+yield
+j start
+
+valve_off:
+s d1 On 0
+yield
+j start

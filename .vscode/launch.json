@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "ic10",
+      "request": "launch",
+      "name": "Debug IC10 (current file)",
+      "program": "${file}",
+      "stopOnEntry": true,
+      "trace": false
+    },
+    {
+      "type": "ic10",
+      "request": "launch",
+      "name": "Debug IC10 (generated next to icX)",
+      "program": "${fileWorkspaceFolder}${pathSeparator}${fileBasenameNoExtension}.ic10",
+      "stopOnEntry": true,
+      "trace": false
+    }
+  ]
+}
