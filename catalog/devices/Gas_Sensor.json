@@ -1,0 +1,131 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Sensors#Gas_Sensor",
+    "wikiTitle": "Gas_Sensor",
+    "retrievedAt": "2026-02-02T20:32:51+00:00"
+  },
+  "identity": {
+    "itemName": "StructureGasSensor",
+    "itemHash": -1252983604
+  },
+  "io": {
+    "parameters": [],
+    "outputs": [
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Temperature",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteam",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutedWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}

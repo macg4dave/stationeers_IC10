@@ -27,6 +27,7 @@ from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Iterable, List, Optional
+from urllib.parse import parse_qs, urldefrag, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -50,12 +51,48 @@ class DeviceCatalogEntry:
     io: dict
 
 
-def _slug_from_wiki_url(url: str) -> str:
-    # stationeers-wiki.com/<Title>
-    m = re.search(r"stationeers-wiki\.com/(?P<title>[^?#/]+)", url)
-    if not m:
+def _parse_wiki_url(url: str) -> tuple[str, str, Optional[str]]:
+    """Parse a stationeers-wiki URL.
+
+    Supports:
+      - https://stationeers-wiki.com/Pipe_Analyzer
+      - https://stationeers-wiki.com/index.php?title=Pipe_Analyzer
+      - Section import from multi-device pages:
+          https://stationeers-wiki.com/Sensors#Gas_Sensor
+
+    Returns:
+      - wiki_title: used for output filename and index entry
+      - fetch_url: URL without fragment (what we actually download)
+      - fragment: section anchor id (or None)
+    """
+
+    parsed = urlparse(url)
+    if "stationeers-wiki.com" not in parsed.netloc:
+        raise ValueError(f"Unsupported wiki URL host: {url}")
+
+    fetch_url, fragment = urldefrag(url)
+    fragment = fragment or None
+
+    # Determine page title from either /<Title> or index.php?title=<Title>
+    page_title: Optional[str] = None
+    path = (parsed.path or "/").lstrip("/")
+    if not path:
+        page_title = None
+    elif path.lower() == "index.php":
+        qs = parse_qs(parsed.query)
+        title_vals = qs.get("title")
+        if title_vals:
+            page_title = title_vals[0]
+    else:
+        # First segment is the page title
+        page_title = path.split("/")[0]
+
+    if not page_title:
         raise ValueError(f"Unsupported wiki URL format: {url}")
-    return m.group("title")
+
+    # If the URL includes a fragment, treat that as the logical "device title".
+    wiki_title = fragment or page_title
+    return wiki_title, fetch_url, fragment
 
 
 def _normalize_type(type_str: str) -> str:
@@ -104,6 +141,41 @@ def _extract_first_table_after_anchor(html: str, anchor_id: str) -> Optional[str
     anchor_pos = html.find(f'id="{anchor_id}"')
     if anchor_pos == -1:
         return None
+    table_start = html.find("<table", anchor_pos)
+    if table_start == -1:
+        return None
+    table_end = html.find("</table>", table_start)
+    if table_end == -1:
+        return None
+    return html[table_start : table_end + len("</table>")]
+
+
+def _find_anchor_pos(html: str, anchor_id: str, *, start_pos: int = 0) -> Optional[int]:
+    m = re.search(rf"id=[\"']{re.escape(anchor_id)}[\"']", html[start_pos:])
+    if not m:
+        return None
+    return start_pos + m.start()
+
+
+def _extract_first_table_after_anchor_prefix(
+    html: str,
+    anchor_prefix: str,
+    *,
+    start_pos: int = 0,
+) -> Optional[str]:
+    """Return the raw HTML for the first <table> after an anchor id prefix.
+
+    This is useful for pages where the same section repeats, and MediaWiki
+    disambiguates anchors with suffixes like Data_Parameters_3.
+    """
+
+    m = re.search(
+        rf"id=[\"']{re.escape(anchor_prefix)}(?:_[0-9]+)?[\"']",
+        html[start_pos:],
+    )
+    if not m:
+        return None
+    anchor_pos = start_pos + m.start()
     table_start = html.find("<table", anchor_pos)
     if table_start == -1:
         return None
@@ -230,11 +302,19 @@ def _parse_data_parameters_table(table_html: str) -> tuple[List[IoField], List[I
     return params, outs
 
 
-def _extract_identity(html: str) -> tuple[Optional[str], Optional[int]]:
-    """Extract Item Name/Item Hash from the page.
+def _extract_identity(
+    html: str,
+    *,
+    start_pos: int = 0,
+    end_pos: Optional[int] = None,
+    prefer_name: Optional[str] = None,
+) -> tuple[Optional[str], Optional[int]]:
+    """Extract Item/Prefab Name+Hash from a page (or a page subsection).
 
     MediaWiki markup varies; matching against tag structure is fragile.
     Instead we strip to visible text and regex that.
+
+    If Item Name/Hash are not present, fall back to Prefab Name/Hash.
     """
 
     class _TextOnly(HTMLParser):
@@ -246,26 +326,103 @@ def _extract_identity(html: str) -> tuple[Optional[str], Optional[int]]:
             if data:
                 self.parts.append(data)
 
+    snippet = html[start_pos:end_pos]
+
     p = _TextOnly()
-    p.feed(html)
+    p.feed(snippet)
     text = unescape(" ".join(p.parts))
     text = re.sub(r"\s+", " ", text)
 
     item_name: Optional[str] = None
     item_hash: Optional[int] = None
 
+    def last_int(pattern: str) -> Optional[int]:
+        ms = list(re.finditer(pattern, text, re.IGNORECASE))
+        if not ms:
+            return None
+        try:
+            return int(ms[-1].group(1))
+        except ValueError:
+            return None
+
+    def last_str(pattern: str) -> Optional[str]:
+        ms = list(re.finditer(pattern, text, re.IGNORECASE))
+        if not ms:
+            return None
+        return ms[-1].group(1)
+
+    # If the caller knows the exact prefab/item name we should be extracting,
+    # try to bind the corresponding hash/name pair first.
+    if prefer_name:
+        # Prefer prefab identity; many structure pages list Prefab Name/Hash.
+        # On multi-device pages (e.g., Sensors) multiple infobox tables can sit
+        # back-to-back, so we anchor on the specific "Prefab Name <prefer_name>"
+        # occurrence and then pick the nearest preceding Prefab Hash.
+        pref_name_pat = re.compile(
+            rf"\bPrefab\s+Name\b\s+{re.escape(prefer_name)}\b",
+            re.IGNORECASE,
+        )
+        pref_hash_pat = re.compile(r"\bPrefab\s+Hash\b\s+([0-9-]+)\b", re.IGNORECASE)
+
+        best_hash: Optional[int] = None
+        best_distance: Optional[int] = None
+        for m_name in pref_name_pat.finditer(text):
+            pos = m_name.start()
+            lookback = text[max(0, pos - 1500) : pos]
+            hashes = list(pref_hash_pat.finditer(lookback))
+            if not hashes:
+                continue
+            m_hash = hashes[-1]
+            try:
+                h = int(m_hash.group(1))
+            except ValueError:
+                h = None
+            # Distance from the hash label to the name label; smaller is better.
+            dist = pos - (max(0, pos - 1500) + m_hash.start())
+            if best_distance is None or dist < best_distance:
+                best_distance = dist
+                best_hash = h
+
+        if best_distance is not None:
+            return prefer_name, best_hash
+
+        # Some pages use Item Name/Hash instead.
+        item_name_pat = re.compile(
+            rf"\bItem\s+Name\b\s+{re.escape(prefer_name)}\b",
+            re.IGNORECASE,
+        )
+        item_hash_pat = re.compile(r"\bItem\s+Hash\b\s+([0-9-]+)\b", re.IGNORECASE)
+
+        best_hash = None
+        best_distance = None
+        for m_name in item_name_pat.finditer(text):
+            pos = m_name.start()
+            lookback = text[max(0, pos - 1500) : pos]
+            hashes = list(item_hash_pat.finditer(lookback))
+            if not hashes:
+                continue
+            m_hash = hashes[-1]
+            try:
+                h = int(m_hash.group(1))
+            except ValueError:
+                h = None
+            dist = pos - (max(0, pos - 1500) + m_hash.start())
+            if best_distance is None or dist < best_distance:
+                best_distance = dist
+                best_hash = h
+
+        if best_distance is not None:
+            return prefer_name, best_hash
+
     # The Pipe_Analyzer page (and similar) typically contains:
     #   "Item Hash 435685051" and "Item Name StructurePipeAnalysizer"
-    m_hash = re.search(r"\bItem\s+Hash\b\s+([0-9-]+)\b", text, re.IGNORECASE)
-    if m_hash:
-        try:
-            item_hash = int(m_hash.group(1))
-        except ValueError:
-            item_hash = None
+    item_hash = last_int(r"\bItem\s+Hash\b\s+([0-9-]+)\b")
+    item_name = last_str(r"\bItem\s+Name\b\s+([A-Za-z0-9_]+)\b")
 
-    m_name = re.search(r"\bItem\s+Name\b\s+([A-Za-z0-9_]+)\b", text, re.IGNORECASE)
-    if m_name:
-        item_name = m_name.group(1)
+    if item_name is None and item_hash is None:
+        # Multi-device pages sometimes only list Prefab Name/Hash.
+        item_hash = last_int(r"\bPrefab\s+Hash\b\s+([0-9-]+)\b")
+        item_name = last_str(r"\bPrefab\s+Name\b\s+([A-Za-z0-9_]+)\b")
 
     return item_name, item_hash
 
@@ -303,15 +460,29 @@ def upsert_index(entry: dict) -> None:
 def main(argv: List[str]) -> int:
     if len(argv) != 2:
         print("Usage: python tools/wiki_import.py <stationeers-wiki device URL>")
+        print("  Tip: for multi-device pages, you can import a specific section:")
+        print("    python tools/wiki_import.py https://stationeers-wiki.com/Sensors#Gas_Sensor")
         return 2
 
     url = argv[1]
-    wiki_title = _slug_from_wiki_url(url)
+    wiki_title, fetch_url, fragment = _parse_wiki_url(url)
 
-    html = fetch_html(url)
+    html = fetch_html(fetch_url)
 
-    parameters_table = _extract_first_table_after_anchor(html, "Data_Parameters")
-    outputs_table = _extract_first_table_after_anchor(html, "Data_Outputs")
+    section_start_pos: Optional[int] = None
+    if fragment:
+        section_start_pos = _find_anchor_pos(html, fragment)
+
+    if section_start_pos is not None:
+        parameters_table = _extract_first_table_after_anchor_prefix(
+            html, "Data_Parameters", start_pos=section_start_pos
+        )
+        outputs_table = _extract_first_table_after_anchor_prefix(
+            html, "Data_Outputs", start_pos=section_start_pos
+        )
+    else:
+        parameters_table = _extract_first_table_after_anchor(html, "Data_Parameters")
+        outputs_table = _extract_first_table_after_anchor(html, "Data_Outputs")
 
     params: List[IoField] = []
     outs: List[IoField] = []
@@ -325,7 +496,24 @@ def main(argv: List[str]) -> int:
     if outputs_table:
         outs.extend(_parse_io_table(outputs_table))
 
-    item_name, item_hash = _extract_identity(html)
+    if section_start_pos is not None:
+        # For multi-device pages (e.g., Sensors), we can usually derive the Prefab Name.
+        # Example: "Gas_Sensor" section corresponds to prefab "StructureGasSensor".
+        expected_prefab = "Structure" + fragment.replace("_", "") if fragment else None
+
+        # Try the whole page first so we catch identity fields in the infobox area.
+        item_name, item_hash = _extract_identity(html, prefer_name=expected_prefab)
+
+        # Fallback: scan a window around the section anchor.
+        if item_name is None and item_hash is None:
+            item_name, item_hash = _extract_identity(
+                html,
+                start_pos=max(0, section_start_pos - 250_000),
+                end_pos=section_start_pos + 250_000,
+                prefer_name=expected_prefab,
+            )
+    else:
+        item_name, item_hash = _extract_identity(html)
 
     retrieved_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 

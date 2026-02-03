@@ -1,0 +1,182 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Active_Vent",
+    "wikiTitle": "Active_Vent",
+    "retrievedAt": "2026-02-02T20:34:25+00:00"
+  },
+  "identity": {
+    "itemName": "ItemActiveVent",
+    "itemHash": -842048328
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Outward"
+      },
+      {
+        "name": "PressureExternal",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PressureInternal",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Outward"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PressureExternal",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PressureInternal",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Maximum",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PressureOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutantOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatilesOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWaterOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TotalMolesOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "CombustionOutput",
+        "type": "boolean",
+        "description": "No"
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}

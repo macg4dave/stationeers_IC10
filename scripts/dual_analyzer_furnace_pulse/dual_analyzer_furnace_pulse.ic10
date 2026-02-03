@@ -4,10 +4,10 @@
 #
 # Purpose:
 # - Read Temperature from BOTH a Liquid Pipe Analyzer and a (gas) Pipe Analyzer.
-# - If ANY temperature is below TEMP_LOW_C, AND NONE are above TEMP_HIGH_C:
+# - If (air temp < 30C) OR (liquid temp < 80C):
 #     - Turn ON a Pipe Digital Valve
-#     - Set an Advanced Furnace to Activate = 1 for PULSE_TICKS (~5 seconds)
-#     - Then turn the valve back OFF
+#     - Set an Advanced Furnace to Activate = 1 for PULSE_TICKS (~1 second)
+#     - Then turn both back OFF
 # - Repeat the check every LOOP_TICKS (~30 seconds)
 #
 # Device registers:
@@ -37,13 +37,11 @@ alias desired_on r7
 
 define KELVIN_TO_C 273.15
 
-define TEMP_LOW_C 20
-define TEMP_HIGH_C 30
-
 # ~2 ticks/second defaults:
+# 60 ticks ≈ 30s. 2 ticks ≈ 1s.
 define LOOP_TICKS 60
-define PULSE_TICKS 10
-define REMAIN_TICKS 50
+define PULSE_TICKS 2
+define REMAIN_TICKS 58
 
 main:
 # read + convert to Celsius
@@ -52,21 +50,16 @@ sub liqC liqC KELVIN_TO_C
 l gasC gas_read Temperature
 sub gasC gasC KELVIN_TO_C
 
-# low_any = (liqC < TEMP_LOW_C) OR (gasC < TEMP_LOW_C)
-slt cond liqC TEMP_LOW_C
+# If air temp < 30C OR liquid < 80C => pulse valve + furnace
+# cond = (gasC < 30)
+slt cond gasC 30
 move low_any cond
-slt cond gasC TEMP_LOW_C
+# cond = (liqC < 80)
+slt cond liqC 80
 or low_any low_any cond
 
-# high_any = (liqC > TEMP_HIGH_C) OR (gasC > TEMP_HIGH_C)
-slt cond TEMP_HIGH_C liqC
-move high_any cond
-slt cond TEMP_HIGH_C gasC
-or high_any high_any cond
-
-# If ANY < low AND NONE > high => pulse valve + furnace
-beqz low_any no_pulse
-bnez high_any no_pulse
+# If condition not met -> ensure devices are OFF
+beqz low_any no_on
 
 # turn valve ON (avoid redundant writes)
 l current_on pipe_valve On
@@ -76,10 +69,10 @@ beqz cond valve_on_done
 s pipe_valve On desired_on
 valve_on_done:
 
-# activate furnace
+# activate furnace (ON)
 s furnace Activate 1
 
-# hold for ~5 seconds
+# hold for ~1 second
 move ticks PULSE_TICKS
 pulse_wait:
 yield
@@ -93,23 +86,26 @@ s furnace Activate 0
 l current_on pipe_valve On
 move desired_on 0
 sne cond desired_on current_on
-beqz cond valve_off_done
+beqz cond valve_off_done_pulse
 s pipe_valve On desired_on
-valve_off_done:
+valve_off_done_pulse:
 
 # wait remainder so the full cycle is ~30 seconds
 move ticks REMAIN_TICKS
 j delay
 
-no_pulse:
-# safety default: keep valve OFF (avoid redundant writes)
+no_on:
+# turn valve OFF (avoid redundant writes)
 l current_on pipe_valve On
 move desired_on 0
 sne cond desired_on current_on
-beqz cond delay_set
+beqz cond valve_off_done
 s pipe_valve On desired_on
+valve_off_done:
 
-delay_set:
+# ensure furnace is OFF
+s furnace Activate 0
+
 move ticks LOOP_TICKS
 
 delay:

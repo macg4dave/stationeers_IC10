@@ -1,0 +1,45 @@
+# gas_temp_active_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Turn an Active Vent on when gas temperature is above a threshold.
+#
+# Device registers:
+#   d0 = Gas Sensor
+#   d1 = Active Vent
+#
+# Notes:
+# - Gas Sensor Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# - This is a simple threshold controller:
+#     * ON  when tempC > TEMP_ON_ABOVE_C
+#     * OFF otherwise
+
+alias gas_read d0
+alias vent d1
+
+alias tempC r0
+alias cond r1
+alias desired_on r2
+alias current_on r3
+
+define KELVIN_TO_C 273.15
+define TEMP_ON_ABOVE_C 30
+
+main:
+# read temperature (K) and convert to Celsius
+l tempC gas_read Temperature
+sub tempC tempC KELVIN_TO_C
+
+# compute desired state
+slt cond TEMP_ON_ABOVE_C tempC
+select desired_on cond 1 0
+
+# avoid redundant writes (and network spam): only set when it changes
+l current_on vent On
+sne cond desired_on current_on
+beqz cond skip_write
+s vent On desired_on
+skip_write:
+
+yield
+j main
