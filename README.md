@@ -25,6 +25,11 @@ The extension also supports an optional **hardware environment** file in TOML:
 The Stationeers in-game IC chip imposes size/line limits on the text you paste into the chip.
 These limits are **in-game only** (they do not apply to repo tooling/source code unless you are generating final IC10 output).
 
+Current paste-into-chip limits:
+
+- **Max 128 lines** (includes blank lines and comment-only lines)
+- **Max 90 characters per line** (includes comments)
+
 ## Tools
 
 ### Import device IO from the Stationeers wiki
@@ -36,6 +41,6 @@ These limits are **in-game only** (they do not apply to repo tooling/source code
 
 - Script: `tools/ic10_size_check.py`
 - Checks:
-  - line count
-  - line width
+  - line count (includes comments)
+  - line width (includes comment text)
 

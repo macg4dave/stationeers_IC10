@@ -28,7 +28,9 @@ This repository is intended to become an **IDE/tooling project for the Stationee
 - Common gotcha: labels that shadow keywords/LogicTypes (for example `Temperature:`) can break scripts.
 
 ## In-game constraints (only when generating paste-into-game IC10)
-- The Stationeers in-game IC chip imposes line/size limits on the text you paste into the chip.
+- The Stationeers in-game IC chip imposes size limits on the text you paste into the chip:
+  - **Max 128 lines** (this includes blank lines and comment-only lines)
+  - **Max 90 characters per line** (this also includes comments)
 - These limits are **game constraints**, not repo constraints; do not apply them to tooling/IDE code unless a task explicitly targets the in-game script output.
 
 ## Recommended repo layout (scripts + environments)

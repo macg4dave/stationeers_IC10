@@ -1,0 +1,96 @@
+# pipe_half_full_active_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Turn an Active Vent ON when the connected Pipe Analyzer reports the
+#          pipe network is < half full of AIR (gas), relative to a chosen
+#          target pressure.
+#
+# Device registers:
+#   d0 = Pipe Analyzer
+#   d1 = Active Vent
+#
+# Notes:
+# - For gases, the pipe network is always “full” of gas volume-wise; what you
+#   usually care about is *how much gas* is in the network (pressure/moles).
+# - This script computes a target amount of gas (moles) for the network using
+#   the ideal gas law: n = P * V / (R * T)
+#     * P = TARGET_PRESSURE_KPA
+#     * V = Volume (from Pipe Analyzer)
+#     * T = Temperature (Kelvin, from Pipe Analyzer)
+#     * R = 8.314462618 (kPa*L)/(mol*K)  (works if Volume is in liters)
+# - “Fullness %” is defined as (TotalMoles / targetMoles).
+# - A small hysteresis band prevents flicker:
+#     * ON  when fullness <  FULLNESS_RATIO
+#     * OFF when fullness >  (FULLNESS_RATIO + HYSTERESIS_BAND)
+#     * otherwise keep current vent state
+# - If the analyzer reports Error=1, the vent is forced OFF.
+# - This script only toggles vent power (On). Configure vent Mode/Setting/etc
+#   in-game as desired.
+
+alias pipe_read d0
+alias vent d1
+
+alias pipe_vol r0
+alias tempK r1
+alias total_moles r2
+alias pipe_err r3
+alias cond r4
+alias desired_on r5
+alias current_on r6
+alias target_moles r7
+alias tmp r8
+alias denom r9
+alias on_moles r10
+alias off_moles r11
+
+define TARGET_PRESSURE_KPA 100
+define R_GAS_KPA_L 8.314462618
+
+define FULLNESS_RATIO 0.5
+define HYSTERESIS_BAND 0.05
+
+main:
+# read current vent state (used for hysteresis + redundant write avoidance)
+l current_on vent On
+move desired_on current_on
+
+# if analyzer error => force OFF
+l pipe_err pipe_read Error
+beqz pipe_err no_error
+move desired_on 0
+j decide_write
+no_error:
+
+# read state needed for ideal gas law
+l pipe_vol pipe_read Volume
+l tempK pipe_read Temperature
+l total_moles pipe_read TotalMoles
+
+# target_moles = TARGET_PRESSURE_KPA * pipe_vol / (R_GAS_KPA_L * tempK)
+mul tmp pipe_vol TARGET_PRESSURE_KPA
+mul denom tempK R_GAS_KPA_L
+div target_moles tmp denom
+
+# thresholds (hysteresis band)
+mul on_moles target_moles FULLNESS_RATIO
+add tmp FULLNESS_RATIO HYSTERESIS_BAND
+mul off_moles target_moles tmp
+
+# ON when below lower threshold (needs more air)
+slt cond total_moles on_moles
+select desired_on cond 1 desired_on
+
+# OFF when above upper threshold (enough air)
+slt cond off_moles total_moles
+select desired_on cond 0 desired_on
+
+decide_write:
+# avoid redundant writes (and network spam)
+sne cond desired_on current_on
+beqz cond skip_write
+s vent On desired_on
+skip_write:
+
+yield
+j main

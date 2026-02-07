@@ -1,8 +1,8 @@
 """IC10 script size checker.
 
-Checks Stationeers IC10 chip constraints:
-- Max 128 lines
-- Max 90 characters per line
+Checks Stationeers IC10 chip paste-into-chip constraints:
+- Max 128 lines (includes blank lines and comment-only lines)
+- Max 90 characters per line (includes comments)
 
 This repo has not yet standardized script file extensions.
 If you pass a directory, use --ext to control which files are checked.
