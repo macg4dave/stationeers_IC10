@@ -102,6 +102,30 @@ def _normalize_type(type_str: str) -> str:
     return t
 
 
+def _infer_type_from_name(field_name: str) -> Optional[str]:
+    """Best-effort fallback for pages where the Data Type column is blank.
+
+    Some wiki tables render the type as an icon (img alt/title) or omit it.
+    We try not to guess unless the name is very common and unambiguous.
+    """
+
+    key = re.sub(r"[^a-z0-9]+", "", field_name.strip().lower())
+    mapping = {
+        # Common boilerplate flags
+        "on": "boolean",
+        "power": "boolean",
+        "error": "boolean",
+        "lock": "boolean",
+        # Common numeric fields
+        "ratio": "float",
+        "maximum": "integer",
+        "requiredpower": "integer",
+        # "Setting" is usually a numeric setpoint, even when the wiki marks it as unused.
+        "setting": "integer",
+    }
+    return mapping.get(key)
+
+
 class _TableTextExtractor(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
@@ -118,6 +142,16 @@ class _TableTextExtractor(HTMLParser):
         elif self._in_tr and tag in ("td", "th"):
             self._in_td_or_th = True
             self._cell_buf = []
+        elif self._in_tr and self._in_td_or_th and tag == "img":
+            # The wiki often uses icons for data types; those appear as <img alt="Boolean">.
+            attr_map = {k.lower(): v for (k, v) in attrs}
+            alt = (attr_map.get("alt") or "").strip()
+            title = (attr_map.get("title") or "").strip()
+            text = alt or title
+            if text:
+                self._cell_buf.append(" " + text + " ")
+        elif self._in_tr and self._in_td_or_th and tag == "br":
+            self._cell_buf.append(" ")
 
     def handle_endtag(self, tag: str):
         if tag == "tr" and self._in_tr:
@@ -229,7 +263,11 @@ def _parse_io_table(table_html: str) -> List[IoField]:
 
         t = _normalize_type(r[type_i])
         if t not in allowed_types:
-            continue
+            inferred = _infer_type_from_name(name) if not t else None
+            if inferred and inferred in allowed_types:
+                t = inferred
+            else:
+                continue
 
         desc = r[desc_i].strip() if desc_i is not None and desc_i < len(r) else ""
         fields.append(IoField(name=name, type=t, description=desc))
@@ -281,7 +319,11 @@ def _parse_data_parameters_table(table_html: str) -> tuple[List[IoField], List[I
 
         t = _normalize_type(r[type_i])
         if t not in allowed_types:
-            continue
+            inferred = _infer_type_from_name(name) if not t else None
+            if inferred and inferred in allowed_types:
+                t = inferred
+            else:
+                continue
 
         desc = r[desc_i].strip() if desc_i is not None and desc_i < len(r) else ""
         field = IoField(name=name, type=t, description=desc)

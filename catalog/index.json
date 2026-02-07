@@ -42,6 +42,12 @@
       "file": "devices/Pipe_Digital_Valve.json",
       "itemName": "ItemPipeDigitalValve",
       "itemHash": -1532448832
+    },
+    {
+      "wikiTitle": "Wall_Cooler",
+      "file": "devices/Wall_Cooler.json",
+      "itemName": null,
+      "itemHash": null
     }
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Wall_Cooler",
+    "wikiTitle": "Wall_Cooler",
+    "retrievedAt": "2026-02-07T17:39:38+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Setting",
+        "type": "boolean",
+        "description": "Unused"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Maximum",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Required Power",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}
