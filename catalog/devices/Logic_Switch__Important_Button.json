@@ -1,0 +1,82 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Logic_Switch#Important_Button",
+    "wikiTitle": "Logic_Switch__Important_Button",
+    "retrievedAt": "2026-02-08T20:02:04+00:00"
+  },
+  "identity": {
+    "itemName": "StructureEmergencyButton",
+    "itemHash": 1668452680
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Value is 1 by default. Changing the value to 0 causes the button to stop emitting lights. This doesn’t prevent the button from activating."
+      },
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Value is 0 by default and will change depending if the player opens or closes the lid. 0 = closed and 1 = open."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Value to 0 by default and will change briefly to 1 if the button is pressed and revert to 0 afterward."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Value is 0 by default. Changing the value to 1 locks the lid into place, preventing the player from opening or closing it."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the button is emitting lights or not."
+      },
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Returns whether the lid is open or not."
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Same as Lock but Read Only."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Return the hash id, which is 1668452680."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Returns the required power. Returns 0 if the button’s light is off and 50 if the light is on."
+      },
+      {
+        "name": "Setting",
+        "type": "boolean",
+        "description": "Same as Activate but Read Only."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Returns whether the button is pressed or not."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Unknown"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Returns whether the lid is locked into place or not."
+      }
+    ]
+  }
+}

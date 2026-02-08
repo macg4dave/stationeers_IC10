@@ -1,0 +1,47 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Logic_Switch#Lever",
+    "wikiTitle": "Logic_Switch__Lever",
+    "retrievedAt": "2026-02-08T20:02:15+00:00"
+  },
+  "identity": {
+    "itemName": "StructureLogicSwitch",
+    "itemHash": 1220484876
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Value is 0 by default but will change depending if the player toggles the lever."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Value is 0 by default and can’t be changed."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Returns the lever's state."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Returns the hash id, which is 1220484876."
+      },
+      {
+        "name": "Setting",
+        "type": "boolean",
+        "description": "Same as Open but Read Only"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Always return 0."
+      }
+    ]
+  }
+}

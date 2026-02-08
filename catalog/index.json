@@ -26,6 +26,36 @@
       "itemHash": 226055671
     },
     {
+      "wikiTitle": "Logic_Switch__Button",
+      "file": "devices/Logic_Switch__Button.json",
+      "itemName": "StructureLogicButton",
+      "itemHash": 491845673
+    },
+    {
+      "wikiTitle": "Logic_Switch__Dial",
+      "file": "devices/Logic_Switch__Dial.json",
+      "itemName": "StructureLogicDial",
+      "itemHash": 554524804
+    },
+    {
+      "wikiTitle": "Logic_Switch__Important_Button",
+      "file": "devices/Logic_Switch__Important_Button.json",
+      "itemName": "StructureEmergencyButton",
+      "itemHash": 1668452680
+    },
+    {
+      "wikiTitle": "Logic_Switch__Lever",
+      "file": "devices/Logic_Switch__Lever.json",
+      "itemName": "StructureLogicSwitch",
+      "itemHash": 1220484876
+    },
+    {
+      "wikiTitle": "Logic_Switch__Switch",
+      "file": "devices/Logic_Switch__Switch.json",
+      "itemName": "StructureLogicSwitch2",
+      "itemHash": 321604921
+    },
+    {
       "wikiTitle": "Liquid_Digital_Valve",
       "file": "devices/Liquid_Digital_Valve.json",
       "itemName": null,
