@@ -1,0 +1,71 @@
+# purge_valve
+# Category: Controller
+# Status: Functional
+#
+# Purpose: When the lever is ON, purge any liquid detected by the Liquid Pipe Analyzer.
+#
+# Device registers:
+#   d0 = Logic Switch (Lever)   [Open]
+#   d1 = Liquid Pipe Analyzer   [Pressure]
+#   d2 = Liquid Digital Valve   [On]
+#   d3 = Active Vent            [On]
+#   d4 = Active Liquid Outlet   [On]
+#
+# Tuning:
+#   MIN_PRESSURE_KPA = minimum Pressure (kPa) to treat as "has liquid"
+
+alias lever d0
+alias liquid_read d1
+alias liquid_valve d2
+alias vent d3
+alias outlet d4
+
+alias vol r0
+alias lever_on r1
+alias desired_on r2
+alias cond r3
+alias current_on r4
+
+alias liquid_err r5
+
+define MIN_PRESSURE_KPA 0.1
+
+main:
+l lever_on lever Open
+move desired_on 0
+beqz lever_on decide_done
+
+# if analyzer error => treat as empty (force OFF)
+l liquid_err liquid_read Error
+beqz liquid_err no_error
+move desired_on 0
+j decide_done
+no_error:
+
+l vol liquid_read Pressure
+slt cond MIN_PRESSURE_KPA vol     # pressure > MIN?
+select desired_on cond 1 desired_on
+
+decide_done:
+
+# avoid redundant writes (less network spam)
+l current_on liquid_valve On
+sne cond desired_on current_on
+beqz cond skip_valve
+s liquid_valve On desired_on
+skip_valve:
+
+l current_on vent On
+sne cond desired_on current_on
+beqz cond skip_vent
+s vent On desired_on
+skip_vent:
+
+l current_on outlet On
+sne cond desired_on current_on
+beqz cond skip_outlet
+s outlet On desired_on
+skip_outlet:
+
+yield
+j main

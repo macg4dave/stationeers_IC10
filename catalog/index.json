@@ -2,6 +2,12 @@
   "version": 1,
   "devices": [
     {
+      "wikiTitle": "Active_Liquid_Outlet",
+      "file": "devices/Active_Liquid_Outlet.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Active_Vent",
       "file": "devices/Active_Vent.json",
       "itemName": "ItemActiveVent",
@@ -24,6 +30,12 @@
       "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
       "itemName": "ItemLiquidPipeAnalysizer",
       "itemHash": 226055671
+    },
+    {
+      "wikiTitle": "Liquid_Digital_Valve",
+      "file": "devices/Liquid_Digital_Valve.json",
+      "itemName": null,
+      "itemHash": null
     },
     {
       "wikiTitle": "Logic_Switch__Button",
@@ -54,12 +66,6 @@
       "file": "devices/Logic_Switch__Switch.json",
       "itemName": "StructureLogicSwitch2",
       "itemHash": 321604921
-    },
-    {
-      "wikiTitle": "Liquid_Digital_Valve",
-      "file": "devices/Liquid_Digital_Valve.json",
-      "itemName": null,
-      "itemHash": null
     },
     {
       "wikiTitle": "Pipe_Analyzer",
