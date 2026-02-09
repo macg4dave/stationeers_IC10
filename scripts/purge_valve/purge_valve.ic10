@@ -2,7 +2,8 @@
 # Category: Controller
 # Status: Functional
 #
-# Purpose: When the lever is ON, purge any liquid detected by the Liquid Pipe Analyzer.
+# Purpose: When the lever is ON, purge anything detected by the Liquid Pipe Analyzer
+#          (treat ANY pipe pressure as "something present": liquid and/or gas).
 #
 # Device registers:
 #   d0 = Logic Switch (Lever)   [Open]
@@ -12,7 +13,7 @@
 #   d4 = Active Liquid Outlet   [On]
 #
 # Tuning:
-#   MIN_PRESSURE_KPA = minimum Pressure (kPa) to treat as "has liquid"
+#   MIN_PRESSURE_KPA = minimum Pressure (kPa) to treat as "has anything" (gas or liquid)
 
 alias lever d0
 alias liquid_read d1
@@ -28,7 +29,7 @@ alias current_on r4
 
 alias liquid_err r5
 
-define MIN_PRESSURE_KPA 0.1
+define MIN_PRESSURE_KPA 0.00
 
 main:
 l lever_on lever Open
@@ -43,7 +44,7 @@ j decide_done
 no_error:
 
 l vol liquid_read Pressure
-slt cond MIN_PRESSURE_KPA vol     # pressure > MIN?
+slt cond MIN_PRESSURE_KPA vol     # pressure > MIN? (anything present)
 select desired_on cond 1 desired_on
 
 decide_done:

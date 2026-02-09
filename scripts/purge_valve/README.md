@@ -12,6 +12,9 @@ Acts like a **purge valve**:
 
 This is useful for “dump to waste” / purge lines that you only want active on demand.
 
+Detection note: this script treats **any non-trivial pipe pressure** as “something present”,
+so it will purge **gas and/or liquid**.
+
 ## Devices
 
 Required:
@@ -44,8 +47,8 @@ Note: this script reads the lever's `Open` state (the data network property for 
 
 Inside `purge_valve.ic10`:
 
-- `MIN_PRESSURE_KPA` — minimum analyzer `Pressure` (kPa) required to treat the pipe as “non-empty”.
-  - Default: `0.1`
+- `MIN_PRESSURE_KPA` — minimum analyzer `Pressure` (kPa) required to treat the pipe as “has anything”.
+  - Default: `0.001`
   - If you see false triggers due to noise, increase it slightly.
 
 ## Status

@@ -1,0 +1,36 @@
+# Open a Pipe Digital Valve when NO Volatiles and NO Steam are present
+# d0 = Pipe Analyzer
+# d1 = Pipe Digital Valve
+
+alias pa d0
+alias valve d1
+
+alias vol r0
+alias stm r1
+alias vol_hi r2
+alias stm_hi r3
+alias any_hi r4
+alias open r5
+
+# Treat values <= EPS as "not present" (covers tiny floating noise)
+define EPS 0.000001
+
+wait:
+yield
+bdns d0 wait
+bdns d1 wait
+
+loop:
+yield
+
+l vol pa RatioVolatiles
+l stm pa RatioSteam
+
+# open = 1 if vol <= EPS and stm <= EPS, else 0
+sgt vol_hi vol EPS
+sgt stm_hi stm EPS
+or any_hi vol_hi stm_hi
+seqz open any_hi
+
+s valve On open
+j loop
