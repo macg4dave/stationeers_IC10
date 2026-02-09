@@ -26,8 +26,8 @@ Required:
 Assign these in the IC housing UI:
 
 - `d0` = Pipe Analyzer (temperature source)
-- `d1` = Pipe Digital Valve for the **cold** path (name/label it `cold` for your own sanity)
-- `d2` = Pipe Digital Valve for the **hot** path (name/label it `hot`)
+- `d1` = Pipe Digital Valve for the **hot** path (name/label it `hot`)
+- `d2` = Pipe Digital Valve for the **cold** path (name/label it `cold` for your own sanity)
 
 
 ## Tuning

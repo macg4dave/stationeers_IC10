@@ -1,0 +1,68 @@
+# volatiles_purge_active_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose: If the pipe contains Volatiles, turn an Active Vent on until
+#          Oxygen ratio is >= Volatiles ratio.
+#
+# Device registers:
+#   d0 = Pipe Analyzer (gas pipe)
+#   d1 = Active Vent   (connected to the same pipe network)
+#
+# Notes:
+# - Pipe Analyzer ratios are 0..1 (mass percent / 100).
+# - We treat very small values as "not present" to avoid float noise.
+# - The script forces the vent to Mode=Outward (1).
+
+alias pa d0
+alias vent d1
+
+alias vol r0
+alias o2 r1
+alias cond r2
+alias desired_on r3
+alias current_on r4
+alias current_mode r5
+
+# Treat values <= EPS as "not present" (covers tiny floating noise)
+define EPS 0.000001
+
+# Active Vent Mode: 1 = Outward
+define MODE_OUTWARD 1
+
+wait:
+yield
+bdns d0 wait
+bdns d1 wait
+
+# Ensure vent is set to outward mode (only write if needed)
+l current_mode vent Mode
+sne cond current_mode MODE_OUTWARD
+beqz cond mode_ok
+s vent Mode MODE_OUTWARD
+mode_ok:
+
+main:
+# Read current gas composition
+l vol pa RatioVolatiles
+l o2 pa RatioOxygen
+
+# Default to OFF
+move desired_on 0
+
+# If volatiles are present AND oxygen < volatiles => vent ON
+sgt cond vol EPS
+beqz cond decide
+slt cond o2 vol
+select desired_on cond 1 0
+
+decide:
+# avoid redundant writes (and network spam): only set when it changes
+l current_on vent On
+sne cond desired_on current_on
+beqz cond skip_write
+s vent On desired_on
+skip_write:
+
+yield
+j main

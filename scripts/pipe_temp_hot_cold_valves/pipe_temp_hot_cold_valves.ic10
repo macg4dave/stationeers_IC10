@@ -9,15 +9,15 @@
 #
 # Device registers:
 #   d0 = Pipe Analyzer (temperature source)
-#   d1 = Pipe Digital Valve ("cold" path)
-#   d2 = Pipe Digital Valve ("hot" path)
+#   d1 = Pipe Digital Valve ("hot" path)
+#   d2 = Pipe Digital Valve ("cold" path)
 #
 # Notes:
 # - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
 
 alias pipe_read d0
-alias valve_cold d1
-alias valve_hot d2
+alias valve_hot d1
+alias valve_cold d2
 
 alias tempC r0
 alias cond r1
