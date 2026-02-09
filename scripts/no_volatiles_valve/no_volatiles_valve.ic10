@@ -1,0 +1,30 @@
+# Close a Pipe Digital Valve when NO Volatiles are present
+# d0 = Pipe Analyzer
+# d1 = Pipe Digital Valve
+
+alias pa d0
+alias valve d1
+
+alias vol r0
+alias vol_hi r1
+
+# Treat values <= EPS as "not present" (covers tiny floating noise)
+define EPS 0.000001
+
+wait:
+yield
+bdns d0 wait
+bdns d1 wait
+
+loop:
+yield
+
+l vol pa RatioVolatiles
+
+# vol_hi = 1 if vol > EPS, else 0
+sgt vol_hi vol EPS
+
+# Close valve when volatiles are not present
+# (On = 1 only when volatiles are present)
+s valve On vol_hi
+j loop

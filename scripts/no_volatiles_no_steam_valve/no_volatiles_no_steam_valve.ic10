@@ -7,13 +7,19 @@ alias valve d1
 
 alias vol r0
 alias stm r1
-alias vol_hi r2
-alias stm_hi r3
-alias any_hi r4
-alias open r5
+alias pres r2
+
+alias vol_hi r3
+alias stm_hi r4
+alias any_hi r5
+alias open r6
+alias pres_ok r7
 
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
+
+# Require at least some pressure before opening (kPa)
+define MIN_PRESSURE 1.0
 
 wait:
 yield
@@ -25,12 +31,18 @@ yield
 
 l vol pa RatioVolatiles
 l stm pa RatioSteam
+l pres pa Pressure
+
+sgt pres_ok pres MIN_PRESSURE
 
 # open = 1 if vol <= EPS and stm <= EPS, else 0
 sgt vol_hi vol EPS
 sgt stm_hi stm EPS
 or any_hi vol_hi stm_hi
 seqz open any_hi
+
+# Also require pressure > MIN_PRESSURE
+and open open pres_ok
 
 s valve On open
 j loop
