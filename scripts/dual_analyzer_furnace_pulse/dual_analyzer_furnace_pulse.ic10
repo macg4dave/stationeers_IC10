@@ -37,6 +37,12 @@ alias desired_on r7
 
 define KELVIN_TO_C 273.15
 
+# Which temperature(s) to check:
+# 0 = both (default)
+# 1 = gas/air only (Pipe Analyzer on d1)
+# 2 = liquid only (Liquid Pipe Analyzer on d0)
+define CHECK_TYPE 0
+
 # ~2 ticks/second defaults:
 # 60 ticks ≈ 30s. 2 ticks ≈ 1s.
 define LOOP_TICKS 60
@@ -44,19 +50,32 @@ define PULSE_TICKS 2
 define REMAIN_TICKS 58
 
 main:
-# read + convert to Celsius
-l liqC liquid_read Temperature
-sub liqC liqC KELVIN_TO_C
+# check selected temperature source(s)
+move low_any 0
+
+# --- gas/air check (skip when CHECK_TYPE == 2) ---
+seq cond CHECK_TYPE 2
+bnez cond gas_skip
 l gasC gas_read Temperature
 sub gasC gasC KELVIN_TO_C
-
-# If air temp < 30C OR liquid < 80C => pulse valve + furnace
-# cond = (gasC < 30)
 slt cond gasC 30
-move low_any cond
-# cond = (liqC < 80)
+or low_any low_any cond
+j gas_done
+gas_skip:
+move gasC 0
+gas_done:
+
+# --- liquid check (skip when CHECK_TYPE == 1) ---
+seq cond CHECK_TYPE 1
+bnez cond liq_skip
+l liqC liquid_read Temperature
+sub liqC liqC KELVIN_TO_C
 slt cond liqC 80
 or low_any low_any cond
+j liq_done
+liq_skip:
+move liqC 0
+liq_done:
 
 # If condition not met -> ensure devices are OFF
 beqz low_any no_on

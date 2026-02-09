@@ -1,45 +1,108 @@
-# gas_temp_active_vent
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Turn an Active Vent on when gas temperature is above a threshold.
-#
-# Device registers:
-#   d0 = Gas Sensor
-#   d1 = Active Vent
-#
-# Notes:
-# - Gas Sensor Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - This is a simple threshold controller:
-#     * ON  when tempC > TEMP_ON_ABOVE_C
-#     * OFF otherwise
-
-alias gas_read d0
+﻿# gas_temp_active_vent: d0=Gas Sensor, d1=Active Vent (temp K->C, pressure kPa)
+alias room_sensor d0
 alias vent d1
-
 alias tempC r0
-alias cond r1
-alias desired_on r2
-alias current_on r3
-
-define KELVIN_TO_C 273.15
-define TEMP_ON_ABOVE_C 30
-
-main:
-# read temperature (K) and convert to Celsius
-l tempC gas_read Temperature
-sub tempC tempC KELVIN_TO_C
-
-# compute desired state
-slt cond TEMP_ON_ABOVE_C tempC
-select desired_on cond 1 0
-
-# avoid redundant writes (and network spam): only set when it changes
-l current_on vent On
-sne cond desired_on current_on
-beqz cond skip_write
-s vent On desired_on
-skip_write:
-
+alias roomKpa r1
+alias cooling r2
+alias saw_phase r3
+alias saw_count r12
+alias vent_on r4
+alias vent_mode r5
+alias desired_on r6
+alias desired_mode r7
+alias cond r8
+alias thresh r9
+alias temp_hi r10
+alias press_ok r11
+alias mode_changed r13
+alias cooling_prev r14
+define K2C 273.15
+define SUCK 1
+define BLOW 0
+define T_ON 30
+define T_OFF 20
+define P_REL_ON 149
+define P_REL_OFF 80
+define P_COOL_ON 90
+define P_COOL_OFF 140
+define PEX_BLOW 101
+define PIN_BLOW 0
+define PEX_SUCK 0
+define PIN_SUCK 50
+define SAW_BLOW_PERIOD 20
+define SAW_SUCK_PERIOD 80
+wait:
 yield
-j main
+bdns d0 wait
+bdns d1 wait
+loop:
+ l tempC room_sensor Temperature
+ sub tempC tempC K2C
+ l roomKpa room_sensor Pressure
+ l vent_on vent On
+ l vent_mode vent Mode
+ sne cond vent_mode BLOW
+ seqz cond cond
+ and cond cond vent_on
+ select thresh cond P_REL_OFF P_REL_ON
+ slt cond thresh roomKpa
+ beqz cond temp_ctl
+ move desired_on 1
+ move desired_mode BLOW
+ move cooling 0
+j apply
+temp_ctl:
+ slt cond tempC T_OFF
+ select cooling cond 0 cooling
+ slt cond P_COOL_OFF roomKpa
+ select cooling cond 0 cooling
+ slt temp_hi T_ON tempC
+ slt press_ok roomKpa P_COOL_ON
+ and cond temp_hi press_ok
+ seqz thresh cooling
+ and cond cond thresh
+ select cooling cond 1 cooling
+ beqz cooling cool_off
+ move desired_on 1
+ sne cond cooling cooling_prev
+ and cond cond cooling
+ beqz cond cool_phase
+ move saw_phase 0
+ move saw_count 0
+cool_phase:
+ add saw_count saw_count 1
+ seqz cond saw_phase
+ select thresh cond SAW_SUCK_PERIOD SAW_BLOW_PERIOD
+ slt cond saw_count thresh
+ bnez cond saw_keep
+ move saw_count 0
+ seqz saw_phase saw_phase
+saw_keep:
+ select desired_mode saw_phase BLOW SUCK
+j apply
+cool_off:
+ move desired_on 0
+ move desired_mode vent_mode
+ move saw_phase 0
+ move saw_count 0
+apply:
+ sne cond desired_mode vent_mode
+ move mode_changed cond
+ beqz cond m_ok
+ s vent Mode desired_mode
+m_ok:
+ beqz mode_changed p_ok
+ sne cond desired_mode BLOW
+ seqz cond cond
+ select thresh cond PEX_BLOW PEX_SUCK
+ s vent PressureExternal thresh
+ select thresh cond PIN_BLOW PIN_SUCK
+ s vent PressureInternal thresh
+p_ok:
+ sne cond desired_on vent_on
+ beqz cond o_ok
+ s vent On desired_on
+o_ok:
+ move cooling_prev cooling
+yield
+j loop

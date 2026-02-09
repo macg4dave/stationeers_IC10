@@ -7,10 +7,10 @@ Every ~30 seconds, read **Temperature** from:
 - a **Liquid Pipe Analyzer** (liquid pipe network), and
 - a **Pipe Analyzer** (gas pipe network)
 
-If **any** measured temperature is below **20°C** and **none** are above **30°C**, then:
+If **either** measured temperature is below its threshold, then:
 
 - turn **ON** a **Pipe Digital Valve**
-- set an **Advanced Furnace** to `Activate = 1` for ~5 seconds
+- set an **Advanced Furnace** to `Activate = 1` for a short pulse (~1 second by default)
 - then turn the valve back **OFF**
 
 ## Devices
@@ -56,18 +56,28 @@ $$C = K - 273.15$$
 
 ### Trigger condition
 
-The pulse runs when:
+The pulse runs when **any enabled check** is below its threshold:
 
-- `(liquidTempC < 20) OR (gasTempC < 20)`
-- AND `(liquidTempC <= 30) AND (gasTempC <= 30)`
+- gas/air: `gasTempC < 30`
+- liquid: `liquidTempC < 80`
 
-So if either side is “cold”, but either side is “too hot”, it will **not** pulse.
+The thresholds are currently hard-coded in the script (search for `slt ... 30` / `slt ... 80`).
+
+### Selecting what to check (CHECK_TYPE)
+
+In `dual_analyzer_furnace_pulse.ic10`, set:
+
+- `CHECK_TYPE = 0` → check **both** gas + liquid (default)
+- `CHECK_TYPE = 1` → check **gas/air only** (Pipe Analyzer on `d1`)
+- `CHECK_TYPE = 2` → check **liquid only** (Liquid Pipe Analyzer on `d0`)
+
+If you pick gas-only or liquid-only, the script will skip reading the other analyzer.
 
 ### Timing
 
 IC10 can only wait in ticks (`yield`). The defaults assume **~2 ticks/second**:
 
-- `PULSE_TICKS = 10`  → ~5 seconds
+- `PULSE_TICKS = 2`   → ~1 second
 - `LOOP_TICKS = 60`   → ~30 seconds
 
 If your in-game timing differs, adjust these constants in `dual_analyzer_furnace_pulse.ic10`.
@@ -76,8 +86,7 @@ If your in-game timing differs, adjust these constants in `dual_analyzer_furnace
 
 In `dual_analyzer_furnace_pulse.ic10`:
 
-- `TEMP_LOW_C` (°C): “cold” threshold (default 20)
-- `TEMP_HIGH_C` (°C): “too hot” ceiling (default 30)
+- `CHECK_TYPE`: which analyzer(s) to read (0=both, 1=gas only, 2=liquid only)
 - `PULSE_TICKS`: how long to set `Activate = 1`
 - `LOOP_TICKS`: how often to re-check and potentially pulse
 

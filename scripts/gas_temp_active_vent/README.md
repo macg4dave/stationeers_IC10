@@ -2,7 +2,11 @@
 
 ## Purpose
 
-Turn an **Active Vent** on when a **Gas Sensor** reports a temperature above a threshold.
+Control one **Active Vent** using a **Gas Sensor**:
+
+- If room pressure is too high: force **BLOW** (pressure relief) until safe.
+- If room is too hot and pressure is in a safe range: run a simple **sawtooth** cycle
+   by alternating vent Mode between **SUCK/BLOW** while ON to help equalize temp/pressure.
 
 ## Devices
 
@@ -32,7 +36,29 @@ Required:
 
 Edit the constants at the top of `gas_temp_active_vent.ic10`:
 
-- `TEMP_ON_ABOVE_C` (°C): vent is forced **ON** when `tempC > TEMP_ON_ABOVE_C`.
+Temperature (°C):
+
+- `T_ON`: start cooling when `tempC > T_ON`
+- `T_OFF`: stop cooling when `tempC < T_OFF`
+
+Pressure (kPa):
+
+- `P_REL_ON`: start relief (force BLOW) when `pressure > P_REL_ON`
+- `P_REL_OFF`: stop relief when `pressure < P_REL_OFF`
+- `P_COOL_ON`: allow cooling to start only when `pressure < P_COOL_ON`
+- `P_COOL_OFF`: stop cooling if `pressure > P_COOL_OFF`
+
+Active Vent pressure setpoints (kPa):
+
+- `PEX_BLOW` / `PIN_BLOW`: setpoints used in BLOW (Outward / Mode 0)
+- `PEX_SUCK` / `PIN_SUCK`: setpoints used in SUCK (Inward / Mode 1)
+
+Note: the Active Vent resets these values when Mode changes, so the script writes
+them *after* any Mode write.
+
+Mode mapping:
+
+- `SUCK` / `BLOW`: if your vent behaves opposite to what you expect, swap these values.
 
 Temperature notes:
 
