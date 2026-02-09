@@ -28,3 +28,7 @@ The exact names are optional, but consistency helps.
 
 - These scripts are intended to be pasted into the **in-game** IC10 chip.
 - Repo tooling/source files are not constrained by in-game chip limits unless you are producing final paste-into-game IC10.
+
+## Script list
+
+- `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.

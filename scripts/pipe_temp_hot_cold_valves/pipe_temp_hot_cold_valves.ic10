@@ -1,0 +1,72 @@
+# pipe_temp_hot_cold_valves
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Route flow based on pipe temperature.
+#   - If tempC < 20C: open the "cold" valve
+#   - If tempC > 40C: open the "hot" valve
+#   - Otherwise: close both
+#
+# Device registers:
+#   d0 = Pipe Analyzer (temperature source)
+#   d1 = Pipe Digital Valve ("cold" path)
+#   d2 = Pipe Digital Valve ("hot" path)
+#
+# Notes:
+# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+
+alias pipe_read d0
+alias valve_cold d1
+alias valve_hot d2
+
+alias tempC r0
+alias cond r1
+
+alias cold_desired r2
+alias hot_desired r3
+
+alias cold_current r4
+alias hot_current r5
+
+define KELVIN_TO_C 273.15
+define TEMP_COLD_BELOW_C 20
+define TEMP_HOT_ABOVE_C 40
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+
+main:
+# read temperature (K) and convert to Celsius
+l tempC pipe_read Temperature
+sub tempC tempC KELVIN_TO_C
+
+# default: both closed
+move cold_desired 0
+move hot_desired 0
+
+# if tempC < TEMP_COLD_BELOW_C => cold open
+slt cond tempC TEMP_COLD_BELOW_C
+select cold_desired cond 1 cold_desired
+
+# if tempC > TEMP_HOT_ABOVE_C => hot open
+slt cond TEMP_HOT_ABOVE_C tempC
+select hot_desired cond 1 hot_desired
+
+# avoid redundant writes (and network spam)
+l cold_current valve_cold On
+sne cond cold_desired cold_current
+beqz cond skip_cold_write
+s valve_cold On cold_desired
+skip_cold_write:
+
+l hot_current valve_hot On
+sne cond hot_desired hot_current
+beqz cond skip_hot_write
+s valve_hot On hot_desired
+skip_hot_write:
+
+yield
+j main
