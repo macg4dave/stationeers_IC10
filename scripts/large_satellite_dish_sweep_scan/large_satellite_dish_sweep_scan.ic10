@@ -1,8 +1,6 @@
 # Sweep scan (Important Button toggles).
 # d0=dish, d1=Important Button.
 # Stops on SignalID or strength threshold; skips last SignalID.
-# TARGET_SIGNAL_ID=0 => any non-zero.
-# BestContactFilter set when non-zero.
 alias dish d0
 alias start_btn d1
 alias scan_enabled r0
@@ -24,12 +22,10 @@ define H_MAX 359
 define H_STEP 10
 define V_MIN 0
 define V_MAX 89
-define V_STEP 5
+define V_STEP 10
 # strength threshold (dB); set STOP_ON_STRENGTH=0 to disable
 define STOP_ON_STRENGTH 1
 define SIGNAL_STRENGTH_STOP -10
-
-# 0 => accept any non-zero signal id; otherwise require exact match
 define TARGET_SIGNAL_ID 0
 
 init:
@@ -47,6 +43,7 @@ bdns start_btn main
 l pressed start_btn Activate
 beqz pressed skip_toggle
 move scan_enabled 1
+move last_signal_id signal_id
 beqz TARGET_SIGNAL_ID set_filter_any
 s dish BestContactFilter TARGET_SIGNAL_ID
 j skip_filter
@@ -64,6 +61,47 @@ bnez errored main
 
 l idle dish Idle
 beqz idle main
+j no_signal
+
+found:
+move last_signal_id signal_id
+move scan_enabled 0
+s db Setting signal_id
+j main
+
+no_signal:
+move tmp H_STEP
+mul tmp tmp h_dir
+add tmp h_curr tmp
+bgt tmp H_MAX over_max
+blt tmp H_MIN under_min
+move h_curr tmp
+j do_move
+
+over_max:
+move h_curr H_MAX
+move h_dir -1
+j bump_vertical
+
+under_min:
+move h_curr H_MIN
+move h_dir 1
+j bump_vertical
+
+bump_vertical:
+add v_curr v_curr V_STEP
+ble v_curr V_MAX keep_v
+move v_curr V_MIN
+keep_v:
+
+do_move:
+s dish Horizontal h_curr
+s dish Vertical v_curr
+
+wait_idle:
+l idle dish Idle
+beqz idle wait_idle
+sleep 1
 
 l signal_id dish SignalID
 beqz TARGET_SIGNAL_ID any_signal
@@ -83,41 +121,3 @@ l signal_strength dish SignalStrength
 sge cond signal_strength SIGNAL_STRENGTH_STOP
 beqz cond no_signal
 j found
-
-found:
-move last_signal_id signal_id
-
-found_shared:
-move scan_enabled 0
-s db Setting signal_id
-j main
-
-no_signal:
-move tmp H_STEP
-mul tmp tmp h_dir
-add tmp h_curr tmp
-bgt tmp H_MAX over_max
-blt tmp H_MIN under_min
-move h_curr tmp
-j move_dish
-
-over_max:
-move h_curr H_MAX
-move h_dir -1
-j bump_vertical
-
-under_min:
-move h_curr H_MIN
-move h_dir 1
-j bump_vertical
-
-bump_vertical:
-add v_curr v_curr V_STEP
-ble v_curr V_MAX keep_v
-move v_curr V_MIN
-keep_v:
-
-move_dish:
-s dish Horizontal h_curr
-s dish Vertical v_curr
-j main

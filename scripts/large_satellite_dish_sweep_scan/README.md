@@ -8,6 +8,7 @@
 Button toggles a deterministic sweep:
 
 - Steps Horizontal by `H_STEP`; when hitting an edge, flips direction and steps Vertical by `V_STEP`.
+- After each move, waits for `Idle` and pauses 1 second before checking for signals.
 - Wraps Vertical after `V_MAX` back to `V_MIN` and keeps sweeping.
 - Stops when a Signal is detected (SignalID match or SignalStrength threshold).
 - Skips re-locking the last SignalID seen.
@@ -39,7 +40,7 @@ When it stops, it writes the found `SignalID` to `db Setting` and leaves the dis
 In `large_satellite_dish_sweep_scan.ic10`:
 
 - `H_MIN/H_MAX`, `V_MIN/V_MAX` — sweep bounds (inclusive).
-- `H_STEP`, `V_STEP` — sweep increments.
+- `H_STEP`, `V_STEP` — sweep increments (set to `10` by default).
 - `TARGET_SIGNAL_ID`
   - `0` = stop on any non-zero `SignalID`
   - non-zero = require exact match; also sets `BestContactFilter` to that value while scanning
