@@ -102,6 +102,40 @@ def _normalize_type(type_str: str) -> str:
     return t
 
 
+def _normalize_field_name(field_name: str) -> str:
+    """Normalize known wiki inconsistencies/typos for IO field names."""
+
+    name = field_name.strip()
+    # Common typo seen in some Data Network templates.
+    if name == "Referenceld":
+        return "ReferenceId"
+    return name
+
+
+def _dedupe_fields(fields: List[IoField]) -> List[IoField]:
+    """Deduplicate fields by (name,type).
+
+    Some wiki tables include both a high-level row and a 0/1 enumerated row for
+    the same parameter (e.g. Idle). We keep the earliest occurrence and fill an
+    empty description from later duplicates.
+    """
+
+    out: List[IoField] = []
+    seen: dict[tuple[str, str], int] = {}
+    for f in fields:
+        key = (f.name, f.type)
+        if key not in seen:
+            seen[key] = len(out)
+            out.append(f)
+            continue
+
+        i = seen[key]
+        if (not out[i].description) and f.description:
+            out[i] = IoField(name=out[i].name, type=out[i].type, description=f.description)
+
+    return out
+
+
 def _infer_type_from_name(field_name: str) -> Optional[str]:
     """Best-effort fallback for pages where the Data Type column is blank.
 
@@ -219,6 +253,21 @@ def _extract_first_table_after_anchor_prefix(
     return html[table_start : table_end + len("</table>")]
 
 
+def _extract_first_table_after_any_anchor_prefix(
+    html: str,
+    anchor_prefixes: Iterable[str],
+    *,
+    start_pos: int = 0,
+) -> Optional[str]:
+    """Try multiple anchor prefixes and return the first matching table."""
+
+    for prefix in anchor_prefixes:
+        table = _extract_first_table_after_anchor_prefix(html, prefix, start_pos=start_pos)
+        if table:
+            return table
+    return None
+
+
 def _parse_io_table(table_html: str) -> List[IoField]:
     parser = _TableTextExtractor()
     parser.feed(table_html)
@@ -260,6 +309,8 @@ def _parse_io_table(table_html: str) -> List[IoField]:
             continue
         if re.fullmatch(r"[0-9]+", name):
             continue
+
+        name = _normalize_field_name(name)
 
         t = _normalize_type(r[type_i])
         if t not in allowed_types:
@@ -316,6 +367,8 @@ def _parse_data_parameters_table(table_html: str) -> tuple[List[IoField], List[I
         name = r[name_i].strip()
         if not name or re.fullmatch(r"[0-9]+", name):
             continue
+
+        name = _normalize_field_name(name)
 
         t = _normalize_type(r[type_i])
         if t not in allowed_types:
@@ -482,6 +535,34 @@ def fetch_html(url: str) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def _with_query(url: str, *, query: str) -> str:
+    """Return url with the given query string.
+
+    If the URL already contains a query, it will be replaced.
+    """
+
+    parsed = urlparse(url)
+    return parsed._replace(query=query).geturl()
+
+
+def _extract_transcluded_data_network_title(edit_html: str) -> Optional[str]:
+    """Try to find a transcluded */Data_Network page title from edit view HTML.
+
+    Many device pages don't embed the IO tables directly; instead they include a
+    collapsible transclusion like:
+      {{:Kit_(Satellite_Dish)/Data_Network}}
+
+    This function is intentionally permissive and only returns the first match.
+    """
+
+    # The edit page HTML contains the raw wikitext inside the form.
+    # Look for a transclusion that ends with /Data_Network.
+    m = re.search(r"\{\{\s*:\s*([^\}|\n]+?/Data_Network)\s*\}\}", edit_html)
+    if not m:
+        return None
+    return m.group(1).strip()
+
+
 def upsert_index(entry: dict) -> None:
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     if INDEX_PATH.exists():
@@ -538,6 +619,50 @@ def main(argv: List[str]) -> int:
     if outputs_table:
         outs.extend(_parse_io_table(outputs_table))
 
+    # Some pages (e.g. Satellite Dish variants) do not use the Data_Parameters /
+    # Data_Outputs anchors. Instead they render IO under:
+    #   "Input Data (Write)" and "Output Data (Read)"
+    # Often this content is transcluded from a */Data_Network page.
+    if not params and not outs:
+        # MediaWiki encodes parentheses in ids as .28 and .29.
+        input_table = _extract_first_table_after_any_anchor_prefix(
+            html,
+            ["Input_Data_(Write)", "Input_Data_.28Write.29"],
+        )
+        output_table = _extract_first_table_after_any_anchor_prefix(
+            html,
+            ["Output_Data_(Read)", "Output_Data_.28Read.29"],
+        )
+        if input_table:
+            params.extend(_parse_io_table(input_table))
+        if output_table:
+            outs.extend(_parse_io_table(output_table))
+
+    if not params and not outs:
+        # Attempt to follow a transclusion to */Data_Network by grabbing the edit view.
+        try:
+            edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
+        except Exception:
+            edit_html = ""
+
+        dn_title = _extract_transcluded_data_network_title(edit_html) if edit_html else None
+        if dn_title:
+            # Fetch the transcluded page and parse its Input/Output tables.
+            dn_url = f"https://stationeers-wiki.com/{dn_title}"
+            dn_html = fetch_html(dn_url)
+            input_table = _extract_first_table_after_any_anchor_prefix(
+                dn_html,
+                ["Input_Data_(Write)", "Input_Data_.28Write.29"],
+            )
+            output_table = _extract_first_table_after_any_anchor_prefix(
+                dn_html,
+                ["Output_Data_(Read)", "Output_Data_.28Read.29"],
+            )
+            if input_table:
+                params.extend(_parse_io_table(input_table))
+            if output_table:
+                outs.extend(_parse_io_table(output_table))
+
     if section_start_pos is not None:
         # For multi-device pages (e.g., Sensors), we can usually derive the Prefab Name.
         # Example: "Gas_Sensor" section corresponds to prefab "StructureGasSensor".
@@ -570,8 +695,8 @@ def main(argv: List[str]) -> int:
             "itemHash": item_hash,
         },
         io={
-            "parameters": [asdict(f) for f in params],
-            "outputs": [asdict(f) for f in outs],
+            "parameters": [asdict(f) for f in _dedupe_fields(params)],
+            "outputs": [asdict(f) for f in _dedupe_fields(outs)],
         },
     )
 

@@ -1,0 +1,123 @@
+# Sweep scan (Important Button toggles).
+# d0=dish, d1=Important Button.
+# Stops on SignalID or strength threshold; skips last SignalID.
+# TARGET_SIGNAL_ID=0 => any non-zero.
+# BestContactFilter set when non-zero.
+alias dish d0
+alias start_btn d1
+alias scan_enabled r0
+alias pressed r1
+alias powered r2
+alias errored r3
+alias idle r4
+alias signal_id r5
+alias cond r6
+alias tmp r7
+alias h_curr r8
+alias v_curr r9
+alias h_dir r10
+alias signal_strength r11
+alias last_signal_id r12
+# bounds and steps
+define H_MIN 0
+define H_MAX 359
+define H_STEP 10
+define V_MIN 0
+define V_MAX 89
+define V_STEP 5
+# strength threshold (dB); set STOP_ON_STRENGTH=0 to disable
+define STOP_ON_STRENGTH 1
+define SIGNAL_STRENGTH_STOP -10
+
+# 0 => accept any non-zero signal id; otherwise require exact match
+define TARGET_SIGNAL_ID 0
+
+init:
+move scan_enabled 0
+move last_signal_id 0
+move h_curr H_MIN
+move v_curr V_MIN
+move h_dir 1
+
+main:
+yield
+bdns dish main
+bdns start_btn main
+
+l pressed start_btn Activate
+beqz pressed skip_toggle
+move scan_enabled 1
+beqz TARGET_SIGNAL_ID set_filter_any
+s dish BestContactFilter TARGET_SIGNAL_ID
+j skip_filter
+set_filter_any:
+s dish BestContactFilter -1
+skip_filter:
+
+skip_toggle:
+beqz scan_enabled main
+
+l powered dish Power
+beqz powered main
+l errored dish Error
+bnez errored main
+
+l idle dish Idle
+beqz idle main
+
+l signal_id dish SignalID
+beqz TARGET_SIGNAL_ID any_signal
+seq cond signal_id TARGET_SIGNAL_ID
+beqz cond no_signal
+j check_strength
+
+any_signal:
+snez cond signal_id
+beqz cond no_signal
+seq cond signal_id last_signal_id
+bnez cond no_signal
+
+check_strength:
+beqz STOP_ON_STRENGTH found
+l signal_strength dish SignalStrength
+sge cond signal_strength SIGNAL_STRENGTH_STOP
+beqz cond no_signal
+j found
+
+found:
+move last_signal_id signal_id
+
+found_shared:
+move scan_enabled 0
+s db Setting signal_id
+j main
+
+no_signal:
+move tmp H_STEP
+mul tmp tmp h_dir
+add tmp h_curr tmp
+bgt tmp H_MAX over_max
+blt tmp H_MIN under_min
+move h_curr tmp
+j move_dish
+
+over_max:
+move h_curr H_MAX
+move h_dir -1
+j bump_vertical
+
+under_min:
+move h_curr H_MIN
+move h_dir 1
+j bump_vertical
+
+bump_vertical:
+add v_curr v_curr V_STEP
+ble v_curr V_MAX keep_v
+move v_curr V_MIN
+keep_v:
+
+move_dish:
+s dish Horizontal h_curr
+s dish Vertical v_curr
+j main

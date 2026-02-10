@@ -1,0 +1,172 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Large_Satellite_Dish",
+    "wikiTitle": "Large_Satellite_Dish",
+    "retrievedAt": "2026-02-10T01:20:21+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the device off. Also toggles the switch accordingly."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "If the vessel's being interrogated, stop interrogating the vessel; or nothing."
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": "Set output watts to the specified number."
+      },
+      {
+        "name": "Horizontal",
+        "type": "integer",
+        "description": "Set dish's horizontal angle to the specified number."
+      },
+      {
+        "name": "Vertical",
+        "type": "integer",
+        "description": "Set dish's vertical angle to the specified number."
+      },
+      {
+        "name": "TargetPadIndex",
+        "type": "integer",
+        "description": "Sets the landing pad index for potential call down."
+      },
+      {
+        "name": "BestContactFilter",
+        "type": "integer",
+        "description": "Lock dish to track the specified ContactIDHash ONLY, set to -1 to unlock."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "The Dish is not powered. This is the same as the physical red powerswitch located on the structure."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Read out current Activate value; if Activate == 1, it means the dish is either interrogating the vessel or the vessel is just coming down to landing pad."
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "The dish is not powered. Can be read to determine if the dish is correctly powered or not. Set by the power system, return 1 if powered and 0 if not."
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": "Read out current dish's output watts."
+      },
+      {
+        "name": "Horizontal",
+        "type": "integer",
+        "description": "Read out current dish's horizontal angle."
+      },
+      {
+        "name": "Vertical",
+        "type": "integer",
+        "description": "Read out current dish's vertical angle."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Idle operating power quantity. Does not include extra power during actual usage."
+      },
+      {
+        "name": "Idle",
+        "type": "boolean",
+        "description": "Read out if the dish is not moving."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "1 if device is in error state, otherwise 0."
+      },
+      {
+        "name": "SignalStrength",
+        "type": "integer",
+        "description": "The signal strength of currently tracking signal, negative value, larger is better. If the dish is moving, this value always show -1."
+      },
+      {
+        "name": "SignalID",
+        "type": "integer",
+        "description": "The signal IDHASH of currently tracking signal."
+      },
+      {
+        "name": "InterrogationProgress",
+        "type": "integer",
+        "description": "This value only has meaning if the dish has started interrogation to the vessel. Show's percentage on the process of the interrogation."
+      },
+      {
+        "name": "TargetPadIndex",
+        "type": "integer",
+        "description": "Read out current value of target landing pad index, useful if you want to call down the vessel by code."
+      },
+      {
+        "name": "SizeX",
+        "type": "integer",
+        "description": "The length on X axis of the vessel, see SHUTTLE_TYPE."
+      },
+      {
+        "name": "SizeZ",
+        "type": "integer",
+        "description": "The length on Z axis of the vessel, see SHUTTLE_TYPE."
+      },
+      {
+        "name": "Reagents",
+        "type": "integer",
+        "description": "Total number of reagents inside the device (e.g. 92g of iron = 92)."
+      },
+      {
+        "name": "MinimumWattsToContact",
+        "type": "integer",
+        "description": "The minimum watts required reaching target vessel before one can initiate interrogation. This is the requirement imposed by the vessel."
+      },
+      {
+        "name": "WattsReachingContact",
+        "type": "integer",
+        "description": "The current effective watts reached target vessel due to angle setting and dish's watts output setting."
+      },
+      {
+        "name": "ContactTypeId",
+        "type": "integer",
+        "description": "The category of the vessel, see ContactTypeID."
+      },
+      {
+        "name": "BestContactFilter",
+        "type": "integer",
+        "description": "Currently locked ContactID, or -1 if not set."
+      },
+      {
+        "name": "StackSize",
+        "type": "integer",
+        "description": "Read out the stack Byte count of the structure."
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": "The hash of the custom name of the structure."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "The hash of the structure."
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": "Unique Reference Identifier for this object."
+      }
+    ]
+  }
+}

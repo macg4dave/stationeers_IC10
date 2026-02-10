@@ -1,26 +1,4 @@
-# room_pressure_active_vent
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - Read room pressure from a Gas Sensor.
-# - If pressure is below LOW_PRESSURE_KPA: set Active Vent to Intake mode
-#   and turn it ON.
-# - If pressure is above HIGH_PRESSURE_KPA: set Active Vent to Exhaust mode
-#   and turn it ON.
-# - Otherwise: leave vent settings unchanged.
-#
-# Device registers:
-#   d0 = Gas Sensor   [Pressure]
-#   d1 = Active Vent  [Mode, On]
-#
-# Notes:
-# - Pressure is in kPa.
-# - Active Vent modes (see wiki):
-#   - Mode 0 = Outward (pipe -> room)  [pressurize / "intake"]
-#   - Mode 1 = Inward  (room -> pipe)  [depressurize / "exhaust"]
-# - When pressure is between thresholds, loop checks every LOOP_SLEEP_S seconds.
-# - When actively intaking/exhausting, loop checks every tick (via yield) until the condition clears.
+# room_pressure_active_vent (compact)
 
 alias sensor d0
 alias vent d1
@@ -35,16 +13,8 @@ define STATE_EXHAUST 2
 
 define LOW_PRESSURE_KPA 90
 define HIGH_PRESSURE_KPA 120
-define MODE_OUTWARD 1
-define MODE_INWARD 0
-
-# Vent pressure constraints:
-# - In Mode 0 (outward), vent will increase room pressure up to PressureExternal,
-#   but won't let pipe pressure drop below PressureInternal.
-# - In Mode 1 (inward), vent will decrease room pressure down to PressureExternal,
-#   and won't let pipe pressure exceed PressureInternal.
-define MIN_PIPE_PRESSURE_KPA 40000
-define MAX_PIPE_PRESSURE_KPA 50000
+define MODE_OUTWARD 0
+define MODE_INWARD 1
 
 define LOOP_SLEEP_S 5
 
@@ -54,9 +24,9 @@ bdns d0 wait
 bdns d1 wait
 
 move state STATE_IDLE
+j stop
 
 main:
-# read room pressure (kPa)
 l p sensor Pressure
 
 # if we're currently intaking, keep locked until we reach LOW_PRESSURE_KPA
@@ -86,7 +56,12 @@ bnez cond do_intake
 sgt cond p HIGH_PRESSURE_KPA
 bnez cond do_exhaust
 
-# between thresholds => no changes
+# between thresholds
+seq cond state STATE_IDLE
+bnez cond idle
+j stop
+
+idle:
 sleep LOOP_SLEEP_S
 j main
 
