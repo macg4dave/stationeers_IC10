@@ -68,11 +68,12 @@ j main
 do_intake:
 move state STATE_INTAKE
 
-# lock, set mode, then set pressures (mode reset warning)
-s vent Lock 1
+# unlock, set mode, then enable and lock
+s vent Lock 0
 s vent Mode MODE_OUTWARD
 s vent Open 1
 s vent On 1
+s vent Lock 1
 
 yield
 j main
@@ -80,11 +81,12 @@ j main
 do_exhaust:
 move state STATE_EXHAUST
 
-# lock, set mode, then set pressures (mode reset warning)
-s vent Lock 1
+# unlock, set mode, then enable and lock
+s vent Lock 0
 s vent Mode MODE_INWARD
 s vent Open 1
 s vent On 1
+s vent Lock 1
 
 yield
 j main

@@ -1,0 +1,80 @@
+# active_vent_dual_sets
+# Category: Set Controller
+# Status: Functional
+#
+# Purpose: Set one named group of Active Vents to intake (inward)
+#          and another named group to exhaust (outward), gated by
+#          room temperature from a Gas Sensor.
+#
+# Notes:
+# - Uses sbn with NameHash, which matches exact names only.
+# - Rename ALL intake vents to the same exact name (e.g. "IN") and
+#   ALL exhaust vents to another exact name (e.g. "OUT").
+# - If intake/exhaust are reversed in your build, swap MODE_INWARD/OUTWARD.
+
+alias sensor d0
+
+alias temp_c r0
+alias cond r1
+alias vent_hash r2
+alias in_name_hash r3
+alias out_name_hash r4
+
+# Active Vent prefab hash
+move vent_hash HASH("StructureActiveVent")
+
+# Name hashes (exact match)
+move in_name_hash HASH("IN")
+move out_name_hash HASH("OUT")
+
+# Active Vent mode values (swap if needed)
+define MODE_INWARD 0
+define MODE_OUTWARD 1
+
+# Desired state for both groups
+define DESIRED_OPEN 1
+define DESIRED_ON 1
+define DESIRED_LOCK 1
+
+define TEMP_THRESHOLD_C 30
+define LOOP_SLEEP_S 5
+
+wait:
+yield
+bdns d0 wait
+
+main:
+l temp_c sensor Temperature
+
+# If temp < threshold, turn both groups off
+slt cond temp_c TEMP_THRESHOLD_C
+beqz cond set_on
+
+sbn vent_hash in_name_hash Lock 0
+sbn vent_hash in_name_hash On 0
+sbn vent_hash in_name_hash Open 0
+
+sbn vent_hash out_name_hash Lock 0
+sbn vent_hash out_name_hash On 0
+sbn vent_hash out_name_hash Open 0
+
+sleep LOOP_SLEEP_S
+j main
+
+set_on:
+# Intake group (IN)
+sbn vent_hash in_name_hash Lock 0
+sbn vent_hash in_name_hash Mode MODE_INWARD
+sbn vent_hash in_name_hash Open DESIRED_OPEN
+sbn vent_hash in_name_hash On DESIRED_ON
+sbn vent_hash in_name_hash Lock DESIRED_LOCK
+
+# Exhaust group (OUT)
+sbn vent_hash out_name_hash Lock 0
+sbn vent_hash out_name_hash Mode MODE_OUTWARD
+sbn vent_hash out_name_hash Open DESIRED_OPEN
+sbn vent_hash out_name_hash On DESIRED_ON
+sbn vent_hash out_name_hash Lock DESIRED_LOCK
+
+sleep LOOP_SLEEP_S
+j main
