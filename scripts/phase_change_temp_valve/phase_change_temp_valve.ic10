@@ -1,0 +1,44 @@
+# phase_change_temp_valve
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Open a Pipe Digital Valve when a phase_change_device is above 30C.
+#
+# Device registers:
+#   d0 = phase_change_device
+#   d1 = Pipe Digital Valve
+#
+# Notes:
+# - Device Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+
+alias phase_change d0
+alias valve d1
+
+alias tempC r0
+alias cond r1
+alias desired_on r2
+alias current_on r3
+
+define KELVIN_TO_C 273.15
+define TEMP_OPEN_ABOVE_C 30
+
+main:
+l tempC phase_change Temperature
+sub tempC tempC KELVIN_TO_C
+
+# default: keep current valve state
+l current_on valve On
+move desired_on current_on
+
+# if tempC > TEMP_OPEN_ABOVE_C => open valve, else close
+slt cond TEMP_OPEN_ABOVE_C tempC
+select desired_on cond 1 0
+
+# avoid redundant writes (and network spam): only set when it changes
+sne cond desired_on current_on
+beqz cond skip_write
+s valve On desired_on
+skip_write:
+
+yield
+j main
