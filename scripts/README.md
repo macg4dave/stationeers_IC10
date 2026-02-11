@@ -38,3 +38,4 @@ The exact names are optional, but consistency helps.
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
+- `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.

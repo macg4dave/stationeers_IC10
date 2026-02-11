@@ -1,0 +1,57 @@
+# liquid_pipe_fill_percent_active_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Turn on an Active Vent when liquid volume is below a % of total volume.
+#
+# Device registers:
+#   d0 = Liquid Pipe Analyzer
+#   d1 = Active Vent
+#
+# Notes:
+# - Uses Volume and VolumeOfLiquid from the Liquid Pipe Analyzer.
+# - VENT_MODE: 0 = Outward (exhaust), 1 = Inward (intake). Verify in the device UI.
+
+alias pipe_read d0
+alias vent d1
+
+alias volume r0
+alias liquid_volume r1
+alias threshold_volume r2
+alias desired_on r3
+alias current_on r4
+alias cond r5
+alias desired_mode r6
+alias current_mode r7
+
+define LIQUID_THRESHOLD_PERCENT 50
+define VENT_MODE 0
+
+main:
+l volume pipe_read Volume
+l liquid_volume pipe_read VolumeOfLiquid
+mul threshold_volume volume LIQUID_THRESHOLD_PERCENT
+div threshold_volume threshold_volume 100
+
+# desired_on = 1 when liquid_volume < threshold_volume, else 0
+move desired_on 0
+slt cond liquid_volume threshold_volume
+select desired_on cond 1 desired_on
+
+# set vent mode (intake/exhaust) if needed
+move desired_mode VENT_MODE
+l current_mode vent Mode
+sne cond desired_mode current_mode
+beqz cond skip_mode
+s vent Mode desired_mode
+skip_mode:
+
+# avoid redundant writes (and network spam): only set when it changes
+l current_on vent On
+sne cond desired_on current_on
+beqz cond skip_on
+s vent On desired_on
+skip_on:
+
+yield
+j main
