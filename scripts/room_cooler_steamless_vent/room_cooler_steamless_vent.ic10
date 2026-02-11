@@ -14,7 +14,7 @@
 # Notes:
 # - Gas Sensor Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
 # - Gas Sensor RatioSteam is a fraction (0..1) of the atmosphere.
-# - This script only toggles the devices' On state; configure Active Vent Mode/Pressure in-game.
+# - Script only toggles On; set Active Vent Mode/Pressure in-game.
 
 alias gas_read d0
 alias cooler d1

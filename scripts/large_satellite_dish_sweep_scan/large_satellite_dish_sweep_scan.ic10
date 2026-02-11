@@ -1,6 +1,5 @@
-# Sweep scan (Important Button toggles).
-# d0=dish, d1=Important Button.
-# Stops on SignalID, strength threshold, or MinimumWattsToContact; skips last SignalID.
+# Sweep scan (Important Button toggles). d0=dish, d1=Important Button.
+# Stops on SignalID / strength threshold / MinimumWattsToContact; skips last SignalID.
 alias dish d0
 alias start_btn d1
 alias scan_enabled r0
@@ -17,31 +16,26 @@ alias h_dir r10
 alias signal_strength r11
 alias last_signal_id r12
 alias min_watts r13
-# bounds and steps
 define H_MIN 0
 define H_MAX 359
 define H_STEP 10
 define V_MIN 0
 define V_MAX 89
 define V_STEP 10
-# strength threshold (dB); set STOP_ON_STRENGTH=0 to disable
 define STOP_ON_STRENGTH 1
 define SIGNAL_STRENGTH_STOP -10
 define MIN_WATTS_STOP 50000
 define TARGET_SIGNAL_ID 0
-
 init:
 move scan_enabled 0
 move last_signal_id 0
 move h_curr H_MIN
 move v_curr V_MIN
 move h_dir 1
-
 main:
 yield
 bdns dish main
 bdns start_btn main
-
 l pressed start_btn Activate
 beqz pressed skip_toggle
 move scan_enabled 1
@@ -52,15 +46,12 @@ j skip_filter
 set_filter_any:
 s dish BestContactFilter -1
 skip_filter:
-
 skip_toggle:
 beqz scan_enabled main
-
 l powered dish Power
 beqz powered main
 l errored dish Error
 bnez errored main
-
 l idle dish Idle
 beqz idle main
 j no_signal
@@ -70,7 +61,6 @@ move last_signal_id signal_id
 move scan_enabled 0
 s db Setting signal_id
 j main
-
 no_signal:
 move tmp H_STEP
 mul tmp tmp h_dir
@@ -79,56 +69,48 @@ bgt tmp H_MAX over_max
 blt tmp H_MIN under_min
 move h_curr tmp
 j do_move
-
 over_max:
 move h_curr H_MAX
 move h_dir -1
 j bump_vertical
-
 under_min:
 move h_curr H_MIN
 move h_dir 1
 j bump_vertical
-
 bump_vertical:
 add v_curr v_curr V_STEP
 ble v_curr V_MAX keep_v
 move v_curr V_MIN
 keep_v:
-
 do_move:
 s dish Horizontal h_curr
 s dish Vertical v_curr
-
 wait_idle:
 l idle dish Idle
 beqz idle wait_idle
 sleep 1
-
 l signal_id dish SignalID
- l min_watts dish MinimumWattsToContact
- seq cond min_watts -1
- bnez cond skip_min_watts
- slt cond min_watts MIN_WATTS_STOP
- bnez cond found
+l signal_id dish SignalID
+l min_watts dish MinimumWattsToContact
+seq cond min_watts -1
+bnez cond skip_min_watts
+slt cond min_watts MIN_WATTS_STOP
+bnez cond found
 skip_min_watts:
 beqz TARGET_SIGNAL_ID any_signal
 seq cond signal_id TARGET_SIGNAL_ID
 beqz cond no_signal
 j check_strength
-
 any_signal:
 snez cond signal_id
 beqz cond no_signal
 seq cond signal_id last_signal_id
 bnez cond no_signal
-
 check_strength:
 beqz STOP_ON_STRENGTH check_min_watts
 l signal_strength dish SignalStrength
 sge cond signal_strength SIGNAL_STRENGTH_STOP
 beqz cond check_min_watts
 j found
-
 check_min_watts:
 j no_signal

@@ -11,6 +11,7 @@
 # Notes:
 # - Uses Volume and VolumeOfLiquid from the Liquid Pipe Analyzer.
 # - VENT_MODE: 0 = Outward (exhaust), 1 = Inward (intake). Verify in the device UI.
+# - Active Vents also need Open=1 to flow.
 
 alias pipe_read d0
 alias vent d1
@@ -23,9 +24,14 @@ alias current_on r4
 alias cond r5
 alias desired_mode r6
 alias current_mode r7
+alias desired_open r8
+alias current_open r9
+alias needs_change r10
+alias desired_lock r11
 
 define LIQUID_THRESHOLD_PERCENT 50
 define VENT_MODE 0
+define VENT_LOCK 0
 
 main:
 l volume pipe_read Volume
@@ -38,20 +44,49 @@ move desired_on 0
 slt cond liquid_volume threshold_volume
 select desired_on cond 1 desired_on
 
-# set vent mode (intake/exhaust) if needed
+# prepare desired state
 move desired_mode VENT_MODE
+move desired_open desired_on
+move desired_lock VENT_LOCK
+
+# read current state
 l current_mode vent Mode
+l current_open vent Open
+l current_on vent On
+
+# determine if any change is needed
+move needs_change 0
+sne cond desired_mode current_mode
+select needs_change cond 1 needs_change
+sne cond desired_open current_open
+select needs_change cond 1 needs_change
+sne cond desired_on current_on
+select needs_change cond 1 needs_change
+beqz needs_change skip_write
+
+# unlock, apply changes, then optionally lock
+s vent Lock 0
+
 sne cond desired_mode current_mode
 beqz cond skip_mode
 s vent Mode desired_mode
 skip_mode:
 
-# avoid redundant writes (and network spam): only set when it changes
-l current_on vent On
+sne cond desired_open current_open
+beqz cond skip_open
+s vent Open desired_open
+skip_open:
+
 sne cond desired_on current_on
 beqz cond skip_on
 s vent On desired_on
 skip_on:
+
+beqz desired_lock skip_lock
+s vent Lock 1
+skip_lock:
+
+skip_write:
 
 yield
 j main
