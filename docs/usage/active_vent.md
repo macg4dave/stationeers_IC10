@@ -27,6 +27,18 @@ When a script "sets the vent" but nothing happens, it's usually because one of t
   - `PressureExternal`
   - `PressureInternal`
 
+### Max-flow setpoints (rule of thumb)
+
+If your goal is "move gas as fast as possible" (i.e. don't let the vent's own pressure
+limits be the bottleneck), a reliable pattern is:
+
+- Set `Setting` and `PressureExternal` to your pipe max (e.g. `MAX_PIPE_PRESSURE_KPA`)
+- Set `PressureInternal` based on `Mode`:
+  - **Outward** (pipe → room): set `PressureInternal` to a *low* minimum pipe pressure
+    (e.g. 0–10 kPa). Setting it to pipe max can prevent outward flow.
+  - **Inward** (room → pipe): set `PressureInternal` to a *high* maximum pipe pressure
+    (e.g. `MAX_PIPE_PRESSURE_KPA`).
+
 ### Mode can reset pressures (gotcha)
 
 Some builds reset pressure fields when you change `Mode`.

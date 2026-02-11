@@ -1,0 +1,42 @@
+# _template
+# Category: Template
+# Status: Starter
+#
+# Purpose: Copy this file/folder to start a new paste-ready IC10 script.
+#
+# Device registers:
+#   d0 = <primary sensor>
+#   d1 = <primary actuator>
+#   (optional) db = IC Housing (debug/status)
+#
+# Notes:
+# - Add `bdns` checks for every required device.
+# - Keep paste limits in mind: 128 lines, 90 chars/line.
+
+alias sensor d0
+alias actuator d1
+
+alias cond r0
+alias tmp r1
+
+define LOOP_SLEEP_S 1
+
+wait_devices:
+	yield
+	bdns d0 wait_devices
+	bdns d1 wait_devices
+
+main:
+	# TODO: read something
+	# l tmp sensor <LogicType>
+
+	# TODO: decide
+	# slt cond tmp 0
+
+	# TODO: write (prefer read-before-write to avoid spam)
+	# l tmp actuator On
+	# sne cond tmp 1
+	# beqz cond skip_write
+	# s actuator On 1
+	sleep LOOP_SLEEP_S
+	j main

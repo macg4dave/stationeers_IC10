@@ -29,6 +29,11 @@ The exact names are optional, but consistency helps.
 - These scripts are intended to be pasted into the **in-game** IC10 chip.
 - Repo tooling/source files are not constrained by in-game chip limits unless you are producing final paste-into-game IC10.
 
+## Creating a new script (template)
+
+- Start from `scripts/_template/` (copy the folder, then rename folder + `.ic10` file).
+- Follow `docs/ic10_script_checklist.md` to stay consistent and paste-ready.
+
 ## Script list
 
 - `large_satellite_dish_random_scan/` — Moves a Large Satellite Dish to random angles until it finds a non-zero SignalID (button toggles scanning).

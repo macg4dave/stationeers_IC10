@@ -1,40 +1,39 @@
 # Copilot instructions (stationeers_IC10)
 
-This repo is a **Stationeers IC10 script library** plus small **stdlib-only Python tools** (no build system).
-Start with `README.md`, then `scripts/README.md` for the script catalog.
+This repo is a **Stationeers IC10 script library** plus **stdlib-only Python tools** (no build system / no pip deps).
+Start with `README.md`, then the script catalog in `scripts/README.md`.
 
-## Where things live (actual layout)
-- Scripts: `scripts/<script_name>/README.md` + `scripts/<script_name>/<script_name>.ic10`
+## Layout & “what to touch”
+- IC10 scripts: `scripts/<name>/<name>.ic10` + `scripts/<name>/README.md` (player-facing setup + `d0..d5` mapping)
+- New-script checklist + patterns: `docs/ic10_script_checklist.md` (use this for consistent paste-ready output)
+- Starter template: `scripts/_template/` (copy/rename when creating a new script)
+- In-game setup checklists: `docs/usage/*.md` (this is the repo’s “we learned this the hard way” library)
 - Device Logic I/O catalog: `catalog/devices/*.json` + `catalog/index.json` (schema in `catalog/README.md`)
-- Tooling (Python, stdlib-only): `tools/wiki_import.py`, `tools/ic10_size_check.py`
-- VS Code helpers: `.vscode/extensions.json` and `.vscode/launch.json` (debug `type: ic10` via `Traineratwot.stationeers-ic10`).
+- Tooling (Python): `tools/ic10_size_check.py`, `tools/wiki_import.py`
+- VS Code IC10 debugging: `.vscode/extensions.json` + `.vscode/launch.json` (debugger type `ic10` via `Traineratwot.stationeers-ic10`)
 
-## IC10 semantics & repo-specific gotchas
-- Comments start with `#`; labels end with `:`.
-- Registers: `r0..r15`, `sp`, `ra`; devices: `d0..d5`, `db`.
-- Many temperatures are **Kelvin**; convert with `C = K - 273.15` (see `scripts/pipe_temp_hot_cold_valves/pipe_temp_hot_cold_valves.ic10`).
-- Don’t use label/alias names that shadow LogicType-ish identifiers (e.g. `Temperature:`).
-- Batch network ops are used; `lbn/sbn` name matching is **exact hash**, not substring (see `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`).
+## IC10 conventions used in this repo (important gotchas)
+- Comments start with `#`; labels end with `:`. Use `alias` heavily (keep names short: paste limits count chars).
+- Gate device availability with `bdns` loops + `yield` (see `scripts/pipe_temp_hot_cold_valves/pipe_temp_hot_cold_valves.ic10`).
+- Many temperatures are **Kelvin**; convert with $C = K - 273.15$ (see `pipe_temp_hot_cold_valves.ic10`).
+- Avoid label/alias names that shadow LogicType-ish identifiers (example to avoid: `Temperature:`).
+- Prefer avoiding redundant writes (reduce network spam): read current `On` then `s` only when changed (see `pipe_temp_hot_cold_valves.ic10`).
+- Batch network ops: `sbn`/`lbn` use **exact NameHash match**, not substring (see `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`, hashes like `HASH("IN")`).
 
-## Script patterns to follow when editing/adding `.ic10`
-- Keep names short `snake_case`; **folder name == script filename**.
-- Add/keep a compact header comment: Category, Status, Purpose, and `d0..d5` mapping.
-- Use `alias` for readability, but keep names short (paste limits count characters).
-- Gate device availability with `bdns` loops and use `yield` in long-running loops.
-- Avoid redundant writes to reduce network spam (see `pipe_temp_hot_cold_valves.ic10` reading current values before `s`).
-- In per-script `README.md`, include explicit in-game setup steps (e.g., vents often require `On=1` *and* `Open=1`, plus `Mode`). See `docs/usage/`.
+## Script naming & exceptions
+- Convention: **folder name == base script name** and file is `<name>.ic10`.
+- This repo is **paste-ready `.ic10` first**; don’t introduce `.icX` sources unless a task explicitly asks.
+- Verify the actual filename when editing: there’s at least one historical mismatch (`scripts/solar_tracking/solar_tacking.ic10`). Don’t “fix” names unless the task asks.
 
-## In-game setup playbooks (AI-common mistakes)
-- Check `docs/usage/` for short checklists when a device “does nothing” after a script writes to it (start with `docs/usage/README.md`, then the specific device page like `docs/usage/active_vent.md`).
-- Prefer recommending consistent in-game device renaming (see `scripts/README.md`), especially when using `lbn/sbn` exact name hashes.
+## Critical workflows
+- Paste limits (final ship output): **128 lines** and **90 chars/line** (including comments/blanks).
+	- After changing any `scripts/**/*.ic10`, run: `python tools/ic10_size_check.py scripts/ --ext .ic10`.
+- Updating the device catalog from the wiki (writes JSON + updates index):
+	- `python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer`
+	- Supports section imports for multi-device pages: `.../Sensors#Gas_Sensor`
 
-## In-game paste limits (only for final/pasteable output)
-- IC chip limits: **128 lines** and **90 chars/line** (including comments).
-- Check before “shipping”: `python tools/ic10_size_check.py scripts/ --ext .ic10`
-- **Agent rule:** after you create or patch any `scripts/**/*.ic10`, run the size checker on the changed file(s) (or the whole `scripts/` folder) and fix any violations before you finish.
+## `docs/usage/` = failure-driven setup truth
+- If a device “does nothing” in-game, assume a missing in-game setting first; check `docs/usage/README.md` then the device page.
+- Example: Active Vent scripts often require **both** `On=1` **and** `Open=1`, plus correct `Mode`/pressure settings (see `docs/usage/active_vent.md`).
 
-## Catalog workflow (when adding device IO)
-- Import/update from the Stationeers wiki: `python tools/wiki_import.py <wiki-device-url>`
-- Output is `catalog/devices/<WikiTitle>.json` + updated `catalog/index.json`.
-
-If you’re unsure whether a task targets **tooling** (Python/catalog) or **pasteable scripts** (IC10 constraints), ask and default to preserving existing patterns.
+If unsure whether a task is **tooling/catalog** (Python/JSON) or **pasteable IC10**, default to preserving existing patterns and call out IC10 paste-limit implications.
