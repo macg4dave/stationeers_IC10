@@ -22,6 +22,11 @@ alias current_on r3
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_ABOVE_C 30
 
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
 main:
 l tempC phase_change Temperature
 sub tempC tempC KELVIN_TO_C

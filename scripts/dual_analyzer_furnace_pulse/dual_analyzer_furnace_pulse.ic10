@@ -1,25 +1,8 @@
 # dual_analyzer_furnace_pulse
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - Read Temperature from BOTH a Liquid Pipe Analyzer and a (gas) Pipe Analyzer.
-# - If (air temp < 30C) OR (liquid temp < 80C):
-#     - Turn ON a Pipe Digital Valve
-#     - Set an Advanced Furnace to Activate = 1 for PULSE_TICKS (~1 second)
-#     - Then turn both back OFF
-# - Repeat the check every LOOP_TICKS (~30 seconds)
-#
-# Device registers:
-#   d0 = Liquid Pipe Analyzer
-#   d1 = Pipe Analyzer
-#   d2 = Pipe Digital Valve
-#   d3 = Advanced Furnace
-#
-# Timing note:
-# - IC10 only has tick-based waiting via `yield`.
-# - These constants assume ~2 ticks/second (so 10 ticks ≈ 5s, 60 ticks ≈ 30s).
-#   If your game tick timing differs, adjust LOOP_TICKS / PULSE_TICKS accordingly.
+# Category: Controller | Status: Functional
+# d0=Liquid Pipe Analyzer, d1=Pipe Analyzer, d2=Pipe Digital Valve, d3=Adv Furnace
+# If (gasC<30C) OR (liqC<80C): valve ON; furnace Activate=1 for PULSE_TICKS; then OFF.
+# Timing uses yield ticks (defaults assume ~2 ticks/s).
 
 alias liquid_read d0
 alias gas_read d1
@@ -29,21 +12,22 @@ alias liqC r0
 alias gasC r1
 alias cond r2
 alias low_any r3
-alias high_any r4
 alias ticks r5
 alias current_on r6
 alias desired_on r7
 define KELVIN_TO_C 273.15
-# Which temperature(s) to check:
-# 0 = both (default)
-# 1 = gas/air only (Pipe Analyzer on d1)
-# 2 = liquid only (Liquid Pipe Analyzer on d0)
 define CHECK_TYPE 0
-# ~2 ticks/second defaults:
-# 60 ticks ≈ 30s. 2 ticks ≈ 1s.
 define LOOP_TICKS 60
 define PULSE_TICKS 2
 define REMAIN_TICKS 58
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+bdns d3 wait_devices
+
 main:
 # check selected temperature source(s)
 move low_any 0

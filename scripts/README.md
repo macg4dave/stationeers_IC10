@@ -36,7 +36,6 @@ The exact names are optional, but consistency helps.
 
 ## Script list
 
-- `large_satellite_dish_random_scan/` — Moves a Large Satellite Dish to random angles until it finds a non-zero SignalID (button toggles scanning).
 - `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
 - `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.
@@ -44,3 +43,15 @@ The exact names are optional, but consistency helps.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
 - `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
+
+Additional scripts in this repo:
+
+- `dual_analyzer_furnace_pulse/`
+- `liquid_temp_valve/`
+- `no_volatiles_valve/`
+- `no_volatiles_no_steam_valve/`
+- `pipe_temp_valve/`
+- `pipe_half_full_active_vent/`
+- `purge_valve/`
+- `room_cooler_steamless_vent/`
+- `solar_tracking/`

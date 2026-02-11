@@ -1,5 +1,4 @@
 # Sweep scan (Important Button toggles). d0=dish, d1=Important Button.
-# Stops on SignalID / strength threshold / MinimumWattsToContact; skips last SignalID.
 alias dish d0
 alias start_btn d1
 alias scan_enabled r0
@@ -37,8 +36,15 @@ yield
 bdns dish main
 bdns start_btn main
 l pressed start_btn Activate
+
+# Toggle scanning ON/OFF (Important Button is momentary)
 beqz pressed skip_toggle
-move scan_enabled 1
+seq cond scan_enabled 0
+select scan_enabled cond 1 0
+
+# When enabling, snapshot current signal and set filter
+beqz scan_enabled toggled_off
+l signal_id dish SignalID
 move last_signal_id signal_id
 beqz TARGET_SIGNAL_ID set_filter_any
 s dish BestContactFilter TARGET_SIGNAL_ID
@@ -46,6 +52,11 @@ j skip_filter
 set_filter_any:
 s dish BestContactFilter -1
 skip_filter:
+j skip_toggle
+
+toggled_off:
+s dish BestContactFilter -1
+
 skip_toggle:
 beqz scan_enabled main
 l powered dish Power
@@ -59,7 +70,9 @@ j no_signal
 found:
 move last_signal_id signal_id
 move scan_enabled 0
+bdns db skip_db
 s db Setting signal_id
+skip_db:
 j main
 no_signal:
 move tmp H_STEP
@@ -89,7 +102,6 @@ wait_idle:
 l idle dish Idle
 beqz idle wait_idle
 sleep 1
-l signal_id dish SignalID
 l signal_id dish SignalID
 l min_watts dish MinimumWattsToContact
 seq cond min_watts -1

@@ -16,20 +16,17 @@ Required:
 
 ## How it works
 
-The Pipe Analyzer exposes:
+This script uses **pipe pressure** as a practical proxy for “how full” the network is (no volume/moles math).
 
-- `Volume` — the pipe network volume
-- `Temperature` — gas temperature (Kelvin)
-- `TotalMoles` — total gas amount in the network
+It computes two hysteresis thresholds based on `TARGET_PRESSURE_KPA`:
 
-For gas networks, “volume full” is not meaningful (gas always occupies the whole volume). Instead, this script estimates a **target number of moles** for the network using the ideal gas law:
+- Lower threshold: `TARGET_PRESSURE_KPA * FULLNESS_RATIO`
+- Upper threshold: `TARGET_PRESSURE_KPA * (FULLNESS_RATIO + HYSTERESIS_BAND)`
 
-$$n = \frac{P \cdot V}{R \cdot T}$$
+Behavior:
 
-Then it uses hysteresis around a “half full” point:
-
-- Vent turns **ON** when `TotalMoles < targetMoles * FULLNESS_RATIO` (needs more air)
-- Vent turns **OFF** when `TotalMoles > targetMoles * (FULLNESS_RATIO + HYSTERESIS_BAND)`
+- Vent turns **ON** when `Pressure < lower threshold` (needs more gas)
+- Vent turns **OFF** when `Pressure > upper threshold` (enough gas)
 - Otherwise, it keeps the previous vent state (prevents rapid flicker)
 
 If the analyzer reports `Error = 1`, the vent is forced **OFF**.
@@ -53,7 +50,7 @@ In `pipe_half_full_active_vent.ic10`:
 
 Notes:
 
-- The script uses $R = 8.314462618$ in units of $(\text{kPa}*\text{L})/(\text{mol}*\text{K})$, which assumes the analyzer `Volume` is in liters.
+- Pressure is assumed to be **kPa**.
 
 ## Status
 

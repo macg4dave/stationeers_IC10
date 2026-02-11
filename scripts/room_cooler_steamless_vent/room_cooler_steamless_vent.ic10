@@ -36,6 +36,12 @@ define COOL_ON_ABOVE_C 30
 # Use a small epsilon to avoid float noise.
 define STEAM_RATIO_MIN 0.0001
 
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+
 main:
 # read temperature (K) and convert to Celsius
 l tempC gas_read Temperature

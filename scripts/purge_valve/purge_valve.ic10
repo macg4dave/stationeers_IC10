@@ -31,6 +31,14 @@ alias liquid_err r5
 
 define MIN_PRESSURE_KPA 0.00
 
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+bdns d3 wait_devices
+bdns d4 wait_devices
+
 main:
 l lever_on lever Open
 move desired_on 0

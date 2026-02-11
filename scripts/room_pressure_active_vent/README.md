@@ -46,7 +46,7 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
 - `HIGH_PRESSURE_KPA` (default `120`)
 - `MIN_PIPE_PRESSURE_KPA` (default `10`)
 - `MAX_PIPE_PRESSURE_KPA` (default `60000`)
-- `LOOP_SLEEP_S` (default `5`)
+- `LOOP_SLEEP_S` (default `1`)
 
 ## Notes
 

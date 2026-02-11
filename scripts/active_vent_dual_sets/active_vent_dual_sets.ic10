@@ -1,19 +1,10 @@
 # active_vent_dual_sets
-# Category: Set Controller
-# Status: Functional
-#
-# Purpose: Set one named group of Active Vents to intake (inward)
-#          and another named group to exhaust (outward), gated by
-#          room temperature from a Gas Sensor.
-#
-# Notes:
-# - Uses sbn with NameHash, which matches exact names only.
-# - Rename ALL intake vents to the same exact name (e.g. "IN") and
-#   ALL exhaust vents to another exact name (e.g. "OUT").
-# - If intake/exhaust are reversed in your build, swap MODE_INWARD/OUTWARD.
+# Category: Set Controller | Status: Functional
+# d0 = Gas Sensor (room)
+# Temp < TEMP_THRESHOLD_C => both groups OFF; else set IN/OUT vent groups.
+# Uses exact name hashes: rename vents to IN and OUT (or change the HASH lines).
 
 alias sensor d0
-
 alias temp_c r0
 alias cond r1
 alias vent_hash r2
@@ -21,10 +12,11 @@ alias in_name_hash r3
 alias out_name_hash r4
 alias temp_k r5
 
-# Active Vent prefab hash
+# state (avoid re-writing sbn every loop)
+alias desired_state r6
+alias state r7
+alias ticks r8
 move vent_hash HASH("StructureActiveVent")
-
-# Name hashes (exact match)
 move in_name_hash HASH("IN")
 move out_name_hash HASH("OUT")
 
@@ -37,10 +29,14 @@ define DESIRED_OPEN 1
 define DESIRED_ON 1
 define DESIRED_LOCK 1
 
+define STATE_OFF 0
+define STATE_ON 1
+
 define MIN_PIPE_PRESSURE_KPA 10
 define MAX_PIPE_PRESSURE_KPA 60000
 define TEMP_THRESHOLD_C 30
 define LOOP_SLEEP_S 5
+define REAPPLY_TICKS 12
 
 wait:
 yield
@@ -50,10 +46,38 @@ main:
 l temp_k sensor Temperature
 sub temp_c temp_k 273.15
 
-# If temp < threshold, turn both groups off
+# desired_state = OFF when temp < threshold, else ON
 slt cond temp_c TEMP_THRESHOLD_C
-beqz cond set_on
+select desired_state cond STATE_OFF STATE_ON
 
+# If desired state matches current state, only re-apply periodically while ON.
+seq cond desired_state state
+beqz cond state_change
+
+seq cond state STATE_ON
+beqz cond sleep_and_loop
+
+sgt cond ticks 0
+beqz cond reapply_on
+sub ticks ticks 1
+j sleep_and_loop
+
+reapply_on:
+move ticks REAPPLY_TICKS
+j apply_on
+
+sleep_and_loop:
+sleep LOOP_SLEEP_S
+j main
+
+state_change:
+move state desired_state
+move ticks REAPPLY_TICKS
+
+seq cond state STATE_ON
+bnez cond apply_on
+
+apply_off:
 sbn vent_hash in_name_hash Lock 0
 sbn vent_hash in_name_hash On 0
 sbn vent_hash in_name_hash Open 0
@@ -65,7 +89,7 @@ sbn vent_hash out_name_hash Open 0
 sleep LOOP_SLEEP_S
 j main
 
-set_on:
+apply_on:
 # Intake group (IN)
 sbn vent_hash in_name_hash Lock 0
 sbn vent_hash in_name_hash Mode MODE_OUTWARD

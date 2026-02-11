@@ -39,7 +39,8 @@ based on exact device name matches using `HASH()` + `sbn`, gated by room tempera
 
 - `TEMP_THRESHOLD_C`: temperature threshold in °C.
 - `MODE_OUTWARD` / `MODE_INWARD`: swap values if your vents behave opposite of expected.
-- `LOOP_SLEEP_S`: how often to re-apply settings.
+- `LOOP_SLEEP_S`: polling interval for temperature (and minimum time between state changes).
+- `REAPPLY_TICKS`: while vents are ON, how often to re-apply vent settings (reduces spam vs. every loop).
 
 ## Notes
 

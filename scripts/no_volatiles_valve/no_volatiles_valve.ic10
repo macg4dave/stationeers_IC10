@@ -8,6 +8,9 @@ alias valve d1
 alias vol r0
 alias vol_hi r1
 
+alias current_on r2
+alias cond r3
+
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
 
@@ -26,5 +29,9 @@ sgt vol_hi vol EPS
 
 # Close valve when volatiles are not present
 # (On = 1 only when volatiles are present)
+l current_on valve On
+sne cond vol_hi current_on
+beqz cond skip_write
 s valve On vol_hi
+skip_write:
 j loop

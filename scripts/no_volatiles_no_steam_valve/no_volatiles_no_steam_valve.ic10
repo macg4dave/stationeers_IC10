@@ -15,6 +15,9 @@ alias any_hi r5
 alias open r6
 alias pres_ok r7
 
+alias current_on r8
+alias cond2 r9
+
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
 
@@ -44,5 +47,9 @@ seqz open any_hi
 # Also require pressure > MIN_PRESSURE
 and open open pres_ok
 
+l current_on valve On
+sne cond2 open current_on
+beqz cond2 skip_write
 s valve On open
+skip_write:
 j loop

@@ -33,6 +33,11 @@ define LIQUID_THRESHOLD_PERCENT 50
 define VENT_MODE 0
 define VENT_LOCK 0
 
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
 main:
 l volume pipe_read Volume
 l liquid_volume pipe_read VolumeOfLiquid

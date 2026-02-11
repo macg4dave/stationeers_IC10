@@ -22,6 +22,11 @@ define TARGET_PRESSURE_KPA 100
 define FULLNESS_RATIO 0.5
 define HYSTERESIS_BAND 0.05
 
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
 main:
 # read current vent state (used for hysteresis + redundant write avoidance)
 l current_on vent On
