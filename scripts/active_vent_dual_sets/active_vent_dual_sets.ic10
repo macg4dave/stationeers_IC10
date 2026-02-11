@@ -19,6 +19,7 @@ alias cond r1
 alias vent_hash r2
 alias in_name_hash r3
 alias out_name_hash r4
+alias temp_k r5
 
 # Active Vent prefab hash
 move vent_hash HASH("StructureActiveVent")
@@ -36,6 +37,7 @@ define DESIRED_OPEN 1
 define DESIRED_ON 1
 define DESIRED_LOCK 1
 
+define MAX_PIPE_PRESSURE_KPA 60000
 define TEMP_THRESHOLD_C 30
 define LOOP_SLEEP_S 5
 
@@ -44,7 +46,8 @@ yield
 bdns d0 wait
 
 main:
-l temp_c sensor Temperature
+l temp_k sensor Temperature
+sub temp_c temp_k 273.15
 
 # If temp < threshold, turn both groups off
 slt cond temp_c TEMP_THRESHOLD_C
@@ -64,6 +67,9 @@ j main
 set_on:
 # Intake group (IN)
 sbn vent_hash in_name_hash Lock 0
+sbn vent_hash in_name_hash Setting MAX_PIPE_PRESSURE_KPA
+sbn vent_hash in_name_hash PressureExternal MAX_PIPE_PRESSURE_KPA
+sbn vent_hash in_name_hash PressureInternal MAX_PIPE_PRESSURE_KPA
 sbn vent_hash in_name_hash Mode MODE_INWARD
 sbn vent_hash in_name_hash Open DESIRED_OPEN
 sbn vent_hash in_name_hash On DESIRED_ON
@@ -71,6 +77,9 @@ sbn vent_hash in_name_hash Lock DESIRED_LOCK
 
 # Exhaust group (OUT)
 sbn vent_hash out_name_hash Lock 0
+sbn vent_hash out_name_hash Setting MAX_PIPE_PRESSURE_KPA
+sbn vent_hash out_name_hash PressureExternal MAX_PIPE_PRESSURE_KPA
+sbn vent_hash out_name_hash PressureInternal MAX_PIPE_PRESSURE_KPA
 sbn vent_hash out_name_hash Mode MODE_OUTWARD
 sbn vent_hash out_name_hash Open DESIRED_OPEN
 sbn vent_hash out_name_hash On DESIRED_ON

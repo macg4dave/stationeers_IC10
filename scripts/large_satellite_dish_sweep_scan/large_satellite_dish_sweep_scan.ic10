@@ -1,6 +1,6 @@
 # Sweep scan (Important Button toggles).
 # d0=dish, d1=Important Button.
-# Stops on SignalID or strength threshold; skips last SignalID.
+# Stops on SignalID, strength threshold, or MinimumWattsToContact; skips last SignalID.
 alias dish d0
 alias start_btn d1
 alias scan_enabled r0
@@ -16,6 +16,7 @@ alias v_curr r9
 alias h_dir r10
 alias signal_strength r11
 alias last_signal_id r12
+alias min_watts r13
 # bounds and steps
 define H_MIN 0
 define H_MAX 359
@@ -26,6 +27,7 @@ define V_STEP 10
 # strength threshold (dB); set STOP_ON_STRENGTH=0 to disable
 define STOP_ON_STRENGTH 1
 define SIGNAL_STRENGTH_STOP -10
+define MIN_WATTS_STOP 50000
 define TARGET_SIGNAL_ID 0
 
 init:
@@ -104,6 +106,12 @@ beqz idle wait_idle
 sleep 1
 
 l signal_id dish SignalID
+ l min_watts dish MinimumWattsToContact
+ seq cond min_watts -1
+ bnez cond skip_min_watts
+ slt cond min_watts MIN_WATTS_STOP
+ bnez cond found
+skip_min_watts:
 beqz TARGET_SIGNAL_ID any_signal
 seq cond signal_id TARGET_SIGNAL_ID
 beqz cond no_signal
@@ -116,8 +124,11 @@ seq cond signal_id last_signal_id
 bnez cond no_signal
 
 check_strength:
-beqz STOP_ON_STRENGTH found
+beqz STOP_ON_STRENGTH check_min_watts
 l signal_strength dish SignalStrength
 sge cond signal_strength SIGNAL_STRENGTH_STOP
-beqz cond no_signal
+beqz cond check_min_watts
 j found
+
+check_min_watts:
+j no_signal
