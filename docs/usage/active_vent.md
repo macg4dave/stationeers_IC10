@@ -33,6 +33,12 @@ Some builds reset pressure fields when you change `Mode`.
 
 - If your automation uses `PressureExternal` / `PressureInternal`, set/check them after changing `Mode`.
 
+If you see the values “stick” only briefly (or revert immediately), add a one-tick delay:
+
+- write `Mode`
+- wait one tick (`yield`)
+- then write `Setting` / `PressureExternal` / `PressureInternal`
+
 ## Batch/name-hash gotcha
 
 If using `lbn`/`sbn`, **NameHash is exact**:

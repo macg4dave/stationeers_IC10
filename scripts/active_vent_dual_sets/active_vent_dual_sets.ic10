@@ -29,14 +29,15 @@ move in_name_hash HASH("IN")
 move out_name_hash HASH("OUT")
 
 # Active Vent mode values (swap if needed)
-define MODE_INWARD 0
-define MODE_OUTWARD 1
+define MODE_OUTWARD 0
+define MODE_INWARD 1
 
 # Desired state for both groups
 define DESIRED_OPEN 1
 define DESIRED_ON 1
 define DESIRED_LOCK 1
 
+define MIN_PIPE_PRESSURE_KPA 10
 define MAX_PIPE_PRESSURE_KPA 60000
 define TEMP_THRESHOLD_C 30
 define LOOP_SLEEP_S 5
@@ -67,20 +68,22 @@ j main
 set_on:
 # Intake group (IN)
 sbn vent_hash in_name_hash Lock 0
+sbn vent_hash in_name_hash Mode MODE_OUTWARD
+yield
 sbn vent_hash in_name_hash Setting MAX_PIPE_PRESSURE_KPA
 sbn vent_hash in_name_hash PressureExternal MAX_PIPE_PRESSURE_KPA
-sbn vent_hash in_name_hash PressureInternal MAX_PIPE_PRESSURE_KPA
-sbn vent_hash in_name_hash Mode MODE_INWARD
+sbn vent_hash in_name_hash PressureInternal MIN_PIPE_PRESSURE_KPA
 sbn vent_hash in_name_hash Open DESIRED_OPEN
 sbn vent_hash in_name_hash On DESIRED_ON
 sbn vent_hash in_name_hash Lock DESIRED_LOCK
 
 # Exhaust group (OUT)
 sbn vent_hash out_name_hash Lock 0
+sbn vent_hash out_name_hash Mode MODE_INWARD
+yield
 sbn vent_hash out_name_hash Setting MAX_PIPE_PRESSURE_KPA
 sbn vent_hash out_name_hash PressureExternal MAX_PIPE_PRESSURE_KPA
 sbn vent_hash out_name_hash PressureInternal MAX_PIPE_PRESSURE_KPA
-sbn vent_hash out_name_hash Mode MODE_OUTWARD
 sbn vent_hash out_name_hash Open DESIRED_OPEN
 sbn vent_hash out_name_hash On DESIRED_ON
 sbn vent_hash out_name_hash Lock DESIRED_LOCK

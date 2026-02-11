@@ -1,22 +1,22 @@
 # room_pressure_active_vent (compact)
-
 alias sensor d0
 alias vent d1
-
 alias p r0
+alias p_kpa r3
+alias err r4
 alias cond r1
 alias state r2
-
 define STATE_IDLE 0
 define STATE_INTAKE 1
 define STATE_EXHAUST 2
-
 define LOW_PRESSURE_KPA 90
 define HIGH_PRESSURE_KPA 120
 define MODE_OUTWARD 0
 define MODE_INWARD 1
-
-define LOOP_SLEEP_S 5
+# Pipe constraints (kPa): outward min pipe, inward max pipe
+define MIN_PIPE_PRESSURE_KPA 10
+define MAX_PIPE_PRESSURE_KPA 60000
+define LOOP_SLEEP_S 1
 
 wait:
 yield
@@ -28,11 +28,21 @@ j stop
 
 main:
 l p sensor Pressure
+# Normalize Pa->kPa if needed
+move p_kpa p
+sgt cond p 2000
+beqz cond read_vent
+div p_kpa p 1000
+
+read_vent:
+l err vent Error
+bnez err stop
 
 # if we're currently intaking, keep locked until we reach LOW_PRESSURE_KPA
 seq cond state STATE_INTAKE
 beqz cond check_exhaust
-sge cond p LOW_PRESSURE_KPA
+# For fast fill: intake until we reach HIGH_PRESSURE_KPA
+sge cond p_kpa HIGH_PRESSURE_KPA
 bnez cond stop
 yield
 j main
@@ -41,7 +51,8 @@ check_exhaust:
 # if we're currently exhausting, keep locked until we reach HIGH_PRESSURE_KPA
 seq cond state STATE_EXHAUST
 beqz cond decide
-sle cond p HIGH_PRESSURE_KPA
+# For fast dump: exhaust until we reach LOW_PRESSURE_KPA
+sle cond p_kpa LOW_PRESSURE_KPA
 bnez cond stop
 yield
 j main
@@ -49,11 +60,11 @@ j main
 decide:
 
 # below low threshold => intake
-slt cond p LOW_PRESSURE_KPA
+slt cond p_kpa LOW_PRESSURE_KPA
 bnez cond do_intake
 
 # above high threshold => exhaust
-sgt cond p HIGH_PRESSURE_KPA
+sgt cond p_kpa HIGH_PRESSURE_KPA
 bnez cond do_exhaust
 
 # between thresholds
@@ -67,10 +78,14 @@ j main
 
 do_intake:
 move state STATE_INTAKE
-
-# unlock, set mode, then enable and lock
+# unlock, set mode, wait 1 tick, then set pressures and enable
 s vent Lock 0
 s vent Mode MODE_OUTWARD
+yield
+# Target HIGH so we don't stop early (faster pressurize)
+s vent Setting HIGH_PRESSURE_KPA
+s vent PressureExternal HIGH_PRESSURE_KPA
+s vent PressureInternal MIN_PIPE_PRESSURE_KPA
 s vent Open 1
 s vent On 1
 s vent Lock 1
@@ -80,10 +95,14 @@ j main
 
 do_exhaust:
 move state STATE_EXHAUST
-
-# unlock, set mode, then enable and lock
+# unlock, set mode, wait 1 tick, then set pressures and enable
 s vent Lock 0
 s vent Mode MODE_INWARD
+yield
+# Target LOW so we keep exhausting until low threshold
+s vent Setting LOW_PRESSURE_KPA
+s vent PressureExternal LOW_PRESSURE_KPA
+s vent PressureInternal MAX_PIPE_PRESSURE_KPA
 s vent Open 1
 s vent On 1
 s vent Lock 1
@@ -93,9 +112,8 @@ j main
 
 stop:
 move state STATE_IDLE
+s vent Lock 0
 s vent On 0
 s vent Open 0
-s vent Lock 0
-
 sleep LOOP_SLEEP_S
 j main

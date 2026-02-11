@@ -38,8 +38,13 @@ based on exact device name matches using `HASH()` + `sbn`, gated by room tempera
 ## Tuning
 
 - `TEMP_THRESHOLD_C`: temperature threshold in °C.
-- `MODE_INWARD` / `MODE_OUTWARD`: swap values if your vents behave opposite of expected.
+- `MODE_OUTWARD` / `MODE_INWARD`: swap values if your vents behave opposite of expected.
 - `LOOP_SLEEP_S`: how often to re-apply settings.
+
+## Notes
+
+- Some builds reset vent pressure fields when `Mode` changes. This script writes `Mode`,
+  waits one tick (`yield`), then writes `Setting` / `PressureExternal` / `PressureInternal`.
 
 ## Status
 
