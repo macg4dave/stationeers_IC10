@@ -21,3 +21,6 @@
 - `Volume` / `VolumeOfLiquid` availability varies by device/build:
   - If your script relies on them and they read as `0`, verify the device supports those outputs in your Stationeers version.
 
+## Common patterns that scripts use
+
+- Some purge/drain controllers treat "any non-trivial `Pressure`" as "something present" and turn purge devices on.

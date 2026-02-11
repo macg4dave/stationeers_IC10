@@ -1,6 +1,6 @@
 # Usage playbooks (in-game setup)
 
-These notes exist because AI (and humans!) commonly miss one “tiny” Stationeers setup detail and then everything looks broken.
+These notes exist because AI (and humans!) commonly miss one "tiny" Stationeers setup detail and then everything looks broken.
 
 - If you add a new script and learn a new gotcha, update/add a playbook here.
 - Keep these pages short and checklist-y.
@@ -12,6 +12,7 @@ These notes exist because AI (and humans!) commonly miss one “tiny” Statione
 - `advanced_furnace.md` — Advanced Furnace required settings.
 - `daylight_sensor.md` — Daylight Sensor required settings.
 - `gas_sensor.md` — Gas Sensor required settings.
+- `ic_housing.md` — using `db` for status/debug.
 - `large_satellite_dish.md` — Large Satellite Dish required settings.
 - `liquid_digital_valve.md` — Liquid Digital Valve required settings.
 - `liquid_pipe_analyzer.md` — Liquid Pipe Analyzer required settings.

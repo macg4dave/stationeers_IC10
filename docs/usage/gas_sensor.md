@@ -16,7 +16,11 @@
 - Temperature is **Kelvin**:
   - Convert with `C = K - 273.15`
 - Ratios are floats with noise:
-  - Avoid “exactly zero” checks; use a small epsilon like `0.0001`
+  - Avoid "exactly zero" checks; use a small epsilon like `0.0001`
 - Placement matters:
   - It reports the atmosphere where it is placed (room vs pipe is a different device)
 
+## Common patterns that scripts use
+
+- Steam/condensation control often looks like:
+  - "If `RatioSteam` is below a small epsilon, allow venting."

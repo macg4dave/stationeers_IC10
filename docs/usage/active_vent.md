@@ -1,13 +1,23 @@
 # Active Vent setup checklist
 
-When a script “sets the vent” but nothing happens, it’s usually because one of these properties wasn’t set.
+When a script "sets the vent" but nothing happens, it's usually because one of these properties wasn't set.
 
-## Minimum to see movement
+## Minimum to see flow / movement
 
-- `On = 1`
-- `Open = 1`
+- `On = 1` (enabled)
+- `Open = 1` (actually opens the vent so it can flow)
 - `Mode` set correctly for your intent
   - Some scripts use constants like `MODE_INWARD`/`MODE_OUTWARD`. Verify which numeric value maps to which direction in your build.
+
+## Common patterns that scripts use
+
+- Some scripts only toggle `On`.
+  - In that case you must set `Open = 1` and `Mode` in the device UI first, or nothing will move.
+- Many scripts do "safe writes":
+  - Read current `Mode`/`Open`/`On` and only write when a value changes (reduces data-network spam).
+- Many scripts unlock -> configure -> (optional) lock:
+  - `Lock = 0`, then set `Mode`/`Open`/`On`, then optionally `Lock = 1` to prevent in-game overrides.
+- When turning a vent OFF, some scripts also set `Open = 0` and `Lock = 0` (fully stop the vent and allow manual control).
 
 ## Common accompanying properties (script-dependent)
 
@@ -16,6 +26,12 @@ When a script “sets the vent” but nothing happens, it’s usually because on
   - `Setting`
   - `PressureExternal`
   - `PressureInternal`
+
+### Mode can reset pressures (gotcha)
+
+Some builds reset pressure fields when you change `Mode`.
+
+- If your automation uses `PressureExternal` / `PressureInternal`, set/check them after changing `Mode`.
 
 ## Batch/name-hash gotcha
 

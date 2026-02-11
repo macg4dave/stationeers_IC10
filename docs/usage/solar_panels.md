@@ -13,6 +13,9 @@
 ## Common gotchas
 
 - Batch writes only reach devices on the data network.
-- If a script supports “per-panel offsets by label/name”, the labels must match exactly:
+- If a script supports "per-panel offsets by label/name", the labels must match exactly:
   - Name hashes are exact; no substrings.
 
+## Common patterns that scripts use
+
+- Many trackers set a "morning park" position at night (example: horizontal = -90 / East) and resume tracking during the day.

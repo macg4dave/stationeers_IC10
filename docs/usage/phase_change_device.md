@@ -16,3 +16,7 @@ This repo uses the name `phase_change_device` as a placeholder for “a device o
 - Temperature is **Kelvin**:
   - Convert with `C = K - 273.15`
 
+## Common patterns that scripts use
+
+- Controllers often use a single threshold like:
+  - "Open when `tempC > X`" (and close otherwise).
