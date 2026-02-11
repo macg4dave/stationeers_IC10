@@ -22,4 +22,3 @@ When a script “sets the vent” but nothing happens, it’s usually because on
 If using `lbn`/`sbn`, **NameHash is exact**:
 
 - Rename ALL vents in the group to the same exact name (duplicates are fine), e.g. `IN` and `OUT`.
-- Example script: `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`

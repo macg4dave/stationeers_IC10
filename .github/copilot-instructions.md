@@ -25,7 +25,7 @@ Start with `README.md`, then `scripts/README.md` for the script catalog.
 - In per-script `README.md`, include explicit in-game setup steps (e.g., vents often require `On=1` *and* `Open=1`, plus `Mode`). See `docs/usage/`.
 
 ## In-game setup playbooks (AI-common mistakes)
-- Check `docs/usage/` for short checklists when a device “does nothing” after a script writes to it (start with `docs/usage/active_vent.md`).
+- Check `docs/usage/` for short checklists when a device “does nothing” after a script writes to it (start with `docs/usage/README.md`, then the specific device page like `docs/usage/active_vent.md`).
 - Prefer recommending consistent in-game device renaming (see `scripts/README.md`), especially when using `lbn/sbn` exact name hashes.
 
 ## In-game paste limits (only for final/pasteable output)

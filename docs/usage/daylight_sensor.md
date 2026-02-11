@@ -1,0 +1,18 @@
+# Daylight Sensor setup checklist
+
+## What scripts usually read
+
+- `Horizontal` / `Vertical` angles (sun direction)
+
+## Minimum to work
+
+- Powered
+- Connected to the same data network as the IC Housing
+- Correct orientation for your build (many tracking scripts assume the sensor “faces up”)
+
+## Common gotchas
+
+- If the sensor is rotated relative to “north”, the script usually needs a port-direction offset.
+- Night detection is typically “sun below horizon”:
+  - Scripts may use a threshold like abs(`Vertical`) > ~90 to decide “night”.
+
