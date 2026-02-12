@@ -32,6 +32,12 @@
       "itemHash": 226055671
     },
     {
+      "wikiTitle": "Kit_(Liquid_Volume_Pump)",
+      "file": "devices/Kit_(Liquid_Volume_Pump).json",
+      "itemName": "ItemLiquidPipeVolumePump",
+      "itemHash": -2106280569
+    },
+    {
       "wikiTitle": "Large_Satellite_Dish",
       "file": "devices/Large_Satellite_Dish.json",
       "itemName": null,
@@ -84,6 +90,12 @@
       "file": "devices/Pipe_Digital_Valve.json",
       "itemName": "ItemPipeDigitalValve",
       "itemHash": -1532448832
+    },
+    {
+      "wikiTitle": "Pipe_Volume_Pump",
+      "file": "devices/Pipe_Volume_Pump.json",
+      "itemName": "ItemPipeVolumePump",
+      "itemHash": -1766301997
     },
     {
       "wikiTitle": "Wall_Cooler",
