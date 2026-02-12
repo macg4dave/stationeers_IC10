@@ -1,0 +1,62 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/LED",
+    "wikiTitle": "LED",
+    "retrievedAt": "2026-02-12T06:49:59+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": 1944485013
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the Light on, when set to 1. Turns it off, when set to 0."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Locks the Light when set to 1. Unlocks it, when set to 0. When locked, Light cannot be turned on\\off by player."
+      },
+      {
+        "name": "Color",
+        "type": "integer",
+        "description": "Sets the color of the LED Light. (See Data Network Colors)"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the Light is turned on. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Returns whether the Light is locked. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "Color",
+        "type": "integer",
+        "description": "Returns the color setting of the LED Light. (See Data Network Colors)"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Returns the current amount of power required by the Light, in watts."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the Light is turned on and receives power. (0 for no, 1 for yes)"
+      }
+    ]
+  }
+}

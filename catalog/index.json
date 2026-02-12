@@ -38,6 +38,12 @@
       "itemHash": -2106280569
     },
     {
+      "wikiTitle": "LED",
+      "file": "devices/LED.json",
+      "itemName": null,
+      "itemHash": 1944485013
+    },
+    {
       "wikiTitle": "Large_Satellite_Dish",
       "file": "devices/Large_Satellite_Dish.json",
       "itemName": null,
