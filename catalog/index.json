@@ -20,6 +20,24 @@
       "itemHash": -616758353
     },
     {
+      "wikiTitle": "Console",
+      "file": "devices/Console.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Console_Dual",
+      "file": "devices/Console_Dual.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Console_Monitor",
+      "file": "devices/Console_Monitor.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Gas_Sensor",
       "file": "devices/Gas_Sensor.json",
       "itemName": "StructureGasSensor",
@@ -42,6 +60,12 @@
       "file": "devices/LED.json",
       "itemName": null,
       "itemHash": 1944485013
+    },
+    {
+      "wikiTitle": "LED_Display",
+      "file": "devices/LED_Display.json",
+      "itemName": null,
+      "itemHash": null
     },
     {
       "wikiTitle": "Large_Satellite_Dish",

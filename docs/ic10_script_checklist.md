@@ -33,6 +33,26 @@ Use a `wait:` / `wait_devices:` loop with `yield` + `bdns` for every required de
 - Temperatures are often **Kelvin** → convert: $C = K - 273.15$.
 - Some pressures may be **Pa** in some contexts; if you expect kPa, normalize like `room_pressure_active_vent.ic10` (detect large values then divide by 1000).
 
+## 4.5) Device modes: always use the catalog map
+
+Before writing logic for a device with `Mode` (or enum-like fields):
+
+- Open `catalog/devices/<Device>.json` and use its `modeValues` map.
+- Add `define` constants for selected mode values in the script.
+- Set those modes explicitly in `init` / setup (don’t assume defaults).
+- Document chosen mode values in the script README.
+
+Example (`LED_Display`):
+
+- `Mode=0` number, `Mode=8` minutes, `Mode=7` seconds.
+
+If using `Mode=10` (string display):
+
+- Encode characters as ASCII bytes (e.g., `'0'` is `48`).
+- Pack bytes as `packed = c0*256 + c1` (up to 6 chars supported by device).
+- Quantize values to integers before extracting digits.
+- Validate in-game output is digit-only (`00..23`, `00..59`) and not symbols.
+
 ## 5) Avoid network spam
 
 Before writing device flags (e.g. `On`, `Open`), prefer:
@@ -41,6 +61,8 @@ Before writing device flags (e.g. `On`, `Open`), prefer:
 - only `s` when different
 
 Example: `pipe_temp_hot_cold_valves.ic10`.
+
+For display scripts, also avoid re-writing unchanged `Setting` each loop.
 
 ## 6) Batch patterns: exact name hashes
 
@@ -74,3 +96,12 @@ Run the checker after editing scripts:
 
 - If you hit a new “device does nothing” gotcha, add it to `docs/usage/` (keep it checklist-y).
 - If you need authoritative I/O names, import/update the device in `catalog/` via `tools/wiki_import.py`.
+
+## 10) Daylight-derived clocks (if no direct clock source)
+
+When deriving a clock from Daylight Sensor angles:
+
+- Document the mapping constants in README (orientation, invert, offset, fine shift).
+- Include a calibration order so users can tune quickly:
+  1) orientation, 2) invert, 3) phase offset, 4) fine shift.
+- Note clearly that this is an angle-derived clock, not a built-in direct clock value.

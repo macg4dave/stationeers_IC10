@@ -13,6 +13,7 @@ These notes exist because AI (and humans!) commonly miss one "tiny" Stationeers 
 - `daylight_sensor.md` — Daylight Sensor required settings.
 - `gas_sensor.md` — Gas Sensor required settings.
 - `ic_housing.md` — using `db` for status/debug.
+- `led_display.md` — LED Display mode and setup checks.
 - `large_satellite_dish.md` — Large Satellite Dish required settings.
 - `liquid_digital_valve.md` — Liquid Digital Valve required settings.
 - `liquid_pipe_analyzer.md` — Liquid Pipe Analyzer required settings.

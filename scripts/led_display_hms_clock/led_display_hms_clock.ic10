@@ -1,0 +1,122 @@
+# led_display_hms_clock
+# Category: Utility
+# Status: Functional
+# Purpose: Drive LED Displays as a 24h clock (hours, minutes).
+# Device registers:
+#   d0 = LED Display (hours)
+#   d1 = LED Display (minutes)
+#   d3 = Daylight Sensor (time source)
+# Notes:
+# - Time is derived each loop from Daylight Sensor Horizontal angle.
+# - No sleep/timer accumulation is used.
+# - LED Display uses Mode 10 = String (packed ASCII)
+
+alias hour_disp d0
+alias minute_disp d1
+alias daylight d3
+
+alias horiz r0
+alias sun_deg r1
+alias total_min r2
+alias hours r3
+alias minutes r4
+alias cond r5
+alias curr r6
+alias tens r7
+alias ones r8
+alias packed r9
+alias ascii_tens r10
+alias ascii_ones r11
+alias sensor_deg_offset r13
+
+define MINUTES_PER_DAY 1440
+define MODE_STRING 10
+define ASCII_ZERO 48
+define SENSOR_PORT_DIRECTION 0
+define CLOCK_DEG_OFFSET 0
+define CLOCK_DEG_INVERT 0
+define TIME_SHIFT_MIN 0
+
+wait_devices:
+	yield
+	bdns d0 wait_devices
+	bdns d1 wait_devices
+	bdns d3 wait_devices
+
+init:
+	mul sensor_deg_offset SENSOR_PORT_DIRECTION 90
+
+	s hour_disp On 1
+	s minute_disp On 1
+	s hour_disp Mode MODE_STRING
+	s minute_disp Mode MODE_STRING
+	j main
+
+main:
+	# self-heal display mode if changed in-game
+	l curr hour_disp Mode
+	sne cond curr MODE_STRING
+	beqz cond skip_hour_mode
+	s hour_disp Mode MODE_STRING
+skip_hour_mode:
+	l curr minute_disp Mode
+	sne cond curr MODE_STRING
+	beqz cond skip_minute_mode
+	s minute_disp Mode MODE_STRING
+skip_minute_mode:
+
+	l horiz daylight Horizontal
+	add sun_deg horiz sensor_deg_offset
+	add sun_deg sun_deg CLOCK_DEG_OFFSET
+	add sun_deg sun_deg 360
+	mod sun_deg sun_deg 360
+	beqz CLOCK_DEG_INVERT no_invert
+	sub sun_deg 360 sun_deg
+no_invert:
+	mod curr sun_deg 1
+	sub sun_deg sun_deg curr
+	mul total_min sun_deg MINUTES_PER_DAY
+	div total_min total_min 360
+	mod curr total_min 1
+	sub total_min total_min curr
+	add total_min total_min TIME_SHIFT_MIN
+	add total_min total_min MINUTES_PER_DAY
+	mod total_min total_min MINUTES_PER_DAY
+	div hours total_min 60
+	mod curr hours 1
+	sub hours hours curr
+	mul minutes hours 60
+	sub minutes total_min minutes
+	# write only when changed; pack 2-char ASCII (e.g., 02)
+	div tens hours 10
+	mod curr tens 1
+	sub tens tens curr
+	mul ones tens 10
+	sub ones hours ones
+	add ascii_tens tens ASCII_ZERO
+	add ascii_ones ones ASCII_ZERO
+	mul packed ascii_tens 256
+	add packed packed ascii_ones
+	l curr hour_disp Setting
+	sne cond packed curr
+	beqz cond skip_hour
+	s hour_disp Setting packed
+skip_hour:
+
+	div tens minutes 10
+	mod curr tens 1
+	sub tens tens curr
+	mul ones tens 10
+	sub ones minutes ones
+	add ascii_tens tens ASCII_ZERO
+	add ascii_ones ones ASCII_ZERO
+	mul packed ascii_tens 256
+	add packed packed ascii_ones
+	l curr minute_disp Setting
+	sne cond packed curr
+	beqz cond skip_minute
+	s minute_disp Setting packed
+skip_minute:
+
+	yield
+	j main

@@ -1,0 +1,149 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Console#LED_Display_(Small,_Medium_and_Large)",
+    "wikiTitle": "LED_Display",
+    "retrievedAt": "2026-02-12T17:26:40+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "Normal number display",
+        "settingInterpretation": "Direct display as a number. Values smaller than 1.000E-07 will be displayed as 0."
+      },
+      {
+        "value": 1,
+        "meaning": "Percentage number display",
+        "settingInterpretation": "Input range of 0.0 to 1.0 is interpolated and displayed as the range 0% to 100%. Values outside this range scale more, e.g. 10 shows as 1000%"
+      },
+      {
+        "value": 2,
+        "meaning": "Power display",
+        "settingInterpretation": "Adds a watt suffix (W) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. kW)"
+      },
+      {
+        "value": 3,
+        "meaning": "Kelvin display",
+        "settingInterpretation": "Adds a Kelvin suffix (K) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. kK)"
+      },
+      {
+        "value": 4,
+        "meaning": "Celcius display",
+        "settingInterpretation": "Adds a degrees Celcius suffix (°C) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. k°C)"
+      },
+      {
+        "value": 5,
+        "meaning": "Meters display",
+        "settingInterpretation": "Adds a meters suffix (m) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. km)"
+      },
+      {
+        "value": 6,
+        "meaning": "Credits display",
+        "settingInterpretation": "Adds a Credits suffix (€) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. k€)"
+      },
+      {
+        "value": 7,
+        "meaning": "Seconds display",
+        "settingInterpretation": "Adds a seconds suffix (sec) to the number. Does not divide and apply a metric prefix for Setting values >= 1000."
+      },
+      {
+        "value": 8,
+        "meaning": "Minutes display",
+        "settingInterpretation": "Adds a minutes suffix (min) to the number. Does not divide and apply a metric prefix for Setting values >= 1000."
+      },
+      {
+        "value": 9,
+        "meaning": "Days display",
+        "settingInterpretation": "Adds a days suffix (days) to the number. Does not divide and apply a metric prefix for Setting values >= 1000. Always indicates \"days\" even when Setting is 1."
+      },
+      {
+        "value": 10,
+        "meaning": "String display",
+        "settingInterpretation": "Displays the Setting value as an octet-packed ASCII string of up to six characters. A Setting value of $414243444546 will display \"ABCDEF\" on the display. A Logic Memory Unit value of 71752852194630 will display \"ABCDEF\" on the display."
+      },
+      {
+        "value": 11,
+        "meaning": "Farenheit display",
+        "settingInterpretation": "Adds a farenheit suffix (°F) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. k°F)"
+      },
+      {
+        "value": 12,
+        "meaning": "Litres display",
+        "settingInterpretation": "Adds a Litres suffix (L) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. kL)"
+      },
+      {
+        "value": 13,
+        "meaning": "Mol display",
+        "settingInterpretation": "Adds a Mols suffix (mol) to the number. Also divides the number as needed and adds a metric prefix to the suffix. (e.g. kmol)"
+      },
+      {
+        "value": 14,
+        "meaning": "Pa display",
+        "settingInterpretation": "Adds a Pascals suffix (Pa) to the number. Also divides the number as needed and adds a metricprefix to the suffix. (e.g. kPa)"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Sets the display mode of the LED Display to the passed value. (See Mode Values)"
+      },
+      {
+        "name": "Setting",
+        "type": "float",
+        "description": "Sets the raw number to display on the LED Display."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the LED Display on, when set to 1. Turns it off, when set to 0."
+      },
+      {
+        "name": "Color",
+        "type": "integer",
+        "description": "Sets the color of the text on the LED Display. (See Data Network Colors)"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the LED Display is turned on and receives power. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Returns the mode of the LED Display. (See Mode Values)"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Returns whether the LED Display is flashing an error. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "Setting",
+        "type": "float",
+        "description": "Returns the \"Setting\" value of the LED Display."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the LED Display is turned on. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Returns the current amount of power, required by the LED Display, in watts."
+      },
+      {
+        "name": "Color",
+        "type": "integer",
+        "description": "Returns the color setting of the LED Display. (See Data Network Colors)"
+      }
+    ]
+  }
+}

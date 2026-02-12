@@ -36,6 +36,7 @@ The exact names are optional, but consistency helps.
 
 ## Script list
 
+- `led_display_hms_clock/` — Drives 3 LED Displays as a 24h HH:MM:SS clock.
 - `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
 - `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.

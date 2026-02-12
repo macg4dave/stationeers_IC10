@@ -19,6 +19,10 @@ Start with `README.md`, then the script catalog in `scripts/README.md`.
 - Avoid label/alias names that shadow LogicType-ish identifiers (example to avoid: `Temperature:`).
 - Prefer avoiding redundant writes (reduce network spam): read current `On` then `s` only when changed (see `pipe_temp_hot_cold_valves.ic10`).
 - Batch network ops: `sbn`/`lbn` use **exact NameHash match**, not substring (see `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`, hashes like `HASH("IN")`).
+- For any device with `Mode` (or enum-like settings), read `catalog/devices/<Device>.json` first and use `modeValues` explicitly.
+	- Define constants in script (`define MODE_* ...`) and set mode in init/setup.
+	- Don’t assume default mode values.
+	- Example (`LED_Display`): `Mode=0` number, `Mode=8` minutes, `Mode=7` seconds.
 
 ## Script naming & exceptions
 - Convention: **folder name == base script name** and file is `<name>.ic10`.

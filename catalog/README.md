@@ -29,6 +29,7 @@ Each device JSON is shaped like:
   - `itemName`: string | null (wiki “Item Name”, when present)
   - `itemHash`: number | null (wiki “Item Hash”, when present)
 - `io`
+  - `modeValues` (optional): array of `{ value, meaning, settingInterpretation }` for devices that document an enum-like `Mode` table
   - `parameters`: array of `{ name, type, description }`  (intended “write”)
   - `outputs`: array of `{ name, type, description }`     (intended “read”)
 
