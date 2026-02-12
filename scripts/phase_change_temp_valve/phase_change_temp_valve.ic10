@@ -6,43 +6,49 @@
 #
 # Device registers:
 #   d0 = phase_change_device
-#   d1 = Pipe Digital Valve
+#   (Pipe Digital Valves named "cold" on this data network are controlled)
 #
 # Notes:
 # - Device Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
 
 alias phase_change d0
-alias valve d1
 
 alias tempC r0
 alias cond r1
 alias desired_on r2
-alias current_on r3
+alias last_written_on r3
+alias valve_hash r4
+alias valve_name_hash r5
 
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_ABOVE_C 30
+# Pipe Digital Valve prefab hash from catalog/devices/Pipe_Digital_Valve.json
+define PIPE_VALVE_HASH -1280984102
+define PIPE_VALVE_NAME_HASH HASH("cold")
 
 wait_devices:
 yield
 bdns d0 wait_devices
-bdns d1 wait_devices
+
+move valve_hash PIPE_VALVE_HASH
+move valve_name_hash PIPE_VALVE_NAME_HASH
+move desired_on 0
+move last_written_on -1
 
 main:
 l tempC phase_change Temperature
 sub tempC tempC KELVIN_TO_C
-
-# default: keep current valve state
-l current_on valve On
-move desired_on current_on
 
 # if tempC > TEMP_OPEN_ABOVE_C => open valve, else close
 slt cond TEMP_OPEN_ABOVE_C tempC
 select desired_on cond 1 0
 
 # avoid redundant writes (and network spam): only set when it changes
-sne cond desired_on current_on
+sne cond desired_on last_written_on
 beqz cond skip_write
-s valve On desired_on
+sbn valve_hash valve_name_hash Lock 0
+sbn valve_hash valve_name_hash On desired_on
+move last_written_on desired_on
 skip_write:
 
 yield

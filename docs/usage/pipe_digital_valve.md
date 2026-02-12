@@ -18,6 +18,15 @@
 - Many valves expose a `Setting` field but it often does not affect flow:
   - Prefer `On` for "open/close" automation.
 
+## Hashing gotchas (batch scripts)
+
+- Name hashes are exact and case-sensitive.
+  - `HASH("cold")` matches only `cold`.
+  - `cold_1`, `Cold`, and `COLD` are different names.
+- Hash filters combine: prefab hash + name hash means both must match.
+- For type filtering, prefer the known Pipe Digital Valve prefab hash: `-1280984102`.
+- If hash targeting is correct but valve still does not move, write `Lock=0` before writing `On`.
+
 ## Common patterns that scripts use
 
 - Many controllers read current `On` and only write when it changes (reduces data-network spam).

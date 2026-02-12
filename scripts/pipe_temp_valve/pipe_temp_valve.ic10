@@ -6,7 +6,7 @@
 #
 # Device registers:
 #   d0 = Pipe Analyzer
-#   d1 = Pipe Digital Valve
+#   (Pipe Digital Valves named "cold" on this data network are controlled)
 #
 # Notes:
 # - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
@@ -16,29 +16,34 @@
 #     * otherwise leave valve state unchanged
 
 alias pipe_read d0
-alias pipe_valve d1
 
 alias tempC r0
 alias cond r1
 alias desired_on r2
-alias current_on r3
+alias last_written_on r3
+alias valve_hash r4
+alias valve_name_hash r5
 
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_BELOW_C 10
 define TEMP_CLOSE_ABOVE_C 30
+define PIPE_VALVE_HASH HASH("StructurePipeDigitalValve")
+define PIPE_VALVE_NAME_HASH HASH("cold")
 
 wait_devices:
 yield
 bdns d0 wait_devices
-bdns d1 wait_devices
+
+move valve_hash PIPE_VALVE_HASH
+move valve_name_hash PIPE_VALVE_NAME_HASH
+move desired_on 0
+move last_written_on -1
 
 main:
 l tempC pipe_read Temperature
 sub tempC tempC KELVIN_TO_C
 
-# default: keep current valve state
-l current_on pipe_valve On
-move desired_on current_on
+# default: keep previous desired valve state (hysteresis hold zone)
 
 # if tempC < TEMP_OPEN_BELOW_C => open valve
 slt cond tempC TEMP_OPEN_BELOW_C
@@ -49,9 +54,10 @@ slt cond TEMP_CLOSE_ABOVE_C tempC
 select desired_on cond 0 desired_on
 
 # avoid redundant writes (and network spam): only set when it changes
-sne cond desired_on current_on
+sne cond desired_on last_written_on
 beqz cond skip_write
-s pipe_valve On desired_on
+sbn valve_hash valve_name_hash On desired_on
+move last_written_on desired_on
 skip_write:
 
 yield

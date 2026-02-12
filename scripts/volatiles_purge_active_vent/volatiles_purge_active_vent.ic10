@@ -3,7 +3,7 @@
 # Status: Functional
 #
 # Purpose: If the pipe contains Volatiles, turn an Active Vent on until
-#          Oxygen ratio is >= Volatiles ratio.
+#          Oxygen ratio is >= 33%.
 #
 # Device registers:
 #   d0 = Pipe Analyzer (gas pipe)
@@ -26,6 +26,9 @@ alias current_mode r5
 
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
+
+# Oxygen target ratio (33%)
+define O2_TARGET 0.33
 
 # Active Vent Mode: 1 = Outward
 define MODE_OUTWARD 1
@@ -50,10 +53,10 @@ l o2 pa RatioOxygen
 # Default to OFF
 move desired_on 0
 
-# If volatiles are present AND oxygen < volatiles => vent ON
+# If volatiles are present AND oxygen < 33% => vent ON
 sgt cond vol EPS
 beqz cond decide
-slt cond o2 vol
+slt cond o2 O2_TARGET
 select desired_on cond 1 0
 
 decide:

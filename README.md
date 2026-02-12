@@ -138,6 +138,22 @@ python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer
   - `catalog/devices/<WikiTitle>.json`
   - `catalog/index.json`
 
+## Hashing quick rules (batch/network scripts)
+
+When scripts use `lb/sb/lbn/sbn`, hash matching is strict:
+
+- **Name hash is exact-match only** (case-sensitive). `HASH("cold")` matches only devices named exactly `cold`.
+- Name-hash matching is **not** substring matching (so `cold_1` does not match `cold`).
+- Prefer authoritative prefab hashes from `catalog/devices/<Device>.json` when filtering by type.
+- If a script writes `On` but a device appears unchanged, verify lock/state requirements (many devices also need `Lock=0`).
+
+If a script appears to "not find" devices, check in this order:
+
+1. data network connectivity
+2. exact in-game device name used by `HASH("...")`
+3. prefab/type hash value used by the script
+4. required lock/mode settings on the target device
+
 ---
 
 ## Developer notes (contributing / repo internals)

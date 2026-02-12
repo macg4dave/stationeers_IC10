@@ -5,6 +5,15 @@ These notes exist because AI (and humans!) commonly miss one "tiny" Stationeers 
 - If you add a new script and learn a new gotcha, update/add a playbook here.
 - Keep these pages short and checklist-y.
 
+## Hash-based targeting sanity checks
+
+When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
+
+- Verify all devices are on the same data network.
+- Verify hash-based names are exact and case-sensitive (`HASH("cold")` only matches `cold`).
+- Verify the script's prefab/type hash matches the intended device.
+- Verify device state gates (lock/mode) are satisfied.
+
 ## Playbooks
 
 - `active_vent.md` — Active Vent required settings.

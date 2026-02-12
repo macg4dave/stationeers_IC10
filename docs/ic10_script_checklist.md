@@ -71,6 +71,23 @@ If using `lbn/sbn`, remember:
 - `HASH("IN")` matches **exact device name** only (not substring)
 - Document the required in-game renames in the script `README.md`
 
+### 6.5) Hashing/device-targeting checklist (prevent "not found" issues)
+
+When writing batch network scripts:
+
+- Prefer an authoritative numeric prefab hash from `catalog/devices/<Device>.json` when known.
+  - Example: Pipe Digital Valve prefab hash is documented as `-1280984102`.
+- Keep name hashes explicit and exact (`HASH("cold")` means exactly `cold`, case-sensitive).
+- If using `On` as actuator state, consider writing `Lock=0` before `On` when device behavior can be lock-gated.
+- In script README usage steps, include exact rename text users should apply in-game.
+
+Debug order when a batch write appears to do nothing:
+
+1. confirm devices are on the same data network
+2. confirm exact in-game name for name hash filters
+3. confirm prefab hash value matches intended device type
+4. confirm mode/lock prerequisites for that device
+
 Example: `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`.
 
 ## 7) Player-facing README (required)

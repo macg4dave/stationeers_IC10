@@ -2,37 +2,34 @@
 
 ## Purpose
 
-Open/close a **Liquid Digital Valve** based on liquid pipe temperature from a **Liquid Pipe Analyzer**, using simple hysteresis (Schmitt-trigger style).
+Open/close **all Liquid Digital Valves on the IC network** based on liquid pipe temperature from a **Liquid Pipe Analyzer**, using simple hysteresis (Schmitt-trigger style).
 
 ## Devices
 
 Required:
 
 - Liquid Pipe Analyzer
-- Liquid Digital Valve
+- One or more Liquid Digital Valves on the same data network as the IC housing
 
 ## Device registers
 
 - `d0` = Liquid Pipe Analyzer
-- `d1` = Liquid Digital Valve
 
 ## Usage
 
 1. Place the Liquid Pipe Analyzer on the liquid pipe network you want to monitor.
-2. Place a Liquid Digital Valve on the liquid pipe network you want to control.
+2. Place one or more Liquid Digital Valves on the liquid pipe network(s) you want to control.
 3. (Recommended) Rename the devices so they’re easy to pick in the IC housing UI:
    - Liquid Pipe Analyzer: `read_liquid_temp_1`
-   - Liquid Digital Valve: `read_liquid_temp_1_valve`
 4. In the IC housing, assign:
    - `d0` = `read_liquid_temp_1`
-   - `d1` = `read_liquid_temp_1_valve`
 5. Copy/paste `liquid_temp_valve.ic10` into the in-game IC editor and run it.
 
 ## Behavior
 
 - Reads `d0 Temperature` (Kelvin) and converts to Celsius.
-- Opens the valve (**On = 1**) when temperature is below **20°C**.
-- Closes the valve (**On = 0**) when temperature is above **30°C**.
+- Turns all network Liquid Digital Valves **On = 1** when temperature is below **20°C**.
+- Turns all network Liquid Digital Valves **On = 0** when temperature is above **30°C**.
 - Between **20°C** and **30°C** it leaves the valve state unchanged (hysteresis).
 
 ## Tuning

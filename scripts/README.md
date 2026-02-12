@@ -29,6 +29,18 @@ The exact names are optional, but consistency helps.
 - These scripts are intended to be pasted into the **in-game** IC10 chip.
 - Repo tooling/source files are not constrained by in-game chip limits unless you are producing final paste-into-game IC10.
 
+## Hash-targeted script setup (important)
+
+Some scripts target devices via network hashes (`lb/sb/lbn/sbn`) instead of direct `d0..d5` references.
+
+- Name hashes are exact and case-sensitive.
+  - `HASH("cold")` matches only `cold`.
+  - `cold_1`, `Cold`, and `COLD` are different names.
+- Batch name hash matching is not substring matching.
+- If a script README says "name valves `cold`", rename targets exactly to `cold`.
+
+If behavior looks like "script can't find device", verify data-network connection and exact rename first.
+
 ## Creating a new script (template)
 
 - Start from `scripts/_template/` (copy the folder, then rename folder + `.ic10` file).
