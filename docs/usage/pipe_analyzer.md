@@ -17,6 +17,7 @@
 
 - If `Error != 0`, many controllers will treat readings as invalid and force outputs OFF.
 - If your Pipe Analyzer has an in-game `On` toggle, ensure it is `On = 1` (scripts often assume it).
+- If a script faults on a line that reads analyzer values (e.g., `l r0 d0 Temperature`), add/re-check a `bdns d0 wait_devices` guard at the top of `main:` before that read.
 - Temperature is **Kelvin**:
   - Convert with `C = K - 273.15`
 - Ratios are floats with noise:

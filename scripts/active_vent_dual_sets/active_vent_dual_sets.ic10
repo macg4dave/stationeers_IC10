@@ -16,7 +16,7 @@ alias temp_k r5
 alias desired_state r6
 alias state r7
 alias ticks r8
-move vent_hash HASH("StructureActiveVent")
+move vent_hash -842048328
 move in_name_hash HASH("IN")
 move out_name_hash HASH("OUT")
 

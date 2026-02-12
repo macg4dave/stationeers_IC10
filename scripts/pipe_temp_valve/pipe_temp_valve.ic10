@@ -27,7 +27,7 @@ alias valve_name_hash r5
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_BELOW_C 10
 define TEMP_CLOSE_ABOVE_C 30
-define PIPE_VALVE_HASH HASH("StructurePipeDigitalValve")
+define PIPE_VALVE_HASH -1280984102
 define PIPE_VALVE_NAME_HASH HASH("cold")
 
 wait_devices:

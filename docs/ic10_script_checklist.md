@@ -28,6 +28,11 @@ Example patterns are in:
 
 Use a `wait:` / `wait_devices:` loop with `yield` + `bdns` for every required device.
 
+Also add a lightweight in-loop guard before critical `l` reads (especially analyzer reads):
+
+- Example: put `bdns d0 wait_devices` at the top of `main:` before `l ... Temperature`
+- Why: this avoids intermittent runtime line faults when a mapped device is temporarily unavailable (power/network reassignment/load timing)
+
 ## 4) Units & normalization (most common AI mistake)
 
 - Temperatures are often **Kelvin** → convert: $C = K - 273.15$.
