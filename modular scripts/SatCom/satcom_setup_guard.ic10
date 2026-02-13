@@ -71,8 +71,20 @@ beqz cond init_token
 sbn MEMORY_HASH CMD_TYPE_NAME Setting 0
 init_token:
 lbn cond MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
-beqz cond mark_inited
+beqz cond init_slot0
 sbn MEMORY_HASH CMD_TOKEN_NAME Setting 0
+init_slot0:
+lbn cond MEMORY_HASH SLOT0_NAME Setting Maximum
+beq cond -1 init_slot1
+sbn MEMORY_HASH SLOT0_NAME Setting -1
+init_slot1:
+lbn cond MEMORY_HASH SLOT1_NAME Setting Maximum
+beq cond -1 init_slot2
+sbn MEMORY_HASH SLOT1_NAME Setting -1
+init_slot2:
+lbn cond MEMORY_HASH SLOT2_NAME Setting Maximum
+beq cond -1 mark_inited
+sbn MEMORY_HASH SLOT2_NAME Setting -1
 mark_inited:
 move inited 1
 ok:

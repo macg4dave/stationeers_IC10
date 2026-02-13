@@ -14,8 +14,6 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 - `satcom_worker_cycle.ic10` - cycle/tune contacts and clear active filter only
 - `satcom_worker_display.ic10` - optional H/V LED display updater
 
-`satcom_master_named.ic10` is deprecated and intentionally not used.
-
 ## Name contract
 
 Required exact names:
@@ -44,11 +42,12 @@ Use Logic Memory `Setting` channels:
 - `cmd_token` - incrementing command token
 - `cmd_type` - command code
 - `filter_status` (optional) - mirrors cycle filter verification status
+- Empty contact sentinel is `-1` only (`0` is not used as empty).
 
 Command codes:
 
 - `1` = discover (rebuild contact slots)
-- `2` = cycle (tune next non-zero contact)
+- `2` = cycle (tune next stored contact that is not `-1`)
 - `3` = clear (clear slots and unlock dish filter)
 
 Workers execute commands only when `cmd_token` changes.
@@ -67,6 +66,12 @@ Workers execute commands only when `cmd_token` changes.
 - Turn `dial_h` to manually set dish `Horizontal` when discover is not sweeping.
 - Turn `dial_v` to manually set dish `Vertical` when discover is not sweeping.
 - Contact filter control (`BestContactFilter`) is owned by cycle worker only.
+
+## Known engine behaviors
+
+- `SignalID=-1` means no contact; SatCom scripts treat only `-1` as empty.
+- Dish movement or power state changes can reset acquisition; wait for `Idle=1`.
+- Dish control/readback requires the dish and ICs on the same data network.
 
 ## Status protocol (`db Setting`)
 
@@ -116,7 +121,7 @@ Each chip writes status to its own housing `Setting`.
 - `120` = sweeping step
 - `121` = contact stored
 - `130` = complete with 3 contacts
-- `131` = complete with zero contacts
+- `131` = complete with no contacts
 - `132` = complete with partial contacts
 - `140` = cleared by clear command
 
@@ -134,7 +139,7 @@ Discover worker never writes `BestContactFilter`.
 
 Cycle worker owns contact skip/lock flow:
 
-- `cycle` command advances to next non-zero stored contact
+- `cycle` command advances to next stored contact where `SignalID != -1`
 - `clear` command resets filter lock (`BestContactFilter=-1`)
 - if `filter_status` memory exists, cycle writes `220/223/230/233` there
 

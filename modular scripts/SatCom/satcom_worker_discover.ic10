@@ -11,6 +11,7 @@ alias cond r9
 alias sig r10
 define CMD_DISCOVER 1
 define CMD_CLEAR 3
+define NO_SIGNAL -1
 define MEMORY_HASH HASH("StructureLogicMemory")
 define DISH_HASH HASH("StructureLargeSatelliteDish")
 define SLOT0_NAME HASH("slot0")
@@ -39,9 +40,9 @@ lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beq cmd CMD_DISCOVER start
 bne cmd CMD_CLEAR worker
 move state 0
-sbn MEMORY_HASH SLOT0_NAME Setting 0
-sbn MEMORY_HASH SLOT1_NAME Setting 0
-sbn MEMORY_HASH SLOT2_NAME Setting 0
+sbn MEMORY_HASH SLOT0_NAME Setting NO_SIGNAL
+sbn MEMORY_HASH SLOT1_NAME Setting NO_SIGNAL
+sbn MEMORY_HASH SLOT2_NAME Setting NO_SIGNAL
 s db Setting 140
 j main
 start:
@@ -51,9 +52,9 @@ move step 0
 move h 0
 move v 0
 move dir 1
-sbn MEMORY_HASH SLOT0_NAME Setting 0
-sbn MEMORY_HASH SLOT1_NAME Setting 0
-sbn MEMORY_HASH SLOT2_NAME Setting 0
+sbn MEMORY_HASH SLOT0_NAME Setting NO_SIGNAL
+sbn MEMORY_HASH SLOT1_NAME Setting NO_SIGNAL
+sbn MEMORY_HASH SLOT2_NAME Setting NO_SIGNAL
 s db Setting 110
 j main
 worker:
@@ -92,7 +93,7 @@ lbn cond DISH_HASH DISH_NAME Idle Maximum
 beqz cond main
 sleep 1
 lbn sig DISH_HASH DISH_NAME SignalID Maximum
-beqz sig sample_done
+beq sig NO_SIGNAL sample_done
 beq n 0 save0
 beq n 1 save1
 sbn MEMORY_HASH SLOT2_NAME Setting sig

@@ -81,12 +81,13 @@ Prefab tokens used by scripts:
 ## Controls
 
 - Press Discover: scan and store up to 3 contacts.
-- Press Cycle: tune/skip to the next stored contact.
+- Press Cycle: tune/skip to the next stored contact where `SignalID != -1`.
 - Press both buttons: clear stored contacts and clear dish filter lock.
 - Turn dial `dial_h`: manually set dish horizontal angle when discover is idle.
 - Turn dial `dial_v`: manually set dish vertical angle when discover is idle.
 - Contact filter changes are handled by cycle worker commands only.
 - If present, Logic Memory `filter_status` mirrors cycle filter result codes.
+- Empty contact slots use sentinel `-1` only (no legacy `0` empty slots).
 
 Cycle verification status hints:
 

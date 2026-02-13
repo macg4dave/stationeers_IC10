@@ -12,6 +12,7 @@ alias c2 r8
 alias tries r9
 define CMD_CYCLE 2
 define CMD_CLEAR 3
+define NO_SIGNAL -1
 define MEMORY_HASH HASH("StructureLogicMemory")
 define DISH_HASH HASH("StructureLargeSatelliteDish")
 define SLOT0_NAME HASH("slot0")
@@ -70,7 +71,9 @@ j validate
 pick1:
 move sig c1
 validate:
-bnez sig tune
+beq sig NO_SIGNAL skip_sig
+j tune
+skip_sig:
 add tries tries 1
 blt tries 3 pick_next
 s db Setting 221
