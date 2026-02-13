@@ -1,0 +1,162 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Landingpad_Liquid_Output",
+    "wikiTitle": "Landingpad_Liquid_Output",
+    "retrievedAt": "2026-02-13T00:00:00+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": "In kPa (assumed from Kit_(Liquid_Pipe_Analyzer))."
+      },
+      {
+        "name": "Temperature",
+        "type": "float",
+        "description": "In Kelvin (assumed from Kit_(Liquid_Pipe_Analyzer))."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "Requiredpower",
+        "type": "integer",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "TotalMoles",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "Volume",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidNitrogen",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "VolumeOfLiquid",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidOxygen",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidVolatiles",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioSteam",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidCarbonDioxide",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidPollutant",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidNitrousOxide",
+        "type": "float",
+        "description": "Assumed from Kit_(Liquid_Pipe_Analyzer) (liquid-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "ReferenceId",
+        "type": "float",
+        "description": "Globally Unique Device Identifier (assumed from Kit_(Liquid_Pipe_Analyzer))."
+      }
+    ]
+  }
+}

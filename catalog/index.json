@@ -44,6 +44,36 @@
       "itemHash": -1252983604
     },
     {
+      "wikiTitle": "Landingpad_Gas_Input",
+      "file": "devices/Landingpad_Gas_Input.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Landingpad_Gas_Output",
+      "file": "devices/Landingpad_Gas_Output.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Landingpad_Gas_Storage",
+      "file": "devices/Landingpad_Gas_Storage.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Landingpad_Liquid_Input",
+      "file": "devices/Landingpad_Liquid_Input.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Landingpad_Liquid_Output",
+      "file": "devices/Landingpad_Liquid_Output.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
       "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
       "itemName": "ItemLiquidPipeAnalysizer",
