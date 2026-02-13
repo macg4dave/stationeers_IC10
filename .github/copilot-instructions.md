@@ -39,6 +39,7 @@ Start with `README.md`, then script catalogs in `scripts/README.md` and `modular
 	- `<feature>_master.ic10`
 	- `<feature>_worker_<task>.ic10` (one task per worker)
 	- `README.md` with wiring + command/data contract + status table.
+- Wiring rule for modular projects: if chips are wired to other chips/channels, map those links first starting at `d0` and descending (`d0`, `d1`, `d2`, ...). Put buttons and feature devices after chip-link wiring.
 - Prefer **Logic Memory** devices for cross-chip command/data channels (token + slots), not ad-hoc worker housing fields.
 - Require each chip to publish compact status codes via its own `db Setting` and document code meanings.
 - Keep worker logic narrow and single-purpose; keep orchestration and button edge handling in master.

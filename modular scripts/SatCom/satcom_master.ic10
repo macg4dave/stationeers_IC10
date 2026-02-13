@@ -1,58 +1,123 @@
-# SatCom master: d0=button d1=discover_housing d2=cycle_housing d3=cmd_slot
-alias btn d0
-alias discover d1
-alias cycle d2
-alias cmd_slot d3
-alias mode r0
-alias pressed r1
-alias prev r2
-alias cmd r3
+# SatCom master
+# d0=discover_housing d1=cycle_housing d2=cmd_token d3=cmd_type
+# d4=discover_btn d5=cycle_btn
+alias discover_h d0
+alias cycle_h d1
+alias cmd_token d2
+alias cmd_type d3
+alias discover_btn d4
+alias cycle_btn d5
+alias pressed_discover r0
+alias pressed_cycle r1
+alias prev_discover r2
+alias prev_cycle r3
+alias edge_discover r4
+alias edge_cycle r5
+alias token r6
+alias cond r7
+alias discover_status r8
+alias cycle_status r9
+define CMD_DISCOVER 1
+define CMD_CYCLE 2
+define CMD_CLEAR 3
 init:
-move mode 0
-move prev 0
-move cmd 0
-s discover On 0
-s cycle On 0
-s cmd_slot Setting 0
+move prev_discover 0
+move prev_cycle 0
+move token 0
+s cmd_token Setting 0
+s cmd_type Setting 0
 s db Setting 0
 main:
 yield
-bdns btn main
-bdns discover main
-bdns cycle main
-bdns cmd_slot main
-l pressed btn Activate
-beqz pressed released
-bnez prev run_mode
-move prev 1
-beq mode 0 to_discover
-beq mode 1 to_cycle
-j next_cycle
-released:
-move prev 0
-run_mode:
+bdns discover_btn main
+bdns cycle_btn main
+bdns discover_h main
+bdns cycle_h main
+bdns cmd_token main
+bdns cmd_type main
+l cond discover_h On
+bnez cond check_cycle_on
+s discover_h On 1
+check_cycle_on:
+l cond cycle_h On
+bnez cond read_buttons
+s cycle_h On 1
+read_buttons:
+l pressed_discover discover_btn Activate
+l pressed_cycle cycle_btn Activate
+beqz pressed_discover discover_low
+beqz prev_discover discover_rise
+move edge_discover 0
+j discover_done
+discover_rise:
+move edge_discover 1
+move prev_discover 1
+j discover_done
+discover_low:
+move prev_discover 0
+move edge_discover 0
+discover_done:
+beqz pressed_cycle cycle_low
+beqz prev_cycle cycle_rise
+move edge_cycle 0
+j route
+cycle_rise:
+move edge_cycle 1
+move prev_cycle 1
+j route
+cycle_low:
+move prev_cycle 0
+move edge_cycle 0
+route:
+or cond edge_discover edge_cycle
+beqz cond publish
+and cond pressed_discover pressed_cycle
+bnez cond send_clear
+bnez edge_discover send_discover
+bnez edge_cycle send_cycle
+publish:
+l discover_status discover_h Setting
+l cycle_status cycle_h Setting
+beq discover_status 110 discover_busy
+beq discover_status 120 discover_busy
+beq discover_status 121 discover_busy
+beq discover_status 130 discover_ready
+beq discover_status 132 discover_ready
+beq discover_status 131 discover_none
+beq cycle_status 210 cycle_busy
+beq cycle_status 220 cycle_ready
 s db Setting 1
 j main
-to_discover:
-move mode 1
-move cmd 0
-s discover On 1
-s cycle On 0
-s cmd_slot Setting 0
+discover_busy:
+s db Setting 2
+j main
+discover_ready:
+s db Setting 5
+j main
+discover_none:
+s db Setting 6
+j main
+cycle_busy:
+s db Setting 3
+j main
+cycle_ready:
+s db Setting 4
+j main
+send_discover:
+add token token 1
+s cmd_type Setting CMD_DISCOVER
+s cmd_token Setting token
 s db Setting 10
 j main
-to_cycle:
-move mode 2
-move cmd 1
-s discover On 0
-s cycle On 1
-s cmd_slot Setting cmd
+send_cycle:
+add token token 1
+s cmd_type Setting CMD_CYCLE
+s cmd_token Setting token
 s db Setting 20
 j main
-next_cycle:
-add cmd cmd 1
-s cycle On 1
-s discover On 0
-s cmd_slot Setting cmd
-s db Setting 21
+send_clear:
+add token token 1
+s cmd_type Setting CMD_CLEAR
+s cmd_token Setting token
+s db Setting 30
 j main

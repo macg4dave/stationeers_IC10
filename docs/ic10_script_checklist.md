@@ -144,6 +144,8 @@ When a feature is large, stateful, or multi-phase, prefer modular scripts:
 - Put task loops in workers only:
   - scan/collect/control logic specific to one concern
 - For cross-chip messaging, prefer **Logic Memory** slots (`Setting`) as explicit channels.
+- If chips are wired to other chips/channels, map those links first from `d0`
+  downward (`d0`, `d1`, `d2`, ...) before buttons and feature devices.
 - Add status output for each chip via its own `db Setting` and document meanings.
 - Validate paste limits for **every** `.ic10` file in the feature folder.
 

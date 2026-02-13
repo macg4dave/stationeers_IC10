@@ -18,6 +18,9 @@ Each modular feature lives in:
 
 ## Notes
 
+- Wiring standard: if chips are wired to other chips/channels, assign those
+  links first at `d0`, `d1`, `d2`... then map buttons/feature devices.
+- End-user setup guide: `docs/usage/modular_wiring_setup.md`.
 - Keep every chip paste-ready: 128 lines / 90 chars per line.
 - Validate with:
   - `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`

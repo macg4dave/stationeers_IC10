@@ -16,6 +16,7 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 
 ## Playbooks
 
+- `modular_wiring_setup.md` — modular chip/link wiring order + end-user setup flow.
 - `active_vent.md` — Active Vent required settings.
 - `active_liquid_outlet.md` — Active Liquid Outlet required settings.
 - `advanced_furnace.md` — Advanced Furnace required settings.

@@ -15,6 +15,7 @@ Use this folder as a starter for modular IC10 projects.
    - `<feature>_worker_<task>.ic10` (copy worker skeleton per task)
 3. Add a feature `README.md` with:
    - per-chip `d0..d5` mapping
+   - for modular links, reserve `d0..` first for chip/channels then buttons/devices
    - shared memory contract (cmd/data slots)
    - status-code table (`db Setting` for each chip)
 

@@ -1,98 +1,128 @@
-# SatCom discover worker: d0=dish d1=slot0 d2=slot1 d3=slot2
-alias dish d0
-alias s0 d1
-alias s1 d2
-alias s2 d3
-alias count r0
-alias sig r1
-alias cond r2
-alias tmp r3
+alias tok r0
+alias prev r1
+alias cmd r2
+alias act r3
 alias h r4
 alias v r5
 alias dir r6
-alias c0 r7
-alias c1 r8
-alias c2 r9
-define H_MIN 0
-define H_MAX 359
-define H_STEP 10
-define V_MIN 0
+alias n r7
+define CMD_DISCOVER 1
+define CMD_CLEAR 3
 define V_MAX 89
-define V_STEP 10
 init:
-move count 0
-move h H_MIN
-move v V_MIN
+move prev -1
+move act 0
+move h 0
+move v 0
 move dir 1
-move c0 0
-move c1 0
-move c2 0
-s dish BestContactFilter -1
-s s0 Setting 0
-s s1 Setting 0
-s s2 Setting 0
 s db Setting 100
 main:
 yield
-bdns dish main
-bdns s0 main
-bdns s1 main
-bdns s2 main
-beq count 3 done
-s db Setting 110
-move tmp H_STEP
-mul tmp tmp dir
-add tmp h tmp
-bgt tmp H_MAX over_max
-blt tmp H_MIN under_min
-move h tmp
-j do_move
-over_max:
-move h H_MAX
-move dir -1
-j bump_v
-under_min:
-move h H_MIN
+bdns d0 main
+bdns d1 main
+bdns d2 main
+bdns d3 main
+bdns d4 main
+bdns d5 main
+l tok d3 Setting
+seq r14 tok prev
+bnez r14 run
+move prev tok
+l cmd d4 Setting
+beq cmd CMD_DISCOVER start
+beq cmd CMD_CLEAR clear
+j run
+start:
+move act 1
+move n 0
+move r10 0
+move h 0
+move v 0
 move dir 1
-j bump_v
-bump_v:
-add v v V_STEP
-ble v V_MAX do_move
-move v V_MIN
-do_move:
-s dish Horizontal h
-s dish Vertical v
-wait_idle:
-l tmp dish Idle
-beqz tmp wait_idle
+move r11 0
+move r12 0
+move r13 0
+s d0 Setting 0
+s d1 Setting 0
+s d2 Setting 0
+s d5 BestContactFilter -1
+s db Setting 110
+j run
+clear:
+move act 0
+s d0 Setting 0
+s d1 Setting 0
+s d2 Setting 0
+s d5 BestContactFilter -1
+s db Setting 140
+j main
+run:
+beqz act main
+move r9 10
+mul r9 r9 dir
+add r9 h r9
+bgt r9 359 high
+blt r9 0 low
+move h r9
+j moved
+high:
+move h 359
+move dir -1
+j bump
+low:
+move h 0
+move dir 1
+j bump
+bump:
+add v v 10
+ble v V_MAX moved
+move v 0
+add r10 r10 1
+moved:
+s d5 Horizontal h
+s d5 Vertical v
+s db Setting 120
+wait:
+l r9 d5 Idle
+beqz r9 wait
 sleep 1
-l sig dish SignalID
-beqz sig main
-seq cond sig c0
-bnez cond main
-seq cond sig c1
-bnez cond main
-seq cond sig c2
-bnez cond main
-beq count 0 save0
-beq count 1 save1
-move c2 sig
-s s2 Setting sig
-move count 3
-s db Setting 120
-j main
+l r8 d5 SignalID
+beqz r8 done_chk
+seq r14 r8 r11
+bnez r14 done_chk
+seq r14 r8 r12
+bnez r14 done_chk
+seq r14 r8 r13
+bnez r14 done_chk
+beq n 0 save0
+beq n 1 save1
+move r13 r8
+s d2 Setting r8
+move n 3
+s db Setting 121
+j done_chk
 save0:
-move c0 sig
-s s0 Setting sig
-add count count 1
-s db Setting 120
-j main
+move r11 r8
+s d0 Setting r8
+add n n 1
+s db Setting 121
+j done_chk
 save1:
-move c1 sig
-s s1 Setting sig
-add count count 1
-s db Setting 120
-j main
-done:
+move r12 r8
+s d1 Setting r8
+add n n 1
+s db Setting 121
+done_chk:
+beq n 3 full
+blt r10 2 main
+beqz n none
+s db Setting 132
+j stop
+full:
 s db Setting 130
+j stop
+none:
+s db Setting 131
+stop:
+move act 0
 j main

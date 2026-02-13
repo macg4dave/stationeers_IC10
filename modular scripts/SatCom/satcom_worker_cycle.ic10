@@ -1,21 +1,26 @@
-# SatCom cycle worker: d0=dish d1=slot0 d2=slot1 d3=slot2 d4=cmd_slot
-alias dish d0
-alias s0 d1
-alias s1 d2
-alias s2 d3
-alias cmd_slot d4
+# SatCom cycle worker
+# d0=slot0 d1=slot1 d2=slot2 d3=cmd_token d4=cmd_type d5=dish
+alias s0 d0
+alias s1 d1
+alias s2 d2
+alias cmd_token d3
+alias cmd_type d4
+alias dish d5
 alias token r0
 alias prev_token r1
-alias idx r2
-alias sig r3
-alias cond r4
-alias c0 r5
-alias c1 r6
-alias c2 r7
-alias tries r8
+alias cmd r2
+alias idx r3
+alias sig r4
+alias cond r5
+alias c0 r6
+alias c1 r7
+alias c2 r8
+alias tries r9
+define CMD_CYCLE 2
+define CMD_CLEAR 3
 init:
 move prev_token -1
-move idx 0
+move idx -1
 s db Setting 200
 main:
 yield
@@ -23,16 +28,21 @@ bdns dish main
 bdns s0 main
 bdns s1 main
 bdns s2 main
-bdns cmd_slot main
-l token cmd_slot Setting
+bdns cmd_token main
+bdns cmd_type main
+l token cmd_token Setting
 seq cond token prev_token
 bnez cond idle
 move prev_token token
+l cmd cmd_type Setting
+beq cmd CMD_CLEAR clear_filter
+bne cmd CMD_CYCLE idle
 l c0 s0 Setting
 l c1 s1 Setting
 l c2 s2 Setting
 move tries 0
 s db Setting 210
+pick_next:
 add idx idx 1
 blt idx 3 pick
 move idx 0
@@ -40,26 +50,26 @@ pick:
 beq idx 0 pick0
 beq idx 1 pick1
 move sig c2
-j valid
+j validate
 pick0:
 move sig c0
-j valid
+j validate
 pick1:
 move sig c1
-valid:
+validate:
 bnez sig tune
 add tries tries 1
-blt tries 3 next_try
+blt tries 3 pick_next
 s db Setting 221
 j main
-next_try:
-add idx idx 1
-blt idx 3 pick
-move idx 0
-j pick
 tune:
 s dish BestContactFilter sig
 s db Setting 220
+j main
+clear_filter:
+s dish BestContactFilter -1
+move idx -1
+s db Setting 230
 j main
 idle:
 s db Setting 200
