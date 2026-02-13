@@ -53,6 +53,7 @@ Workers execute commands only when `cmd_token` changes.
 ## Wiring
 
 - Put all SatCom devices on one shared data network.
+- Button prefab can be either Logic Switch (Button) or Important Button.
 - No manual `d0..d5` mapping is required for active SatCom scripts.
 
 ## Controls

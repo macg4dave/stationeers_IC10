@@ -18,7 +18,7 @@ by prefab+name (`lbn`/`sbn`) and do not require per-chip `d0..d5` mapping.
   - `slot0`
   - `slot1`
   - `slot2`
-- 2x Logic Switch (Button)
+- 2x Logic Switch (Button) or Important Button
   - Discover
   - Cycle
 - 1x Large Satellite Dish

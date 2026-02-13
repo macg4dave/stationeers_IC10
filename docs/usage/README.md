@@ -23,6 +23,7 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 - `daylight_sensor.md` — Daylight Sensor required settings.
 - `gas_sensor.md` — Gas Sensor required settings.
 - `ic_housing.md` — using `db` for status/debug.
+- `landingpad_output.md` — landingpad gas vs liquid output setup + field checks.
 - `led_display.md` — LED Display mode and setup checks.
 - `large_satellite_dish.md` — Large Satellite Dish required settings.
 - `liquid_digital_valve.md` — Liquid Digital Valve required settings.

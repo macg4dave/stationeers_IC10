@@ -26,32 +26,32 @@ move idx -1
 s db Setting 200
 main:
 yield
-lbn cond DISH_HASH DISH_NAME PrefabHash
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
 bne cond DISH_HASH main
-lbn cond MEMORY_HASH SLOT0_NAME PrefabHash
+lbn cond MEMORY_HASH SLOT0_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH SLOT1_NAME PrefabHash
+lbn cond MEMORY_HASH SLOT1_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH SLOT2_NAME PrefabHash
+lbn cond MEMORY_HASH SLOT2_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond DISH_HASH DISH_NAME On
+lbn cond DISH_HASH DISH_NAME On Maximum
 bnez cond read_cmd
 sbn DISH_HASH DISH_NAME On 1
 read_cmd:
-lbn token MEMORY_HASH CMD_TOKEN_NAME Setting
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 seq cond token prev_token
 bnez cond idle
 move prev_token token
-lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting
+lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beq cmd CMD_CLEAR clear_filter
 bne cmd CMD_CYCLE idle
-lbn c0 MEMORY_HASH SLOT0_NAME Setting
-lbn c1 MEMORY_HASH SLOT1_NAME Setting
-lbn c2 MEMORY_HASH SLOT2_NAME Setting
+lbn c0 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn c1 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn c2 MEMORY_HASH SLOT2_NAME Setting Maximum
 move tries 0
 s db Setting 210
 pick_next:

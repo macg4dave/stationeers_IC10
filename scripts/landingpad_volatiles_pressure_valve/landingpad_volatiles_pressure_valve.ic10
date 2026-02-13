@@ -3,17 +3,18 @@
 # Status: Functional
 #
 # Purpose:
-# - If Landingpad Liquid Output is 100% Liquid Volatiles, enable output path.
+# - If Landingpad Gas Output is 100% Volatiles, enable output path.
 # - Safety cutoff: if Pipe Analyzer pressure > 20 MPa, force everything OFF.
 #
 # Device registers:
 #   d0 = Pipe Analyzer            [Pressure, Error]
-#   d1 = Landingpad Liquid Output [RatioLiquidVolatiles, On, Error]
+#   d1 = Landingpad Gas Output    [RatioVolatiles, On, Error]
 #   d2 = Pipe Digital Valve       [On]
 #
 # Notes:
 # - Pressure cutoff uses kPa: 20 MPa = 20000 kPa.
-# - "100% volatiles" is treated as RatioLiquidVolatiles >= VOLATILES_FULL_MIN.
+# - "100% volatiles" is treated as RatioVolatiles >= VOLATILES_FULL_MIN.
+# - Self-heals valve lock by forcing `Lock=0` when needed.
 
 alias pipe_read d0
 alias pad_out d1
@@ -26,10 +27,9 @@ alias current_on r3
 alias cond r4
 alias vol_low r5
 alias pressure_trip r6
-alias pad_err r7
-alias pipe_err r8
+alias current_lock r7
 
-define VOLATILES_FULL_MIN 0.999999
+define VOLATILES_FULL_MIN 0.999
 define PRESSURE_CUTOFF_KPA 20000
 
 wait_devices:
@@ -47,29 +47,35 @@ bdns d2 wait_devices
 # default OFF unless conditions pass
 move desired_on 0
 
-# If landingpad read is valid and ratio is ~100%, request ON
-l pad_err pad_out Error
-bnez pad_err check_pressure
-l pad_vol pad_out RatioLiquidVolatiles
+# If ratio is ~100%, request ON
+l pad_vol pad_out RatioVolatiles
 slt vol_low pad_vol VOLATILES_FULL_MIN
 seqz desired_on vol_low
+s db Setting 20
+beqz desired_on check_pressure
+s db Setting 10
 
 check_pressure:
-# Fail-safe: if analyzer is in error, force OFF
-l pipe_err pipe_read Error
-bnez pipe_err apply_outputs
+# Pressure cutoff is based only on Pipe Analyzer pressure readout
 l pipe_kpa pipe_read Pressure
 slt pressure_trip PRESSURE_CUTOFF_KPA pipe_kpa
 beqz pressure_trip apply_outputs
 move desired_on 0
+s db Setting 30
 
 apply_outputs:
-# Landingpad Liquid Output On
+# Landingpad Gas Output On
 l current_on pad_out On
 sne cond desired_on current_on
 beqz cond skip_pad_write
 s pad_out On desired_on
 skip_pad_write:
+
+# Unlock pipe digital valve if needed
+l current_lock valve Lock
+beqz current_lock valve_unlocked
+s valve Lock 0
+valve_unlocked:
 
 # Pipe Digital Valve On
 l current_on valve On

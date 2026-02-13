@@ -20,66 +20,66 @@ move v_hash 0
 s db Setting 300
 main:
 yield
-lbn cond DISH_HASH DISH_NAME PrefabHash
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
 bne cond DISH_HASH main
 beqz h_hash find_h
-lbn cond h_hash DISPLAY_H_NAME PrefabHash
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
 find_h:
 move h_hash LED_SMALL_HASH
-lbn cond h_hash DISPLAY_H_NAME PrefabHash
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
 move h_hash LED_MED_HASH
-lbn cond h_hash DISPLAY_H_NAME PrefabHash
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
 move h_hash LED_LARGE_HASH
-lbn cond h_hash DISPLAY_H_NAME PrefabHash
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
 move h_hash 0
 j main
 have_h:
 beqz v_hash find_v
-lbn cond v_hash DISPLAY_V_NAME PrefabHash
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 find_v:
 move v_hash LED_SMALL_HASH
-lbn cond v_hash DISPLAY_V_NAME PrefabHash
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 move v_hash LED_MED_HASH
-lbn cond v_hash DISPLAY_V_NAME PrefabHash
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 move v_hash LED_LARGE_HASH
-lbn cond v_hash DISPLAY_V_NAME PrefabHash
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 move v_hash 0
 j main
 sync_on:
-lbn curr h_hash DISPLAY_H_NAME On
+lbn curr h_hash DISPLAY_H_NAME On Maximum
 bnez curr h_mode
 sbn h_hash DISPLAY_H_NAME On 1
 h_mode:
-lbn curr h_hash DISPLAY_H_NAME Mode
+lbn curr h_hash DISPLAY_H_NAME Mode Maximum
 seq cond curr MODE_NUMBER
 bnez cond v_on
 sbn h_hash DISPLAY_H_NAME Mode MODE_NUMBER
 v_on:
-lbn curr v_hash DISPLAY_V_NAME On
+lbn curr v_hash DISPLAY_V_NAME On Maximum
 bnez curr v_mode
 sbn v_hash DISPLAY_V_NAME On 1
 v_mode:
-lbn curr v_hash DISPLAY_V_NAME Mode
+lbn curr v_hash DISPLAY_V_NAME Mode Maximum
 seq cond curr MODE_NUMBER
 bnez cond read_dish
 sbn v_hash DISPLAY_V_NAME Mode MODE_NUMBER
 read_dish:
-lbn h DISH_HASH DISH_NAME Horizontal
-lbn v DISH_HASH DISH_NAME Vertical
-lbn curr h_hash DISPLAY_H_NAME Setting
+lbn h DISH_HASH DISH_NAME Horizontal Maximum
+lbn v DISH_HASH DISH_NAME Vertical Maximum
+lbn curr h_hash DISPLAY_H_NAME Setting Maximum
 sne cond curr h
 beqz cond skip_h
 sbn h_hash DISPLAY_H_NAME Setting h
 skip_h:
-lbn curr v_hash DISPLAY_V_NAME Setting
+lbn curr v_hash DISPLAY_V_NAME Setting Maximum
 sne cond curr v
 beqz cond skip_v
 sbn v_hash DISPLAY_V_NAME Setting v

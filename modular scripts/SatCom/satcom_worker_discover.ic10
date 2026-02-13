@@ -21,17 +21,17 @@ move prev -1
 move act 0
 main:
 yield
-lbn r14 MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+lbn r14 MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
 bne r14 MEMORY_HASH main
-lbn r14 MEMORY_HASH CMD_TYPE_NAME PrefabHash
+lbn r14 MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne r14 MEMORY_HASH main
-lbn r14 DISH_HASH DISH_NAME PrefabHash
+lbn r14 DISH_HASH DISH_NAME PrefabHash Maximum
 bne r14 DISH_HASH main
-lbn tok MEMORY_HASH CMD_TOKEN_NAME Setting
+lbn tok MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 seq r14 tok prev
 bnez r14 run
 move prev tok
-lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting
+lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beq cmd CMD_DISCOVER start
 bne cmd CMD_CLEAR run
 move act 0
@@ -84,10 +84,10 @@ sbn DISH_HASH DISH_NAME Horizontal h
 sbn DISH_HASH DISH_NAME Vertical v
 s db Setting 120
 wait:
-lbn r9 DISH_HASH DISH_NAME Idle
+lbn r9 DISH_HASH DISH_NAME Idle Maximum
 beqz r9 wait
 sleep 1
-lbn r8 DISH_HASH DISH_NAME SignalID
+lbn r8 DISH_HASH DISH_NAME SignalID Maximum
 beqz r8 done_chk
 seq r14 r8 r11
 bnez r14 done_chk

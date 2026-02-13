@@ -1,5 +1,3 @@
-# SatCom master (name auto-naming)
-# names: discover_worker cycle_worker cmd_token cmd_type discover cycle
 alias pressed_discover r0
 alias pressed_cycle r1
 alias prev_discover r2
@@ -30,24 +28,28 @@ l housing_hash db PrefabHash
 s db Setting 0
 main:
 yield
-lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash
+lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
-lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash
+lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
-lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne cond MEMORY_HASH main
-lbn cond housing_hash DISCOVER_WORKER_NAME On
+lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
 bnez cond check_cycle_on
 sbn housing_hash DISCOVER_WORKER_NAME On 1
 check_cycle_on:
-lbn cond housing_hash CYCLE_WORKER_NAME On
+lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
 bnez cond read_buttons
 sbn housing_hash CYCLE_WORKER_NAME On 1
 read_buttons:
-lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate
-lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate
+lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
+lbn cond 1668452680 DISCOVER_BTN_NAME Activate Maximum
+or pressed_discover pressed_discover cond
+lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
+lbn cond 1668452680 CYCLE_BTN_NAME Activate Maximum
+or pressed_cycle pressed_cycle cond
 read_edges:
 beqz pressed_discover discover_low
 beqz prev_discover discover_rise
@@ -80,11 +82,10 @@ bnez cond send_clear
 bnez edge_discover send_discover
 bnez edge_cycle send_cycle
 publish:
-lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting
-lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting
+lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
+lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting Maximum
 beq discover_status 110 discover_busy
 beq discover_status 120 discover_busy
-beq discover_status 121 discover_busy
 beq discover_status 130 discover_ready
 beq discover_status 132 discover_ready
 beq discover_status 131 discover_none
@@ -119,7 +120,7 @@ send_clear:
 move cond CMD_CLEAR
 s db Setting 30
 send_cmd:
-lbn token MEMORY_HASH CMD_TOKEN_NAME Setting
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 add token token 1
 sbn MEMORY_HASH CMD_TYPE_NAME Setting cond
 sbn MEMORY_HASH CMD_TOKEN_NAME Setting token

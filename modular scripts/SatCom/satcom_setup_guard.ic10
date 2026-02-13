@@ -4,6 +4,7 @@ alias cond r0
 alias housing_hash r1
 define MEMORY_HASH HASH("StructureLogicMemory")
 define BUTTON_HASH 491845673
+define IMPORTANT_BUTTON_HASH 1668452680
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
 define DISCOVER_NAME HASH("discover")
@@ -15,31 +16,39 @@ l housing_hash db PrefabHash
 s db Setting 0
 main:
 yield
-lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_cmd_token
-lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_cmd_type
-lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash
-bne cond BUTTON_HASH err_discover_type
-lbn cond BUTTON_HASH CYCLE_NAME PrefabHash
-bne cond BUTTON_HASH err_cycle_type
-lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash
+lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
+beq cond BUTTON_HASH check_cycle_btn
+lbn cond IMPORTANT_BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
+bne cond IMPORTANT_BUTTON_HASH err_discover_type
+check_cycle_btn:
+lbn cond BUTTON_HASH CYCLE_NAME PrefabHash Maximum
+bne cond BUTTON_HASH check_cycle_important
+j check_workers
+check_cycle_important:
+lbn cond IMPORTANT_BUTTON_HASH CYCLE_NAME PrefabHash Maximum
+bne cond IMPORTANT_BUTTON_HASH err_cycle_type
+check_workers:
+lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
-lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash
+lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_cycle_h
-lbn cond housing_hash DISCOVER_WORKER_NAME On
+lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
 bnez cond chk_cycle_on
 sbn housing_hash DISCOVER_WORKER_NAME On 1
 chk_cycle_on:
-lbn cond housing_hash CYCLE_WORKER_NAME On
+lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
 bnez cond init_cmd
 sbn housing_hash CYCLE_WORKER_NAME On 1
 init_cmd:
-lbn cond MEMORY_HASH CMD_TYPE_NAME Setting
+lbn cond MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beqz cond init_token
 sbn MEMORY_HASH CMD_TYPE_NAME Setting 0
 init_token:
-lbn cond MEMORY_HASH CMD_TOKEN_NAME Setting
+lbn cond MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 beqz cond ok
 sbn MEMORY_HASH CMD_TOKEN_NAME Setting 0
 ok:
