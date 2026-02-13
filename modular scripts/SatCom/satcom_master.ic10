@@ -44,12 +44,12 @@ lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
 bnez cond read_buttons
 sbn housing_hash CYCLE_WORKER_NAME On 1
 read_buttons:
+lbn cond BUTTON_HASH DISCOVER_BTN_NAME PrefabHash Maximum
+bne cond BUTTON_HASH no_buttons
+lbn cond BUTTON_HASH CYCLE_BTN_NAME PrefabHash Maximum
+bne cond BUTTON_HASH no_buttons
 lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
-lbn cond 1668452680 DISCOVER_BTN_NAME Activate Maximum
-or pressed_discover pressed_discover cond
 lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
-lbn cond 1668452680 CYCLE_BTN_NAME Activate Maximum
-or pressed_cycle pressed_cycle cond
 read_edges:
 beqz pressed_discover discover_low
 beqz prev_discover discover_rise
@@ -90,7 +90,6 @@ beq discover_status 130 discover_ready
 beq discover_status 132 discover_ready
 beq discover_status 131 discover_none
 beq cycle_status 210 cycle_busy
-beq cycle_status 220 cycle_ready
 s db Setting 1
 j main
 discover_busy:
@@ -105,8 +104,8 @@ j main
 cycle_busy:
 s db Setting 3
 j main
-cycle_ready:
-s db Setting 4
+no_buttons:
+s db Setting 44
 j main
 send_discover:
 move cond CMD_DISCOVER

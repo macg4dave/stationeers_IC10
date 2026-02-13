@@ -67,6 +67,18 @@ If the system does nothing:
 - Confirm worker chips are enabled (`On`) if master controls worker power.
 - Check each chip's `db Setting` status code against the feature README.
 
+Capture this runtime snapshot before changing wiring/scripts:
+
+- master `db Setting`
+- setup guard `db Setting` (if present)
+- each worker `db Setting`
+- shared command channels (`cmd_token`, `cmd_type`)
+
+Interpretation shortcut:
+
+- if `cmd_token` increments on input, master/input path is confirmed working
+- if token increments but workers remain idle, check prerequisites/names first
+
 ## Author checklist (for new modular features)
 
 In `modular scripts/<feature>/README.md`, always include:

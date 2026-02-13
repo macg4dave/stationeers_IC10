@@ -53,6 +53,26 @@ Use setup guard scripts to make setup/debugging consistent across modules.
 For button-based modules, `_template_setup_guard_satcom_profile.ic10` is a
 ready baseline (`491845673` for both controls).
 
+## Default reliability rails (use by default)
+
+Make these part of every new modular feature unless there is a strong reason not to:
+
+- **One-time channel init only** in setup guard:
+  - initialize shared `cmd_token` / `cmd_type` once at startup
+  - do not keep resetting shared channels in `main` loop
+- **Prerequisite checks before healthy status**:
+  - setup guard should report healthy only after required controls/channels/devices
+    are validated
+  - for name-based modules, validate required named channels/devices explicitly
+- **Stable status-code contract**:
+  - `0` boot, `10` init complete, `1` healthy
+  - `94/95` control A/B mismatch
+  - reserve `97/98` for missing critical downstream prerequisites
+  - reserve `44` in master for missing primary controls (if used)
+- **Runtime snapshot-first debugging**:
+  - capture `master`, `setup_guard`, worker statuses, and command channel values
+  - if `cmd_token` increments, input/master path is proven alive
+
 ## Status code ranges (suggested)
 
 - Master: `0-99`

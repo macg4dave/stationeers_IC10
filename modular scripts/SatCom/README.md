@@ -20,6 +20,7 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 Required exact names:
 
 - Buttons: `discover`, `cycle`
+- Dials (manual): `dial_h`, `dial_v`
 - IC Housing: `discover_worker`, `cycle_worker`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Large Satellite Dish: `dish`
@@ -53,7 +54,6 @@ Workers execute commands only when `cmd_token` changes.
 ## Wiring
 
 - Put all SatCom devices on one shared data network.
-- Button prefab can be either Logic Switch (Button) or Important Button.
 - No manual `d0..d5` mapping is required for active SatCom scripts.
 
 ## Controls
@@ -61,6 +61,8 @@ Workers execute commands only when `cmd_token` changes.
 - Press `discover` to issue command `1`.
 - Press `cycle` to issue command `2`.
 - Press both together to issue command `3`.
+- Turn `dial_h` to manually set dish `Horizontal` when workers are idle.
+- Turn `dial_v` to manually set dish `Vertical` when workers are idle.
 
 ## Status protocol (`db Setting`)
 
@@ -72,12 +74,12 @@ Each chip writes status to its own housing `Setting`.
 - `1` = idle/ready
 - `2` = discover worker busy
 - `3` = cycle worker busy
-- `4` = cycle ready/tuned
 - `5` = contacts available
 - `6` = no contacts found
 - `10` = discover command sent
 - `20` = cycle command sent
 - `30` = clear command sent
+- `44` = discover/cycle button missing or wrong type/name
 
 ### Setup guard status (`90-99`)
 
@@ -88,6 +90,8 @@ Each chip writes status to its own housing `Setting`.
 - `94` = discover button wrong type/name
 - `95` = cycle button wrong type/name
 - `96` = missing/wrong `cycle_worker` housing
+- `97` = missing/wrong `dish` device
+- `98` = missing/wrong `slot0/slot1/slot2` memory
 
 ### Discover worker status (`100-199`)
 
@@ -107,6 +111,7 @@ Each chip writes status to its own housing `Setting`.
 - `220` = tuned (`BestContactFilter` written)
 - `221` = no valid contacts to tune
 - `230` = filter cleared by clear command
+- `240` = manual dial write applied to dish H/V
 
 ### Display worker status (`300-399`)
 

@@ -18,9 +18,12 @@ by prefab+name (`lbn`/`sbn`) and do not require per-chip `d0..d5` mapping.
   - `slot0`
   - `slot1`
   - `slot2`
-- 2x Logic Switch (Button) or Important Button
+- 2x Logic Switch (Button)
   - Discover
   - Cycle
+- 2x Logic Switch (Dial)
+  - Horizontal (`dial_h`)
+  - Vertical (`dial_v`)
 - 1x Large Satellite Dish
 - 2x LED Display (optional)
   - Horizontal (`display_h`)
@@ -32,6 +35,8 @@ Set these exact names (case-sensitive):
 
 - Button: `discover`
 - Button: `cycle`
+- Dial: `dial_h`
+- Dial: `dial_v`
 - IC Housing: `master`
 - IC Housing: `setup_guard` (recommended)
 - IC Housing: `discover_worker`
@@ -73,6 +78,8 @@ Prefab tokens used by scripts:
 - Press Discover: scan and store up to 3 contacts.
 - Press Cycle: tune to the next stored contact.
 - Press both buttons: clear stored contacts and clear dish filter.
+- Turn dial `dial_h`: manually set dish horizontal angle while workers are idle.
+- Turn dial `dial_v`: manually set dish vertical angle while workers are idle.
 - Optional display worker mirrors dish `Horizontal` and `Vertical` to LEDs.
 
 ## Setup guard status (`db Setting`)
@@ -84,3 +91,5 @@ Prefab tokens used by scripts:
 - `94` discover control wrong type/name
 - `95` cycle control wrong type/name
 - `96` missing/wrong `cycle_worker` housing
+- `97` missing/wrong `dish` device
+- `98` missing/wrong `slot0/slot1/slot2` memory

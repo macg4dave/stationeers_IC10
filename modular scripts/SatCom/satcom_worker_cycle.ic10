@@ -1,5 +1,5 @@
 # SatCom cycle worker (name auto-naming)
-# names: slot0 slot1 slot2 cmd_token cmd_type dish
+# names: slot0 slot1 slot2 cmd_token cmd_type dish discover_worker dial_h dial_v
 alias token r0
 alias prev_token r1
 alias cmd r2
@@ -10,19 +10,26 @@ alias c0 r6
 alias c1 r7
 alias c2 r8
 alias tries r9
+alias housing_hash r10
+alias wrote r13
 define CMD_CYCLE 2
 define CMD_CLEAR 3
 define MEMORY_HASH HASH("StructureLogicMemory")
 define DISH_HASH HASH("StructureLargeSatelliteDish")
+define DIAL_HASH 554524804
 define SLOT0_NAME HASH("slot0")
 define SLOT1_NAME HASH("slot1")
 define SLOT2_NAME HASH("slot2")
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
 define DISH_NAME HASH("dish")
+define DISCOVER_WORKER_NAME HASH("discover_worker")
+define DIAL_H_NAME HASH("dial_h")
+define DIAL_V_NAME HASH("dial_v")
 init:
 move prev_token -1
 move idx -1
+l housing_hash db PrefabHash
 s db Setting 200
 main:
 yield
@@ -84,5 +91,36 @@ move idx -1
 s db Setting 230
 j main
 idle:
+## optional manual H/V dials (ignored if missing)
+move wrote 0
+lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
+bne cond DIAL_HASH idle_status
+lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
+bne cond DIAL_HASH idle_status
+## don't fight discover worker while it's actively scanning
+lbn r11 housing_hash DISCOVER_WORKER_NAME Setting Maximum
+beq r11 110 idle_status
+beq r11 120 idle_status
+beq r11 121 idle_status
+lbn r11 DIAL_HASH DIAL_H_NAME Ratio Maximum
+mul r11 r11 359
+lbn r12 DISH_HASH DISH_NAME Horizontal Maximum
+seq cond r12 r11
+bnez cond read_v
+sbn DISH_HASH DISH_NAME Horizontal r11
+move wrote 1
+read_v:
+lbn r11 DIAL_HASH DIAL_V_NAME Ratio Maximum
+mul r11 r11 89
+lbn r12 DISH_HASH DISH_NAME Vertical Maximum
+seq cond r12 r11
+bnez cond idle_status
+sbn DISH_HASH DISH_NAME Vertical r11
+move wrote 1
+idle_status:
+beqz wrote idle_plain
+s db Setting 240
+j main
+idle_plain:
 s db Setting 200
 j main

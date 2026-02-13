@@ -2,17 +2,23 @@
 # names: cmd_token cmd_type discover cycle discover_worker cycle_worker
 alias cond r0
 alias housing_hash r1
+alias inited r2
 define MEMORY_HASH HASH("StructureLogicMemory")
 define BUTTON_HASH 491845673
-define IMPORTANT_BUTTON_HASH 1668452680
+define DISH_HASH HASH("StructureLargeSatelliteDish")
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
+define DISH_NAME HASH("dish")
 define DISCOVER_NAME HASH("discover")
 define CYCLE_NAME HASH("cycle")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CYCLE_WORKER_NAME HASH("cycle_worker")
 init:
 l housing_hash db PrefabHash
+move inited 0
 s db Setting 0
 main:
 yield
@@ -21,17 +27,17 @@ bne cond MEMORY_HASH err_cmd_token
 lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_cmd_type
 lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
-beq cond BUTTON_HASH check_cycle_btn
-lbn cond IMPORTANT_BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
-bne cond IMPORTANT_BUTTON_HASH err_discover_type
-check_cycle_btn:
+bne cond BUTTON_HASH err_discover_type
 lbn cond BUTTON_HASH CYCLE_NAME PrefabHash Maximum
-bne cond BUTTON_HASH check_cycle_important
-j check_workers
-check_cycle_important:
-lbn cond IMPORTANT_BUTTON_HASH CYCLE_NAME PrefabHash Maximum
-bne cond IMPORTANT_BUTTON_HASH err_cycle_type
-check_workers:
+bne cond BUTTON_HASH err_cycle_type
+lbn cond MEMORY_HASH SLOT0_NAME PrefabHash Maximum
+bne cond MEMORY_HASH err_slots
+lbn cond MEMORY_HASH SLOT1_NAME PrefabHash Maximum
+bne cond MEMORY_HASH err_slots
+lbn cond MEMORY_HASH SLOT2_NAME PrefabHash Maximum
+bne cond MEMORY_HASH err_slots
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
+bne cond DISH_HASH err_dish
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
 lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
@@ -41,16 +47,20 @@ bnez cond chk_cycle_on
 sbn housing_hash DISCOVER_WORKER_NAME On 1
 chk_cycle_on:
 lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
-bnez cond init_cmd
+bnez cond maybe_init
 sbn housing_hash CYCLE_WORKER_NAME On 1
+maybe_init:
+bnez inited ok
 init_cmd:
 lbn cond MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beqz cond init_token
 sbn MEMORY_HASH CMD_TYPE_NAME Setting 0
 init_token:
 lbn cond MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
-beqz cond ok
+beqz cond mark_inited
 sbn MEMORY_HASH CMD_TOKEN_NAME Setting 0
+mark_inited:
+move inited 1
 ok:
 s db Setting 1
 j main
@@ -71,4 +81,10 @@ s db Setting 95
 j main
 err_cycle_h:
 s db Setting 96
+j main
+err_dish:
+s db Setting 97
+j main
+err_slots:
+s db Setting 98
 j main

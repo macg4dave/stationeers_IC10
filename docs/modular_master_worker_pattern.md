@@ -83,6 +83,15 @@ Use compact code ranges per chip (example):
 - `100-199` worker A
 - `200-299` worker B
 
+Recommended shared semantics:
+
+- `0` boot
+- `10` one-time init completed
+- `1` healthy/steady
+- `94/95` control-type mismatch
+- `97/98` missing critical downstream prerequisites
+- `44` master cannot find required control(s) (optional but useful)
+
 ## Worker script rules
 
 - Gate required devices with `bdns` each loop.
@@ -96,6 +105,26 @@ Use compact code ranges per chip (example):
 - Centralize mode transitions.
 - Do not duplicate worker internals in master.
 - If a worker is disabled, do not keep writing commands to it.
+
+## Setup guard rules (required)
+
+- Setup guard may initialize shared channels (`cmd_token`, `cmd_type`) once.
+- After one-time init, setup guard should validate and report only.
+- Do **not** continuously reset shared channels in the loop; this can erase
+  commands before workers consume them.
+- Report healthy only when all required prerequisites are present.
+
+## Runtime triage order (recommended)
+
+When "nothing happens", check in this order:
+
+1. `cmd_token`/`cmd_type` (are commands being published?)
+2. master `db Setting` (input/route state)
+3. setup guard `db Setting` (prerequisite validation)
+4. worker `db Setting` values (idle/busy/error)
+
+If token increments but workers stay idle, prioritize missing prerequisites over
+input debugging.
 
 ## README checklist for modular features
 

@@ -62,6 +62,24 @@ Set these exact names (case-sensitive):
 
 ## Setup guard status (`db Setting`)
 
+- `0` boot
+- `10` one-time init complete
 - `1` setup valid
 - `94` control A wrong type
 - `95` control B wrong type
+- `97` missing/wrong critical feature device (recommended reserve)
+- `98` missing/wrong required shared memory channels (recommended reserve)
+
+## Runtime debug snapshot (required for issue reports)
+
+When debugging, capture these values in one screenshot/note:
+
+- `master` (`db Setting`)
+- `setup_guard` (`db Setting`)
+- each worker chip `db Setting`
+- `cmd_token` and `cmd_type` memory values
+
+Quick interpretation:
+
+- if `cmd_token` increments when controls are pressed, master/input path is working
+- if workers stay idle while token increments, debug worker prerequisites next

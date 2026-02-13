@@ -156,6 +156,9 @@ When a feature is large, stateful, or multi-phase, prefer modular scripts:
 - Put task loops in workers only:
   - scan/collect/control logic specific to one concern
 - For cross-chip messaging, prefer **Logic Memory** slots (`Setting`) as explicit channels.
+- Initialization/guard chips must initialize shared command channels once, then stop
+  writing them every loop (continuous reset can erase valid commands before workers
+  consume them).
 - If chips are wired to other chips/channels, map those links first from `d0`
   downward (`d0`, `d1`, `d2`, ...) before buttons and feature devices.
 - Add status output for each chip via its own `db Setting` and document meanings.
@@ -165,6 +168,8 @@ When a feature is large, stateful, or multi-phase, prefer modular scripts:
   - include all `HASH("name")` tokens used by feature scripts
   - include all shared channel names used by feature scripts (`cmd_token`,
     `cmd_type`, `slotN`, `dataN`)
+  - include a compact runtime debug snapshot list (`master`, `setup_guard`,
+    worker statuses, `cmd_token`, `cmd_type`) for issue reports
   - list every non-deprecated feature `.ic10` file in setup steps
 - Validate paste limits for **every** `.ic10` file in the feature folder.
 - Validate setup docs contract consistency:
