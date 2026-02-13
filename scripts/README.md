@@ -50,12 +50,16 @@ If behavior looks like "script can't find device", verify data-network connectio
 
 - `led_display_hms_clock/` — Drives 3 LED Displays as a 24h HH:MM:SS clock.
 - `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
+- `large_satellite_dish_cycle_contacts/` — Collects unique contacts, then button-cycles lock target in discovery order.
+- `large_satellite_dish_led_readout/` — Mirrors dish `Horizontal`, `Vertical`, `SizeX`, and `SizeZ` to 4 LED Displays.
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
 - `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
 - `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
+- `landingpad_volatiles_pressure_valve/` — Enables Landingpad Liquid Output + Liquid Digital Valve only at 100% liquid volatiles, with 20 MPa safety cutoff.
+- `SatCom/` — Multi-chip satellite comms scaffold (master + discover worker + cycle worker).
 
 Additional scripts in this repo:
 

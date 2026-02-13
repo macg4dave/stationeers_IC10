@@ -1,0 +1,28 @@
+# _template_worker_task
+# d0=<primary device> d1=<cmd slot> d2=<data slot optional>
+alias dev d0
+alias cmd_slot d1
+alias data_slot d2
+alias token r0
+alias prev_token r1
+alias cond r2
+alias tmp r3
+init:
+move prev_token -1
+s db Setting 100
+main:
+yield
+bdns dev main
+bdns cmd_slot main
+l token cmd_slot Setting
+seq cond token prev_token
+bnez cond idle
+move prev_token token
+s db Setting 110
+# TODO: perform one worker task for this command token
+# Example write:
+# s data_slot Setting <value>
+j main
+idle:
+s db Setting 100
+j main

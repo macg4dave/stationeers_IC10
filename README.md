@@ -17,6 +17,7 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 ## What's in this repo
 
 - `scripts/` - player-facing scripts (each script includes a `README.md` + a pasteable `.ic10`)
+- `modular scripts/` - modular multi-chip projects (master + worker IC10 files)
 - `tools/` - helper tools (Python, stdlib-only)
 - `catalog/` - local JSON catalog of device Logic I/O names/types (imported from the Stationeers wiki)
 - `.vscode/` - recommended VS Code extension + debug config
@@ -84,8 +85,27 @@ E.g. For making a script.:
 ```
 
 E.g. For importing from the wiki:
+
 ```text
 - Import this item: <URL of the Stationeers wiki page for a device>
+```
+
+E.g. For modular (master + workers):
+
+```text
+- Build this as modular IC10 scripts (master + workers).
+- Put files under: modular scripts/<feature>/
+- Feature name: <feature>
+- Master chip: <button/mode/orchestration responsibilities>
+- Worker chips:
+  - worker A: <single task>
+  - worker B: <single task>
+- Shared memory contract:
+  - command slot: <Logic Memory device used as command token>
+  - data slots: <Logic Memory device(s) and meaning>
+- Status protocol:
+  - each chip writes status to its own db Setting
+  - include status-code table in README
 ```
 
 ## Repo setup (optional)

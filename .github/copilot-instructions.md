@@ -1,12 +1,15 @@
 # Copilot instructions (stationeers_IC10)
 
 This repo is a **Stationeers IC10 script library** plus **stdlib-only Python tools** (no build system / no pip deps).
-Start with `README.md`, then the script catalog in `scripts/README.md`.
+Start with `README.md`, then script catalogs in `scripts/README.md` and `modular scripts/README.md`.
 
 ## Layout & “what to touch”
 - IC10 scripts: `scripts/<name>/<name>.ic10` + `scripts/<name>/README.md` (player-facing setup + `d0..d5` mapping)
+- Modular IC10 scripts: `modular scripts/<feature>/` (master + workers + feature README)
 - New-script checklist + patterns: `docs/ic10_script_checklist.md` (use this for consistent paste-ready output)
+- Modular architecture pattern (master + workers): `docs/modular_master_worker_pattern.md`
 - Starter template: `scripts/_template/` (copy/rename when creating a new script)
+- Modular starter template: `modular scripts/_template/`
 - In-game setup checklists: `docs/usage/*.md` (this is the repo’s “we learned this the hard way” library)
 - Device Logic I/O catalog: `catalog/devices/*.json` + `catalog/index.json` (schema in `catalog/README.md`)
 - Tooling (Python): `tools/ic10_size_check.py`, `tools/wiki_import.py`
@@ -29,6 +32,17 @@ Start with `README.md`, then the script catalog in `scripts/README.md`.
 - Convention: **folder name == base script name** and file is `<name>.ic10`.
 - This repo is **paste-ready `.ic10` first**; don’t introduce `.icX` sources unless a task explicitly asks.
 - Verify the actual filename when editing: there’s at least one historical mismatch (`scripts/solar_tracking/solar_tacking.ic10`). Don’t “fix” names unless the task asks.
+
+## Modular scripts (master + workers)
+- When user asks for modular/chained/multi-chip behavior, prefer a folder-local architecture:
+	- `modular scripts/<feature>/`
+	- `<feature>_master.ic10`
+	- `<feature>_worker_<task>.ic10` (one task per worker)
+	- `README.md` with wiring + command/data contract + status table.
+- Prefer **Logic Memory** devices for cross-chip command/data channels (token + slots), not ad-hoc worker housing fields.
+- Require each chip to publish compact status codes via its own `db Setting` and document code meanings.
+- Keep worker logic narrow and single-purpose; keep orchestration and button edge handling in master.
+- Preserve paste limits for every worker/master independently (128 lines, 90 chars/line).
 
 ## Critical workflows
 - Paste limits (final ship output): **128 lines** and **90 chars/line** (including comments/blanks).

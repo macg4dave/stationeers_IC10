@@ -1,0 +1,59 @@
+# _template_master
+# d0=<user input> d1=<worker A housing> d2=<worker B housing> d3=<cmd slot>
+alias input d0
+alias worker_a d1
+alias worker_b d2
+alias cmd_slot d3
+alias mode r0
+alias pressed r1
+alias prev r2
+alias token r3
+init:
+move mode 0
+move prev 0
+move token 0
+s worker_a On 0
+s worker_b On 0
+s cmd_slot Setting 0
+s db Setting 0
+main:
+yield
+bdns input main
+bdns worker_a main
+bdns worker_b main
+bdns cmd_slot main
+l pressed input Activate
+beqz pressed released
+bnez prev run
+move prev 1
+beq mode 0 start_a
+beq mode 1 start_b
+j next
+released:
+move prev 0
+run:
+s db Setting 1
+j main
+start_a:
+move mode 1
+move token 0
+s worker_a On 1
+s worker_b On 0
+s cmd_slot Setting token
+s db Setting 10
+j main
+start_b:
+move mode 2
+move token 1
+s worker_a On 0
+s worker_b On 1
+s cmd_slot Setting token
+s db Setting 20
+j main
+next:
+add token token 1
+s worker_a On 0
+s worker_b On 1
+s cmd_slot Setting token
+s db Setting 21
+j main

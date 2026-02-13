@@ -127,3 +127,24 @@ When deriving a clock from Daylight Sensor angles:
 - Include a calibration order so users can tune quickly:
   1) orientation, 2) invert, 3) phase offset, 4) fine shift.
 - Note clearly that this is an angle-derived clock, not a built-in direct clock value.
+
+## 11) Modular features (master + workers)
+
+When a feature is large, stateful, or multi-phase, prefer modular scripts:
+
+- Use one folder with multiple chips:
+  - `modular scripts/<feature>/`
+  - `<feature>_master.ic10`
+  - `<feature>_worker_<task>.ic10` (one concern each)
+  - `README.md` with full wiring + shared-memory contract + status codes
+- Put orchestration in master only:
+  - button/lever edge handling
+  - worker enable/disable (`On`)
+  - command token writes
+- Put task loops in workers only:
+  - scan/collect/control logic specific to one concern
+- For cross-chip messaging, prefer **Logic Memory** slots (`Setting`) as explicit channels.
+- Add status output for each chip via its own `db Setting` and document meanings.
+- Validate paste limits for **every** `.ic10` file in the feature folder.
+
+See: `docs/modular_master_worker_pattern.md`.

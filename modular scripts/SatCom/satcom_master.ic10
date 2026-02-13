@@ -1,0 +1,58 @@
+# SatCom master: d0=button d1=discover_housing d2=cycle_housing d3=cmd_slot
+alias btn d0
+alias discover d1
+alias cycle d2
+alias cmd_slot d3
+alias mode r0
+alias pressed r1
+alias prev r2
+alias cmd r3
+init:
+move mode 0
+move prev 0
+move cmd 0
+s discover On 0
+s cycle On 0
+s cmd_slot Setting 0
+s db Setting 0
+main:
+yield
+bdns btn main
+bdns discover main
+bdns cycle main
+bdns cmd_slot main
+l pressed btn Activate
+beqz pressed released
+bnez prev run_mode
+move prev 1
+beq mode 0 to_discover
+beq mode 1 to_cycle
+j next_cycle
+released:
+move prev 0
+run_mode:
+s db Setting 1
+j main
+to_discover:
+move mode 1
+move cmd 0
+s discover On 1
+s cycle On 0
+s cmd_slot Setting 0
+s db Setting 10
+j main
+to_cycle:
+move mode 2
+move cmd 1
+s discover On 0
+s cycle On 1
+s cmd_slot Setting cmd
+s db Setting 20
+j main
+next_cycle:
+add cmd cmd 1
+s cycle On 1
+s discover On 0
+s cmd_slot Setting cmd
+s db Setting 21
+j main

@@ -1,0 +1,82 @@
+# landingpad_volatiles_pressure_valve
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - If Landingpad Liquid Output is 100% Liquid Volatiles, enable output path.
+# - Safety cutoff: if Pipe Analyzer pressure > 20 MPa, force everything OFF.
+#
+# Device registers:
+#   d0 = Pipe Analyzer            [Pressure, Error]
+#   d1 = Landingpad Liquid Output [RatioLiquidVolatiles, On, Error]
+#   d2 = Pipe Digital Valve       [On]
+#
+# Notes:
+# - Pressure cutoff uses kPa: 20 MPa = 20000 kPa.
+# - "100% volatiles" is treated as RatioLiquidVolatiles >= VOLATILES_FULL_MIN.
+
+alias pipe_read d0
+alias pad_out d1
+alias valve d2
+
+alias pad_vol r0
+alias pipe_kpa r1
+alias desired_on r2
+alias current_on r3
+alias cond r4
+alias vol_low r5
+alias pressure_trip r6
+alias pad_err r7
+alias pipe_err r8
+
+define VOLATILES_FULL_MIN 0.999999
+define PRESSURE_CUTOFF_KPA 20000
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+
+main:
+# lightweight availability guards before reads
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+
+# default OFF unless conditions pass
+move desired_on 0
+
+# If landingpad read is valid and ratio is ~100%, request ON
+l pad_err pad_out Error
+bnez pad_err check_pressure
+l pad_vol pad_out RatioLiquidVolatiles
+slt vol_low pad_vol VOLATILES_FULL_MIN
+seqz desired_on vol_low
+
+check_pressure:
+# Fail-safe: if analyzer is in error, force OFF
+l pipe_err pipe_read Error
+bnez pipe_err apply_outputs
+l pipe_kpa pipe_read Pressure
+slt pressure_trip PRESSURE_CUTOFF_KPA pipe_kpa
+beqz pressure_trip apply_outputs
+move desired_on 0
+
+apply_outputs:
+# Landingpad Liquid Output On
+l current_on pad_out On
+sne cond desired_on current_on
+beqz cond skip_pad_write
+s pad_out On desired_on
+skip_pad_write:
+
+# Pipe Digital Valve On
+l current_on valve On
+sne cond desired_on current_on
+beqz cond skip_valve_write
+s valve On desired_on
+skip_valve_write:
+
+yield
+j main

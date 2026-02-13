@@ -1,20 +1,15 @@
-# Sweep scan (Important Button toggles). d0=dish, d1=Important Button.
 alias dish d0
 alias start_btn d1
 alias scan_enabled r0
 alias pressed r1
-alias powered r2
-alias errored r3
-alias idle r4
 alias signal_id r5
 alias cond r6
 alias tmp r7
 alias h_curr r8
 alias v_curr r9
 alias h_dir r10
-alias signal_strength r11
 alias last_signal_id r12
-alias min_watts r13
+alias missed_count r14
 define H_MIN 0
 define H_MAX 359
 define H_STEP 10
@@ -23,11 +18,15 @@ define V_MAX 89
 define V_STEP 10
 define STOP_ON_STRENGTH 1
 define SIGNAL_STRENGTH_STOP -10
-define MIN_WATTS_STOP 50000
 define TARGET_SIGNAL_ID 0
+define REACQUIRE_MISSES 6
 init:
 move scan_enabled 0
 move last_signal_id 0
+move missed_count 0
+move r11 0
+move r13 0
+move r15 0
 move h_curr H_MIN
 move v_curr V_MIN
 move h_dir 1
@@ -36,43 +35,35 @@ yield
 bdns dish main
 bdns start_btn main
 l pressed start_btn Activate
-
-# Toggle scanning ON/OFF (Important Button is momentary)
 beqz pressed skip_toggle
 seq cond scan_enabled 0
 select scan_enabled cond 1 0
-
-# When enabling, snapshot current signal and set filter
 beqz scan_enabled toggled_off
-l signal_id dish SignalID
-move last_signal_id signal_id
-beqz TARGET_SIGNAL_ID set_filter_any
+move missed_count 0
+beqz TARGET_SIGNAL_ID clear_filter
 s dish BestContactFilter TARGET_SIGNAL_ID
-j skip_filter
-set_filter_any:
-s dish BestContactFilter -1
-skip_filter:
 j skip_toggle
-
 toggled_off:
+move missed_count 0
+clear_filter:
 s dish BestContactFilter -1
-
 skip_toggle:
 beqz scan_enabled main
-l powered dish Power
-beqz powered main
-l errored dish Error
-bnez errored main
-l idle dish Idle
-beqz idle main
+l r2 dish Power
+beqz r2 main
+l r3 dish Error
+bnez r3 main
+l r4 dish Idle
+beqz r4 main
 j no_signal
-
 found:
+move r15 r13
+move r13 r11
+move r11 last_signal_id
 move last_signal_id signal_id
 move scan_enabled 0
-bdns db skip_db
+bdns db main
 s db Setting signal_id
-skip_db:
 j main
 no_signal:
 move tmp H_STEP
@@ -92,37 +83,42 @@ move h_dir 1
 j bump_vertical
 bump_vertical:
 add v_curr v_curr V_STEP
-ble v_curr V_MAX keep_v
+ble v_curr V_MAX do_move
 move v_curr V_MIN
-keep_v:
 do_move:
 s dish Horizontal h_curr
 s dish Vertical v_curr
 wait_idle:
-l idle dish Idle
-beqz idle wait_idle
+l r4 dish Idle
+beqz r4 wait_idle
 sleep 1
 l signal_id dish SignalID
-l min_watts dish MinimumWattsToContact
-seq cond min_watts -1
-bnez cond skip_min_watts
-slt cond min_watts MIN_WATTS_STOP
-bnez cond found
-skip_min_watts:
 beqz TARGET_SIGNAL_ID any_signal
 seq cond signal_id TARGET_SIGNAL_ID
 beqz cond no_signal
-j check_strength
+j target_strength
 any_signal:
 snez cond signal_id
-beqz cond no_signal
+beqz cond lost_signal
 seq cond signal_id last_signal_id
+move missed_count 0
 bnez cond no_signal
-check_strength:
-beqz STOP_ON_STRENGTH check_min_watts
-l signal_strength dish SignalStrength
-sge cond signal_strength SIGNAL_STRENGTH_STOP
-beqz cond check_min_watts
+seq cond signal_id r11
+bnez cond no_signal
+seq cond signal_id r13
+bnez cond no_signal
+seq cond signal_id r15
+bnez cond no_signal
 j found
-check_min_watts:
+lost_signal:
+add missed_count missed_count 1
+blt missed_count REACQUIRE_MISSES no_signal
+s dish BestContactFilter -1
+move missed_count 0
 j no_signal
+target_strength:
+beqz STOP_ON_STRENGTH found
+l tmp dish SignalStrength
+sge cond tmp SIGNAL_STRENGTH_STOP
+beqz cond no_signal
+j found

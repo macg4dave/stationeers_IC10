@@ -1,0 +1,98 @@
+# SatCom discover worker: d0=dish d1=slot0 d2=slot1 d3=slot2
+alias dish d0
+alias s0 d1
+alias s1 d2
+alias s2 d3
+alias count r0
+alias sig r1
+alias cond r2
+alias tmp r3
+alias h r4
+alias v r5
+alias dir r6
+alias c0 r7
+alias c1 r8
+alias c2 r9
+define H_MIN 0
+define H_MAX 359
+define H_STEP 10
+define V_MIN 0
+define V_MAX 89
+define V_STEP 10
+init:
+move count 0
+move h H_MIN
+move v V_MIN
+move dir 1
+move c0 0
+move c1 0
+move c2 0
+s dish BestContactFilter -1
+s s0 Setting 0
+s s1 Setting 0
+s s2 Setting 0
+s db Setting 100
+main:
+yield
+bdns dish main
+bdns s0 main
+bdns s1 main
+bdns s2 main
+beq count 3 done
+s db Setting 110
+move tmp H_STEP
+mul tmp tmp dir
+add tmp h tmp
+bgt tmp H_MAX over_max
+blt tmp H_MIN under_min
+move h tmp
+j do_move
+over_max:
+move h H_MAX
+move dir -1
+j bump_v
+under_min:
+move h H_MIN
+move dir 1
+j bump_v
+bump_v:
+add v v V_STEP
+ble v V_MAX do_move
+move v V_MIN
+do_move:
+s dish Horizontal h
+s dish Vertical v
+wait_idle:
+l tmp dish Idle
+beqz tmp wait_idle
+sleep 1
+l sig dish SignalID
+beqz sig main
+seq cond sig c0
+bnez cond main
+seq cond sig c1
+bnez cond main
+seq cond sig c2
+bnez cond main
+beq count 0 save0
+beq count 1 save1
+move c2 sig
+s s2 Setting sig
+move count 3
+s db Setting 120
+j main
+save0:
+move c0 sig
+s s0 Setting sig
+add count count 1
+s db Setting 120
+j main
+save1:
+move c1 sig
+s s1 Setting sig
+add count count 1
+s db Setting 120
+j main
+done:
+s db Setting 130
+j main
