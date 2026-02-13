@@ -1,0 +1,6 @@
+# Deprecated placeholder.
+# Use satcom_master.ic10 + satcom_setup_guard.ic10 instead.
+main:
+yield
+s db Setting 98
+j main

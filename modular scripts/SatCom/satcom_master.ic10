@@ -1,12 +1,5 @@
-# SatCom master
-# d0=discover_housing d1=cycle_housing d2=cmd_token d3=cmd_type
-# d4=discover_btn d5=cycle_btn
-alias discover_h d0
-alias cycle_h d1
-alias cmd_token d2
-alias cmd_type d3
-alias discover_btn d4
-alias cycle_btn d5
+# SatCom master (name auto-naming)
+# names: discover_worker cycle_worker cmd_token cmd_type discover cycle
 alias pressed_discover r0
 alias pressed_cycle r1
 alias prev_discover r2
@@ -17,34 +10,45 @@ alias token r6
 alias cond r7
 alias discover_status r8
 alias cycle_status r9
+alias housing_hash r10
 define CMD_DISCOVER 1
 define CMD_CYCLE 2
 define CMD_CLEAR 3
+define BUTTON_HASH 491845673
+define MEMORY_HASH HASH("StructureLogicMemory")
+define DISCOVER_BTN_NAME HASH("discover")
+define CYCLE_BTN_NAME HASH("cycle")
+define DISCOVER_WORKER_NAME HASH("discover_worker")
+define CYCLE_WORKER_NAME HASH("cycle_worker")
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
 init:
 move prev_discover 0
 move prev_cycle 0
 move token 0
-s cmd_token Setting 0
-s cmd_type Setting 0
+l housing_hash db PrefabHash
 s db Setting 0
 main:
 yield
-bdns discover_btn main
-bdns cycle_btn main
-bdns discover_h main
-bdns cycle_h main
-bdns cmd_token main
-bdns cmd_type main
-l cond discover_h On
+lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash
+bne cond housing_hash main
+lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash
+bne cond housing_hash main
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond housing_hash DISCOVER_WORKER_NAME On
 bnez cond check_cycle_on
-s discover_h On 1
+sbn housing_hash DISCOVER_WORKER_NAME On 1
 check_cycle_on:
-l cond cycle_h On
+lbn cond housing_hash CYCLE_WORKER_NAME On
 bnez cond read_buttons
-s cycle_h On 1
+sbn housing_hash CYCLE_WORKER_NAME On 1
 read_buttons:
-l pressed_discover discover_btn Activate
-l pressed_cycle cycle_btn Activate
+lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate
+lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate
+read_edges:
 beqz pressed_discover discover_low
 beqz prev_discover discover_rise
 move edge_discover 0
@@ -76,8 +80,8 @@ bnez cond send_clear
 bnez edge_discover send_discover
 bnez edge_cycle send_cycle
 publish:
-l discover_status discover_h Setting
-l cycle_status cycle_h Setting
+lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting
+lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting
 beq discover_status 110 discover_busy
 beq discover_status 120 discover_busy
 beq discover_status 121 discover_busy
@@ -104,20 +108,19 @@ cycle_ready:
 s db Setting 4
 j main
 send_discover:
-add token token 1
-s cmd_type Setting CMD_DISCOVER
-s cmd_token Setting token
+move cond CMD_DISCOVER
 s db Setting 10
-j main
+j send_cmd
 send_cycle:
-add token token 1
-s cmd_type Setting CMD_CYCLE
-s cmd_token Setting token
+move cond CMD_CYCLE
 s db Setting 20
-j main
+j send_cmd
 send_clear:
-add token token 1
-s cmd_type Setting CMD_CLEAR
-s cmd_token Setting token
+move cond CMD_CLEAR
 s db Setting 30
+send_cmd:
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting
+add token token 1
+sbn MEMORY_HASH CMD_TYPE_NAME Setting cond
+sbn MEMORY_HASH CMD_TOKEN_NAME Setting token
 j main

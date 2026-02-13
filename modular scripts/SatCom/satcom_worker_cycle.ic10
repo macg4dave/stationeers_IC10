@@ -1,11 +1,5 @@
-# SatCom cycle worker
-# d0=slot0 d1=slot1 d2=slot2 d3=cmd_token d4=cmd_type d5=dish
-alias s0 d0
-alias s1 d1
-alias s2 d2
-alias cmd_token d3
-alias cmd_type d4
-alias dish d5
+# SatCom cycle worker (name auto-naming)
+# names: slot0 slot1 slot2 cmd_token cmd_type dish
 alias token r0
 alias prev_token r1
 alias cmd r2
@@ -18,28 +12,46 @@ alias c2 r8
 alias tries r9
 define CMD_CYCLE 2
 define CMD_CLEAR 3
+define MEMORY_HASH HASH("StructureLogicMemory")
+define DISH_HASH HASH("StructureLargeSatelliteDish")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
+define DISH_NAME HASH("dish")
 init:
 move prev_token -1
 move idx -1
 s db Setting 200
 main:
 yield
-bdns dish main
-bdns s0 main
-bdns s1 main
-bdns s2 main
-bdns cmd_token main
-bdns cmd_type main
-l token cmd_token Setting
+lbn cond DISH_HASH DISH_NAME PrefabHash
+bne cond DISH_HASH main
+lbn cond MEMORY_HASH SLOT0_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH SLOT1_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH SLOT2_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+bne cond MEMORY_HASH main
+lbn cond DISH_HASH DISH_NAME On
+bnez cond read_cmd
+sbn DISH_HASH DISH_NAME On 1
+read_cmd:
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting
 seq cond token prev_token
 bnez cond idle
 move prev_token token
-l cmd cmd_type Setting
+lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting
 beq cmd CMD_CLEAR clear_filter
 bne cmd CMD_CYCLE idle
-l c0 s0 Setting
-l c1 s1 Setting
-l c2 s2 Setting
+lbn c0 MEMORY_HASH SLOT0_NAME Setting
+lbn c1 MEMORY_HASH SLOT1_NAME Setting
+lbn c2 MEMORY_HASH SLOT2_NAME Setting
 move tries 0
 s db Setting 210
 pick_next:
@@ -63,11 +75,11 @@ blt tries 3 pick_next
 s db Setting 221
 j main
 tune:
-s dish BestContactFilter sig
+sbn DISH_HASH DISH_NAME BestContactFilter sig
 s db Setting 220
 j main
 clear_filter:
-s dish BestContactFilter -1
+sbn DISH_HASH DISH_NAME BestContactFilter -1
 move idx -1
 s db Setting 230
 j main

@@ -1,0 +1,63 @@
+# _template_setup_guard_satcom_profile
+# Example profile for SatCom-like modules.
+# d0=worker_a_h d1=worker_b_h d2=cmd_token d3=cmd_type d4=discover_btn d5=cycle_btn
+# Buttons are validated as Logic Switch (Button).
+# If your module uses different controls, start from _template_setup_guard.ic10.
+alias worker_a d0
+alias worker_b d1
+alias cmd_token d2
+alias cmd_type d3
+alias control_a d4
+alias control_b d5
+alias cond r0
+alias inited r1
+alias actual r2
+
+define EXPECTED_A_HASH 491845673
+define EXPECTED_B_HASH 491845673
+
+init:
+move inited 0
+s db Setting 0
+
+main:
+yield
+bdns worker_a main
+bdns worker_b main
+bdns cmd_token main
+bdns cmd_type main
+bdns control_a main
+bdns control_b main
+
+l actual control_a PrefabHash
+bne actual EXPECTED_A_HASH err_control_a
+l actual control_b PrefabHash
+bne actual EXPECTED_B_HASH err_control_b
+
+l cond worker_a On
+bnez cond ensure_worker_b
+s worker_a On 1
+ensure_worker_b:
+l cond worker_b On
+bnez cond maybe_init
+s worker_b On 1
+
+maybe_init:
+bnez inited steady
+s cmd_token Setting 0
+s cmd_type Setting 0
+move inited 1
+s db Setting 10
+j main
+
+steady:
+s db Setting 1
+j main
+
+err_control_a:
+s db Setting 94
+j main
+
+err_control_b:
+s db Setting 95
+j main

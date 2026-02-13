@@ -158,6 +158,20 @@ python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer
   - `catalog/devices/<WikiTitle>.json`
   - `catalog/index.json`
 
+### Check modular Setup.md contract consistency
+
+- Script: `tools/setup_contract_check.py`
+- Verifies each modular feature `Setup.md` stays in sync with IC10 scripts:
+  - required sections (`Name contract`, `Setup steps`)
+  - `HASH("name")` tokens used in scripts appear in setup docs
+  - shared channel tokens (`cmd_token`, `cmd_type`, `slotN`, `dataN`) appear
+  - non-deprecated feature script filenames are referenced
+- Example:
+
+```bash
+python tools/setup_contract_check.py
+```
+
 ## Hashing quick rules (batch/network scripts)
 
 When scripts use `lb/sb/lbn/sbn`, hash matching is strict:

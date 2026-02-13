@@ -1,21 +1,40 @@
 # SatCom control system (modular)
 
-This is a full modular system for controlling a Large Satellite Dish and its
-discovered contacts.
+Name-first SatCom automation for a Large Satellite Dish using a master + workers.
+All active scripts now use exact prefab+name lookup (`lbn`/`sbn`).
 
-Player setup guide: `docs/usage/satcom.md`.
+Player setup guide: `modular scripts/SatCom/Setup.md`.
 
 ## Architecture
 
-- `satcom_master.ic10` - command router (buttons -> command bus)
+- `satcom_master.ic10` - button edge routing and command publication
+- `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
 - `satcom_worker_discover.ic10` - discover and refresh contact slots
 - `satcom_worker_cycle.ic10` - cycle/tune contacts and clear active filter
+- `satcom_worker_display.ic10` - optional H/V LED display updater
 
-The system uses a shared command bus and three shared contact slots.
+`satcom_master_named.ic10` is deprecated and intentionally not used.
+
+## Name contract
+
+Required exact names:
+
+- Buttons: `discover`, `cycle`
+- IC Housing: `discover_worker`, `cycle_worker`
+- Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
+- Large Satellite Dish: `dish`
+- Optional LED Displays: `display_h`, `display_v`
+
+Implementation notes:
+
+- Workers and channels are targeted by prefab+name, not chip pin mapping.
+- Master/setup guard read IC Housing prefab from `db PrefabHash`, so use one
+  housing variant across SatCom ICs.
+- Display worker resolves small/medium/large LED display prefabs.
 
 ## Shared memory contract
 
-Use Logic Memory devices for all channels (`Setting`).
+Use Logic Memory `Setting` channels:
 
 - `slot0` - first discovered `SignalID`
 - `slot1` - second discovered `SignalID`
@@ -33,43 +52,14 @@ Workers execute commands only when `cmd_token` changes.
 
 ## Wiring
 
-Wiring note for new modular projects: prefer chip-link/channel mapping starting
-at `d0` and descending before buttons and feature devices. See
-`docs/usage/modular_wiring_setup.md`.
-
-### Master (`satcom_master.ic10`)
-
-- `d0` = Discover worker IC housing
-- `d1` = Cycle worker IC housing
-- `d2` = Logic Memory `cmd_token`
-- `d3` = Logic Memory `cmd_type`
-- `d4` = Important Button (Discover/Refresh)
-- `d5` = Important Button (Cycle Next)
-
-### Discover worker (`satcom_worker_discover.ic10`)
-
-- `d0` = Logic Memory `slot0`
-- `d1` = Logic Memory `slot1`
-- `d2` = Logic Memory `slot2`
-- `d3` = Logic Memory `cmd_token`
-- `d4` = Logic Memory `cmd_type`
-- `d5` = Large Satellite Dish
-
-### Cycle worker (`satcom_worker_cycle.ic10`)
-
-- `d0` = Logic Memory `slot0`
-- `d1` = Logic Memory `slot1`
-- `d2` = Logic Memory `slot2`
-- `d3` = Logic Memory `cmd_token`
-- `d4` = Logic Memory `cmd_type`
-- `d5` = Large Satellite Dish
+- Put all SatCom devices on one shared data network.
+- No manual `d0..d5` mapping is required for active SatCom scripts.
 
 ## Controls
 
-- Press Discover button (`d4`) to issue command `1` (discover/refresh).
-- Press Cycle button (`d5`) to issue command `2` (next contact).
-- Press both buttons together to issue command `3` (clear all contacts + unlock
-  `BestContactFilter`).
+- Press `discover` to issue command `1`.
+- Press `cycle` to issue command `2`.
+- Press both together to issue command `3`.
 
 ## Status protocol (`db Setting`)
 
@@ -87,6 +77,16 @@ Each chip writes status to its own housing `Setting`.
 - `10` = discover command sent
 - `20` = cycle command sent
 - `30` = clear command sent
+
+### Setup guard status (`90-99`)
+
+- `1` = setup valid
+- `91` = missing/wrong `cmd_token`
+- `92` = missing/wrong `cmd_type`
+- `93` = missing/wrong `discover_worker` housing
+- `94` = discover button wrong type/name
+- `95` = cycle button wrong type/name
+- `96` = missing/wrong `cycle_worker` housing
 
 ### Discover worker status (`100-199`)
 
@@ -107,16 +107,14 @@ Each chip writes status to its own housing `Setting`.
 - `221` = no valid contacts to tune
 - `230` = filter cleared by clear command
 
-## Setup flow
+### Display worker status (`300-399`)
 
-1. Paste each script into its assigned IC.
-2. Wire `cmd_token` and `cmd_type` memory slots to master + both workers.
-3. Wire `slot0..slot2` memory slots to discover + cycle workers.
-4. Press Discover (`d4`) to build contact list.
-5. Press Cycle (`d5`) to tune through discovered contacts.
+- `300` = init
+- `310` = updating H/V displays
 
 ## Limits
 
 - Every `.ic10` stays within 128 lines and 90 chars per line.
 - Validate with:
   - `python tools/ic10_size_check.py "modular scripts/SatCom" --ext .ic10`
+  - `python tools/setup_contract_check.py`

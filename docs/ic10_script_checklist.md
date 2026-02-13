@@ -147,6 +147,15 @@ When a feature is large, stateful, or multi-phase, prefer modular scripts:
 - If chips are wired to other chips/channels, map those links first from `d0`
   downward (`d0`, `d1`, `d2`, ...) before buttons and feature devices.
 - Add status output for each chip via its own `db Setting` and document meanings.
+- Keep `Setup.md` synchronized with script contracts:
+  - include a `Name contract` section
+  - include `IC Housing:` entries for each non-deprecated feature chip script
+  - include all `HASH("name")` tokens used by feature scripts
+  - include all shared channel names used by feature scripts (`cmd_token`,
+    `cmd_type`, `slotN`, `dataN`)
+  - list every non-deprecated feature `.ic10` file in setup steps
 - Validate paste limits for **every** `.ic10` file in the feature folder.
+- Validate setup docs contract consistency:
+  - `python tools/setup_contract_check.py`
 
 See: `docs/modular_master_worker_pattern.md`.

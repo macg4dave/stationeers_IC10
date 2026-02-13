@@ -44,6 +44,30 @@
       "itemHash": -1252983604
     },
     {
+      "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
+      "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
+      "itemName": "ItemLiquidPipeAnalysizer",
+      "itemHash": 226055671
+    },
+    {
+      "wikiTitle": "Kit_(Liquid_Volume_Pump)",
+      "file": "devices/Kit_(Liquid_Volume_Pump).json",
+      "itemName": "ItemLiquidPipeVolumePump",
+      "itemHash": -2106280569
+    },
+    {
+      "wikiTitle": "LED",
+      "file": "devices/LED.json",
+      "itemName": null,
+      "itemHash": 1944485013
+    },
+    {
+      "wikiTitle": "LED_Display",
+      "file": "devices/LED_Display.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Landingpad_Gas_Input",
       "file": "devices/Landingpad_Gas_Input.json",
       "itemName": null,
@@ -74,30 +98,6 @@
       "itemHash": null
     },
     {
-      "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
-      "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
-      "itemName": "ItemLiquidPipeAnalysizer",
-      "itemHash": 226055671
-    },
-    {
-      "wikiTitle": "Kit_(Liquid_Volume_Pump)",
-      "file": "devices/Kit_(Liquid_Volume_Pump).json",
-      "itemName": "ItemLiquidPipeVolumePump",
-      "itemHash": -2106280569
-    },
-    {
-      "wikiTitle": "LED",
-      "file": "devices/LED.json",
-      "itemName": null,
-      "itemHash": 1944485013
-    },
-    {
-      "wikiTitle": "LED_Display",
-      "file": "devices/LED_Display.json",
-      "itemName": null,
-      "itemHash": null
-    },
-    {
       "wikiTitle": "Large_Satellite_Dish",
       "file": "devices/Large_Satellite_Dish.json",
       "itemName": null,
@@ -106,6 +106,12 @@
     {
       "wikiTitle": "Liquid_Digital_Valve",
       "file": "devices/Liquid_Digital_Valve.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Logic_Memory",
+      "file": "devices/Logic_Memory.json",
       "itemName": null,
       "itemHash": null
     },

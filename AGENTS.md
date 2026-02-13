@@ -20,12 +20,15 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - Avoid label/alias names that shadow LogicType-like identifiers (example to avoid: `Temperature:`).
 - Avoid redundant writes (`On`, `Open`, `Setting`): read first, write only on change.
 - `sbn/lbn` name hashes are exact/case-sensitive (`HASH("IN")` matches `IN`, not `IN_1`).
-- For hash-targeted devices, prefer numeric prefab hashes from `catalog/devices/<Device>.json` (example: Pipe Digital Valve `-1280984102`), then optionally combine with exact name hashes for subsets.
+- Default to name-targeting for device ops (`sbn/lbn` with exact `HASH("name")`) to keep scripts portable and setup/debug simple.
+- For safety-critical actuation paths, prefer combining prefab hash + exact name (example: Pipe Digital Valve `-1280984102` + `HASH("Hot_Out")`).
+- Use prefab-only targeting only as a fallback when names are unavailable/ambiguous.
 - For any device `Mode`/enum field, read `modeValues` from `catalog/devices/<Device>.json` first; never guess defaults.
 - If a device "does nothing", assume missing in-game settings first: check `docs/usage/README.md` then the device playbook (Active Vent commonly needs **both** `On=1` and `Open=1` plus correct `Mode`/pressure: `docs/usage/active_vent.md`).
 
 ## Modular rules (master + workers)
 - Prefer folder-local modular architecture: `modular scripts/<feature>/`, `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, `README.md` (wiring + command/data contract + status table), and player-facing `Setup.md`.
+- For modular `Setup.md`, always include `IC Housing:` name entries in `Name contract` for each non-deprecated feature chip script (end-user setup clarity).
 - For modular `Setup.md`, use `modular scripts/_template/Setup.md` and keep only player actions (build list, setup steps, wiring map, controls).
 - Master handles orchestration/input edges; workers stay single-purpose and publish status via each chip's `db Setting`.
 - Prefer Logic Memory token/data channels; wiring order is inter-chip links from `d0` downward, then user inputs, then feature devices.
@@ -34,6 +37,8 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - Validate paste limits for shipped IC10 (**128 lines**, **90 chars/line**, including comments/blanks):
   - `python tools/ic10_size_check.py scripts/ --ext .ic10`
   - `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`
+- Validate modular setup docs stay in sync with scripts:
+  - `python tools/setup_contract_check.py`
 - Update catalog from wiki when I/O names or modes are unclear:
   - `python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer`
   - Section import supported: `.../Sensors#Gas_Sensor`

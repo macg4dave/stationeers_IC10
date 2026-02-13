@@ -8,30 +8,34 @@ alias dir r6
 alias n r7
 define CMD_DISCOVER 1
 define CMD_CLEAR 3
-define V_MAX 89
+define MEMORY_HASH HASH("StructureLogicMemory")
+define DISH_HASH HASH("StructureLargeSatelliteDish")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
+define DISH_NAME HASH("dish")
 init:
 move prev -1
 move act 0
-move h 0
-move v 0
-move dir 1
-s db Setting 100
 main:
 yield
-bdns d0 main
-bdns d1 main
-bdns d2 main
-bdns d3 main
-bdns d4 main
-bdns d5 main
-l tok d3 Setting
+lbn r14 MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+bne r14 MEMORY_HASH main
+lbn r14 MEMORY_HASH CMD_TYPE_NAME PrefabHash
+bne r14 MEMORY_HASH main
+lbn r14 DISH_HASH DISH_NAME PrefabHash
+bne r14 DISH_HASH main
+lbn tok MEMORY_HASH CMD_TOKEN_NAME Setting
 seq r14 tok prev
 bnez r14 run
 move prev tok
-l cmd d4 Setting
+lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting
 beq cmd CMD_DISCOVER start
-beq cmd CMD_CLEAR clear
-j run
+bne cmd CMD_CLEAR run
+move act 0
+j reset_slots
 start:
 move act 1
 move n 0
@@ -42,18 +46,15 @@ move dir 1
 move r11 0
 move r12 0
 move r13 0
-s d0 Setting 0
-s d1 Setting 0
-s d2 Setting 0
-s d5 BestContactFilter -1
+reset_slots:
+sbn MEMORY_HASH SLOT0_NAME Setting 0
+sbn MEMORY_HASH SLOT1_NAME Setting 0
+sbn MEMORY_HASH SLOT2_NAME Setting 0
+sbn DISH_HASH DISH_NAME BestContactFilter -1
+beqz act cleared
 s db Setting 110
 j run
-clear:
-move act 0
-s d0 Setting 0
-s d1 Setting 0
-s d2 Setting 0
-s d5 BestContactFilter -1
+cleared:
 s db Setting 140
 j main
 run:
@@ -75,18 +76,18 @@ move dir 1
 j bump
 bump:
 add v v 10
-ble v V_MAX moved
+ble v 89 moved
 move v 0
 add r10 r10 1
 moved:
-s d5 Horizontal h
-s d5 Vertical v
+sbn DISH_HASH DISH_NAME Horizontal h
+sbn DISH_HASH DISH_NAME Vertical v
 s db Setting 120
 wait:
-l r9 d5 Idle
+lbn r9 DISH_HASH DISH_NAME Idle
 beqz r9 wait
 sleep 1
-l r8 d5 SignalID
+lbn r8 DISH_HASH DISH_NAME SignalID
 beqz r8 done_chk
 seq r14 r8 r11
 bnez r14 done_chk
@@ -97,20 +98,19 @@ bnez r14 done_chk
 beq n 0 save0
 beq n 1 save1
 move r13 r8
-s d2 Setting r8
+sbn MEMORY_HASH SLOT2_NAME Setting r8
 move n 3
-s db Setting 121
-j done_chk
+j stored
 save0:
 move r11 r8
-s d0 Setting r8
+sbn MEMORY_HASH SLOT0_NAME Setting r8
 add n n 1
-s db Setting 121
-j done_chk
+j stored
 save1:
 move r12 r8
-s d1 Setting r8
+sbn MEMORY_HASH SLOT1_NAME Setting r8
 add n n 1
+stored:
 s db Setting 121
 done_chk:
 beq n 3 full

@@ -1,0 +1,65 @@
+# SatCom setup guard (name auto-naming)
+# names: cmd_token cmd_type discover cycle discover_worker cycle_worker
+alias cond r0
+alias housing_hash r1
+define MEMORY_HASH HASH("StructureLogicMemory")
+define BUTTON_HASH 491845673
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
+define DISCOVER_NAME HASH("discover")
+define CYCLE_NAME HASH("cycle")
+define DISCOVER_WORKER_NAME HASH("discover_worker")
+define CYCLE_WORKER_NAME HASH("cycle_worker")
+init:
+l housing_hash db PrefabHash
+s db Setting 0
+main:
+yield
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash
+bne cond MEMORY_HASH err_cmd_token
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash
+bne cond MEMORY_HASH err_cmd_type
+lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash
+bne cond BUTTON_HASH err_discover_type
+lbn cond BUTTON_HASH CYCLE_NAME PrefabHash
+bne cond BUTTON_HASH err_cycle_type
+lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash
+bne cond housing_hash err_discover_h
+lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash
+bne cond housing_hash err_cycle_h
+lbn cond housing_hash DISCOVER_WORKER_NAME On
+bnez cond chk_cycle_on
+sbn housing_hash DISCOVER_WORKER_NAME On 1
+chk_cycle_on:
+lbn cond housing_hash CYCLE_WORKER_NAME On
+bnez cond init_cmd
+sbn housing_hash CYCLE_WORKER_NAME On 1
+init_cmd:
+lbn cond MEMORY_HASH CMD_TYPE_NAME Setting
+beqz cond init_token
+sbn MEMORY_HASH CMD_TYPE_NAME Setting 0
+init_token:
+lbn cond MEMORY_HASH CMD_TOKEN_NAME Setting
+beqz cond ok
+sbn MEMORY_HASH CMD_TOKEN_NAME Setting 0
+ok:
+s db Setting 1
+j main
+err_cmd_token:
+s db Setting 91
+j main
+err_cmd_type:
+s db Setting 92
+j main
+err_discover_h:
+s db Setting 93
+j main
+err_discover_type:
+s db Setting 94
+j main
+err_cycle_type:
+s db Setting 95
+j main
+err_cycle_h:
+s db Setting 96
+j main

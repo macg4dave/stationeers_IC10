@@ -1,69 +1,67 @@
-# <Feature> setup (player checklist)
+# [Feature] setup (name-based auto setup)
 
-Use this page to get <Feature> working in game. You do not need to read script
-logic to follow it.
+Use this page to set up [Feature] with a fixed naming contract.
+The system auto-discovers controls by exact names and item type.
 
 ## Build list
 
 - Nx IC Housing + IC Chip
-  - <Feature> Master
-  - <Feature> Worker A
-  - <Feature> Worker B
+  - [Feature] Master
+  - [Feature] Worker A
+  - [Feature] Worker B
+  - [Feature] Setup Guard (recommended)
+  - [Feature] Worker C (optional)
 - Nx Logic Memory
   - `cmd_token`
   - `cmd_type`
-  - `data0`
-  - `data1`
+  - `slot0`
+  - `slot1`
+  - `slot2`
 - Nx controls
-  - <Control 1>
-  - <Control 2>
+  - [Control A]
+  - [Control B]
 - Nx feature devices
-  - <Device 1>
+  - [Device 1]
+
+## Name contract
+
+Set these exact names (case-sensitive):
+
+- Control Type A: `[control_a_name]`
+- Control Type B: `[control_b_name]`
+- IC Housing: `[master_housing_name]`
+- IC Housing: `[setup_guard_name]` (recommended)
+- IC Housing: `[worker_a_housing_name]`
+- IC Housing: `[worker_b_housing_name]`
+- IC Housing: `[worker_c_housing_name]` (optional)
+- Logic Memory: `slot0`
+- Logic Memory: `slot1`
+- Logic Memory: `slot2`
+- Logic Memory: `cmd_token`
+- Logic Memory: `cmd_type`
 
 ## Setup steps
 
-1. Put all devices on the same data network.
-2. Paste scripts into the correct chips:
+1. Put all devices on one data network.
+2. Paste scripts:
    - `modular scripts/<feature>/<feature>_master.ic10`
    - `modular scripts/<feature>/<feature>_worker_<task_a>.ic10`
    - `modular scripts/<feature>/<feature>_worker_<task_b>.ic10`
-3. Wire each chip exactly as shown below.
-4. Power everything and wait a few ticks.
-5. Run the first action for this feature.
-
-## Wiring map
-
-Wire shared links first (`d0`, `d1`, `d2`...), then controls and feature devices.
-
-### Master chip (`<feature>_master.ic10`)
-
-- `d0` = Worker A IC Housing
-- `d1` = Worker B IC Housing
-- `d2` = Logic Memory `cmd_token`
-- `d3` = Logic Memory `cmd_type`
-- `d4` = <Control 1>
-- `d5` = <Control 2>
-
-### Worker A (`<feature>_worker_<task_a>.ic10`)
-
-- `d0` = Logic Memory `data0`
-- `d1` = Logic Memory `data1`
-- `d2` = Logic Memory `cmd_token`
-- `d3` = Logic Memory `cmd_type`
-- `d4` = <Feature Device 1>
-- `d5` = <Feature Device 2>
-
-### Worker B (`<feature>_worker_<task_b>.ic10`)
-
-- `d0` = Logic Memory `data0`
-- `d1` = Logic Memory `data1`
-- `d2` = Logic Memory `cmd_token`
-- `d3` = Logic Memory `cmd_type`
-- `d4` = <Feature Device 1>
-- `d5` = <Feature Device 2>
+   - `modular scripts/<feature>/<feature>_setup_guard.ic10` (recommended)
+   - `modular scripts/<feature>/<feature>_worker_<task_c>.ic10` (optional)
+3. Apply required names from **Name contract**.
+4. Ensure shared channels (`slot0..slot2`, `cmd_token`, `cmd_type`) are wired as required.
+5. Power devices and wait a few ticks.
+6. Run [Control A], then [Control B].
 
 ## Controls
 
-- <Control 1>: <What it does for players>.
-- <Control 2>: <What it does for players>.
-- <Optional combo control>: <What it does for players>.
+- [Control A]: [What it does for players].
+- [Control B]: [What it does for players].
+- [Optional combo control]: [What it does for players].
+
+## Setup guard status (`db Setting`)
+
+- `1` setup valid
+- `94` control A wrong type
+- `95` control B wrong type

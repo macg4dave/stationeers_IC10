@@ -1,0 +1,21 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Logic_Memory",
+    "wikiTitle": "Logic_Memory",
+    "retrievedAt": "2026-02-13T15:11:14+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Setting",
+        "type": "float",
+        "description": "s d? Setting r? # Where d? is a memory device"
+      }
+    ],
+    "outputs": []
+  }
+}
