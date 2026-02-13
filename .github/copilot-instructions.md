@@ -5,7 +5,7 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 
 ## Layout & what to touch
 - `scripts/<name>/<name>.ic10` + `scripts/<name>/README.md` (player setup and `d0..d5`).
-- `modular scripts/<feature>/` (master + workers + feature README).
+- `modular scripts/<feature>/` (master + workers + feature `README.md` + player `Setup.md`).
 - Checklists/patterns/templates: `docs/ic10_script_checklist.md`, `docs/modular_master_worker_pattern.md`, `scripts/_template/`, `modular scripts/_template/`.
 - Setup playbooks: `docs/usage/*.md`.
 - Device source of truth: `catalog/devices/*.json` + `catalog/index.json` (schema: `catalog/README.md`).
@@ -22,11 +22,12 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - `sbn/lbn` name hashes are exact/case-sensitive (`HASH("IN")` matches `IN`, not `IN_1`).
 - For hash-targeted devices, prefer numeric prefab hashes from `catalog/devices/<Device>.json` (example: Pipe Digital Valve `-1280984102`), then optionally combine with exact name hashes for subsets.
 - For any device `Mode`/enum field, read `modeValues` from `catalog/devices/<Device>.json` first; never guess defaults.
-- If a device “does nothing”, assume missing in-game settings first: check `docs/usage/README.md` then the device playbook (Active Vent commonly needs **both** `On=1` and `Open=1` plus correct `Mode`/pressure: `docs/usage/active_vent.md`).
+- If a device "does nothing", assume missing in-game settings first: check `docs/usage/README.md` then the device playbook (Active Vent commonly needs **both** `On=1` and `Open=1` plus correct `Mode`/pressure: `docs/usage/active_vent.md`).
 
 ## Modular rules (master + workers)
-- Prefer folder-local modular architecture: `modular scripts/<feature>/`, `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, `README.md` (wiring + command/data contract + status table).
-- Master handles orchestration/input edges; workers stay single-purpose and publish status via each chip’s `db Setting`.
+- Prefer folder-local modular architecture: `modular scripts/<feature>/`, `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, `README.md` (wiring + command/data contract + status table), and player-facing `Setup.md`.
+- For modular `Setup.md`, use `modular scripts/_template/Setup.md` and keep only player actions (build list, setup steps, wiring map, controls).
+- Master handles orchestration/input edges; workers stay single-purpose and publish status via each chip's `db Setting`.
 - Prefer Logic Memory token/data channels; wiring order is inter-chip links from `d0` downward, then user inputs, then feature devices.
 
 ## Critical workflows and guardrails

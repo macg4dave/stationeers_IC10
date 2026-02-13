@@ -3,6 +3,8 @@
 This is a full modular system for controlling a Large Satellite Dish and its
 discovered contacts.
 
+Player setup guide: `docs/usage/satcom.md`.
+
 ## Architecture
 
 - `satcom_master.ic10` - command router (buttons -> command bus)

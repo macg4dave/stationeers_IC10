@@ -4,8 +4,9 @@ Use this folder as a starter for modular IC10 projects.
 
 ## Files
 
-- `_template_master.ic10` — master orchestration skeleton
-- `_template_worker_task.ic10` — worker token-consumer skeleton
+- `_template_master.ic10` - master orchestration skeleton
+- `_template_worker_task.ic10` - worker token-consumer skeleton
+- `Setup.md` - player-facing setup checklist template
 
 ## Recommended copy pattern
 
@@ -13,7 +14,12 @@ Use this folder as a starter for modular IC10 projects.
 2. Copy and rename files:
    - `<feature>_master.ic10`
    - `<feature>_worker_<task>.ic10` (copy worker skeleton per task)
-3. Add a feature `README.md` with:
+3. Copy `Setup.md` and fill in player-facing setup only:
+   - build list
+   - setup steps
+   - per-chip `d0..d5` wiring map
+   - controls
+4. Add a feature `README.md` with:
    - per-chip `d0..d5` mapping
    - for modular links, reserve `d0..` first for chip/channels then buttons/devices
    - shared memory contract (cmd/data slots)

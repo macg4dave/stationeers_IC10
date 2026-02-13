@@ -22,9 +22,11 @@ Example source page:
 Each device JSON is shaped like:
 
 - `source`
+  - `kind` (optional): `"wiki_import"` (default) or `"best_guess"` for manually curated entries when wiki data is unavailable
   - `wikiUrl`: string
   - `wikiTitle`: string
   - `retrievedAt`: ISO-8601 string
+  - `notes` (optional): short provenance note (recommended for `best_guess`)
 - `identity`
   - `itemName`: string | null (wiki “Item Name”, when present)
   - `itemHash`: number | null (wiki “Item Hash”, when present)
@@ -40,6 +42,15 @@ The importer lowercases wiki types (e.g. `Float`/`float` -> `float`).
 ### Notes on wiki inconsistencies
 
 The wiki sometimes varies capitalization/spelling (example: `Requiredpower`). The catalog stores the name **as written on the page**.
+
+### Best-guess entries
+
+If a device does not have complete wiki Data Network info yet, mark it as:
+
+- `source.kind: "best_guess"`
+- include a brief `source.notes` describing what was inferred and why
+
+This keeps estimated entries explicit and easy to review later.
 
 ## Hash guidance for script authors
 

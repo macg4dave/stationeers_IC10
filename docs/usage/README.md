@@ -32,5 +32,6 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 - `phase_change_device.md` — placeholder device required settings.
 - `pipe_analyzer.md` — Pipe Analyzer required settings.
 - `pipe_digital_valve.md` — Pipe Digital Valve required settings.
+- `satcom.md` — SatCom modular setup checklist (required devices + wiring).
 - `solar_panels.md` — Solar panels required settings.
 - `wall_cooler.md` — Wall Cooler required settings.

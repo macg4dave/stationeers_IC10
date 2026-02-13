@@ -1,11 +1,13 @@
 {
   "source": {
+    "kind": "best_guess",
     "wikiUrl": "",
     "wikiTitle": "phase_change_device",
-    "retrievedAt": ""
+    "retrievedAt": "",
+    "notes": "Manual best-guess entry because wiki Data Network table is incomplete/unavailable."
   },
   "identity": {
-    "itemName": "",
+    "itemName": null,
     "itemHash": null
   },
   "io": {
