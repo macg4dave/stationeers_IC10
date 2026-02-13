@@ -1,29 +1,12 @@
-alias pressed_discover r0
-alias pressed_cycle r1
-alias prev_discover r2
-alias prev_cycle r3
-alias edge_discover r4
-alias edge_cycle r5
-alias token r6
-alias cond r7
-alias discover_status r8
-alias cycle_status r9
-alias housing_hash r10
-define CMD_DISCOVER 1
-define CMD_CYCLE 2
-define CMD_CLEAR 3
-define BUTTON_HASH 491845673
-define MEMORY_HASH HASH("StructureLogicMemory")
-define DISCOVER_BTN_NAME HASH("discover")
-define CYCLE_BTN_NAME HASH("cycle")
+alias cond r0
+alias discover_status r1
+alias cycle_status r2
+alias controls_status r3
+alias housing_hash r4
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CYCLE_WORKER_NAME HASH("cycle_worker")
-define CMD_TOKEN_NAME HASH("cmd_token")
-define CMD_TYPE_NAME HASH("cmd_type")
+define CONTROLS_WORKER_NAME HASH("controls_worker")
 init:
-move prev_discover 0
-move prev_cycle 0
-move token 0
 l housing_hash db PrefabHash
 s db Setting 0
 main:
@@ -32,60 +15,31 @@ lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
 lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
-lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
-bne cond MEMORY_HASH main
-lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
-bne cond MEMORY_HASH main
+lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
+bne cond housing_hash main
 lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
 bnez cond check_cycle_on
 sbn housing_hash DISCOVER_WORKER_NAME On 1
 check_cycle_on:
 lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
-bnez cond read_buttons
+bnez cond check_controls_on
 sbn housing_hash CYCLE_WORKER_NAME On 1
-read_buttons:
-lbn cond BUTTON_HASH DISCOVER_BTN_NAME PrefabHash Maximum
-bne cond BUTTON_HASH no_buttons
-lbn cond BUTTON_HASH CYCLE_BTN_NAME PrefabHash Maximum
-bne cond BUTTON_HASH no_buttons
-lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
-lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
-read_edges:
-beqz pressed_discover discover_low
-beqz prev_discover discover_rise
-move edge_discover 0
-j discover_done
-discover_rise:
-move edge_discover 1
-move prev_discover 1
-j discover_done
-discover_low:
-move prev_discover 0
-move edge_discover 0
-discover_done:
-beqz pressed_cycle cycle_low
-beqz prev_cycle cycle_rise
-move edge_cycle 0
-j route
-cycle_rise:
-move edge_cycle 1
-move prev_cycle 1
-j route
-cycle_low:
-move prev_cycle 0
-move edge_cycle 0
-route:
-or cond edge_discover edge_cycle
-beqz cond publish
-and cond pressed_discover pressed_cycle
-bnez cond send_clear
-bnez edge_discover send_discover
-bnez edge_cycle send_cycle
+check_controls_on:
+lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
+bnez cond publish
+sbn housing_hash CONTROLS_WORKER_NAME On 1
 publish:
 lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
 lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting Maximum
+lbn controls_status housing_hash CONTROLS_WORKER_NAME Setting Maximum
+beq controls_status 344 no_controls
+beq controls_status 341 discover_sent
+beq controls_status 342 cycle_sent
+beq controls_status 343 clear_sent
+beq controls_status 345 manual_control
 beq discover_status 110 discover_busy
 beq discover_status 120 discover_busy
+beq discover_status 121 discover_busy
 beq discover_status 130 discover_ready
 beq discover_status 132 discover_ready
 beq discover_status 131 discover_none
@@ -104,23 +58,18 @@ j main
 cycle_busy:
 s db Setting 3
 j main
-no_buttons:
-s db Setting 44
+manual_control:
+s db Setting 7
 j main
-send_discover:
-move cond CMD_DISCOVER
+discover_sent:
 s db Setting 10
-j send_cmd
-send_cycle:
-move cond CMD_CYCLE
+j main
+cycle_sent:
 s db Setting 20
-j send_cmd
-send_clear:
-move cond CMD_CLEAR
+j main
+clear_sent:
 s db Setting 30
-send_cmd:
-lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
-add token token 1
-sbn MEMORY_HASH CMD_TYPE_NAME Setting cond
-sbn MEMORY_HASH CMD_TOKEN_NAME Setting token
+j main
+no_controls:
+s db Setting 44
 j main

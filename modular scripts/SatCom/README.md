@@ -7,10 +7,11 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 
 ## Architecture
 
-- `satcom_master.ic10` - button edge routing and command publication
+- `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
+- `satcom_worker_controls.ic10` - button + dial controls and command publication
 - `satcom_worker_discover.ic10` - discover and refresh contact slots
-- `satcom_worker_cycle.ic10` - cycle/tune contacts and clear active filter
+- `satcom_worker_cycle.ic10` - cycle/tune contacts and clear active filter only
 - `satcom_worker_display.ic10` - optional H/V LED display updater
 
 `satcom_master_named.ic10` is deprecated and intentionally not used.
@@ -21,7 +22,7 @@ Required exact names:
 
 - Buttons: `discover`, `cycle`
 - Dials (manual): `dial_h`, `dial_v`
-- IC Housing: `discover_worker`, `cycle_worker`
+- IC Housing: `discover_worker`, `cycle_worker`, `controls_worker`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Large Satellite Dish: `dish`
 - Optional LED Displays: `display_h`, `display_v`
@@ -42,6 +43,7 @@ Use Logic Memory `Setting` channels:
 - `slot2` - third discovered `SignalID`
 - `cmd_token` - incrementing command token
 - `cmd_type` - command code
+- `filter_status` (optional) - mirrors cycle filter verification status
 
 Command codes:
 
@@ -58,11 +60,13 @@ Workers execute commands only when `cmd_token` changes.
 
 ## Controls
 
+- Controls worker handles all button and dial input.
 - Press `discover` to issue command `1`.
 - Press `cycle` to issue command `2`.
 - Press both together to issue command `3`.
-- Turn `dial_h` to manually set dish `Horizontal` when workers are idle.
-- Turn `dial_v` to manually set dish `Vertical` when workers are idle.
+- Turn `dial_h` to manually set dish `Horizontal` when discover is not sweeping.
+- Turn `dial_v` to manually set dish `Vertical` when discover is not sweeping.
+- Contact filter control (`BestContactFilter`) is owned by cycle worker only.
 
 ## Status protocol (`db Setting`)
 
@@ -74,12 +78,13 @@ Each chip writes status to its own housing `Setting`.
 - `1` = idle/ready
 - `2` = discover worker busy
 - `3` = cycle worker busy
+- `7` = manual dial control active
 - `5` = contacts available
 - `6` = no contacts found
 - `10` = discover command sent
 - `20` = cycle command sent
 - `30` = clear command sent
-- `44` = discover/cycle button missing or wrong type/name
+- `44` = controls worker reports missing/wrong controls
 
 ### Setup guard status (`90-99`)
 
@@ -87,11 +92,22 @@ Each chip writes status to its own housing `Setting`.
 - `91` = missing/wrong `cmd_token`
 - `92` = missing/wrong `cmd_type`
 - `93` = missing/wrong `discover_worker` housing
+- `90` = missing/wrong `controls_worker` housing
 - `94` = discover button wrong type/name
 - `95` = cycle button wrong type/name
 - `96` = missing/wrong `cycle_worker` housing
 - `97` = missing/wrong `dish` device
 - `98` = missing/wrong `slot0/slot1/slot2` memory
+- `99` = missing/wrong `dial_h`/`dial_v` dial controls
+
+### Controls worker status (`340-349`)
+
+- `340` = idle/ready
+- `341` = discover command sent
+- `342` = cycle command sent
+- `343` = clear command sent
+- `344` = missing/wrong controls
+- `345` = manual dial write applied
 
 ### Discover worker status (`100-199`)
 
@@ -104,14 +120,27 @@ Each chip writes status to its own housing `Setting`.
 - `132` = complete with partial contacts
 - `140` = cleared by clear command
 
+Discover worker never writes `BestContactFilter`.
+
 ### Cycle worker status (`200-299`)
 
 - `200` = idle
 - `210` = cycling contacts
 - `220` = tuned (`BestContactFilter` written)
 - `221` = no valid contacts to tune
+- `223` = tune attempted but filter readback mismatch
 - `230` = filter cleared by clear command
-- `240` = manual dial write applied to dish H/V
+- `233` = clear attempted but filter readback mismatch
+
+Cycle worker owns contact skip/lock flow:
+
+- `cycle` command advances to next non-zero stored contact
+- `clear` command resets filter lock (`BestContactFilter=-1`)
+- if `filter_status` memory exists, cycle writes `220/223/230/233` there
+
+Note on tooling: some editor diagnostics currently misreport `BestContactFilter`
+for this prefab. Runtime readback statuses (`220/223/230/233`) are the source
+of truth for in-game behavior.
 
 ### Display worker status (`300-399`)
 

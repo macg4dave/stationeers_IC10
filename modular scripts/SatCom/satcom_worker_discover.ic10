@@ -1,11 +1,14 @@
 alias tok r0
 alias prev r1
 alias cmd r2
-alias act r3
+alias state r3
 alias h r4
 alias v r5
 alias dir r6
 alias n r7
+alias step r8
+alias cond r9
+alias sig r10
 define CMD_DISCOVER 1
 define CMD_CLEAR 3
 define MEMORY_HASH HASH("StructureLogicMemory")
@@ -18,53 +21,52 @@ define CMD_TYPE_NAME HASH("cmd_type")
 define DISH_NAME HASH("dish")
 init:
 move prev -1
-move act 0
+move state 0
+s db Setting 100
 main:
 yield
-lbn r14 MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
-bne r14 MEMORY_HASH main
-lbn r14 MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
-bne r14 MEMORY_HASH main
-lbn r14 DISH_HASH DISH_NAME PrefabHash Maximum
-bne r14 DISH_HASH main
+lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
+bne cond MEMORY_HASH main
+lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
+bne cond MEMORY_HASH main
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
+bne cond DISH_HASH main
 lbn tok MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
-seq r14 tok prev
-bnez r14 run
+seq cond tok prev
+bnez cond worker
 move prev tok
 lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beq cmd CMD_DISCOVER start
-bne cmd CMD_CLEAR run
-move act 0
-j reset_slots
-start:
-move act 1
-move n 0
-move r10 0
-move h 0
-move v 0
-move dir 1
-move r11 0
-move r12 0
-move r13 0
-reset_slots:
+bne cmd CMD_CLEAR worker
+move state 0
 sbn MEMORY_HASH SLOT0_NAME Setting 0
 sbn MEMORY_HASH SLOT1_NAME Setting 0
 sbn MEMORY_HASH SLOT2_NAME Setting 0
-sbn DISH_HASH DISH_NAME BestContactFilter -1
-beqz act cleared
-s db Setting 110
-j run
-cleared:
 s db Setting 140
 j main
-run:
-beqz act main
-move r9 10
-mul r9 r9 dir
-add r9 h r9
-bgt r9 359 high
-blt r9 0 low
-move h r9
+start:
+move state 1
+move n 0
+move step 0
+move h 0
+move v 0
+move dir 1
+sbn MEMORY_HASH SLOT0_NAME Setting 0
+sbn MEMORY_HASH SLOT1_NAME Setting 0
+sbn MEMORY_HASH SLOT2_NAME Setting 0
+s db Setting 110
+j main
+worker:
+beq state 1 do_step
+beq state 2 do_sample
+j main
+do_step:
+move cond 10
+mul cond cond dir
+add cond h cond
+bgt cond 359 high
+blt cond 0 low
+move h cond
 j moved
 high:
 move h 359
@@ -78,43 +80,35 @@ bump:
 add v v 10
 ble v 89 moved
 move v 0
-add r10 r10 1
 moved:
 sbn DISH_HASH DISH_NAME Horizontal h
 sbn DISH_HASH DISH_NAME Vertical v
+add step step 1
+move state 2
 s db Setting 120
-wait:
-lbn r9 DISH_HASH DISH_NAME Idle Maximum
-beqz r9 wait
+j main
+do_sample:
+lbn cond DISH_HASH DISH_NAME Idle Maximum
+beqz cond main
 sleep 1
-lbn r8 DISH_HASH DISH_NAME SignalID Maximum
-beqz r8 done_chk
-seq r14 r8 r11
-bnez r14 done_chk
-seq r14 r8 r12
-bnez r14 done_chk
-seq r14 r8 r13
-bnez r14 done_chk
+lbn sig DISH_HASH DISH_NAME SignalID Maximum
+beqz sig sample_done
 beq n 0 save0
 beq n 1 save1
-move r13 r8
-sbn MEMORY_HASH SLOT2_NAME Setting r8
+sbn MEMORY_HASH SLOT2_NAME Setting sig
 move n 3
-j stored
+j sample_done
 save0:
-move r11 r8
-sbn MEMORY_HASH SLOT0_NAME Setting r8
+sbn MEMORY_HASH SLOT0_NAME Setting sig
 add n n 1
-j stored
+j sample_done
 save1:
-move r12 r8
-sbn MEMORY_HASH SLOT1_NAME Setting r8
+sbn MEMORY_HASH SLOT1_NAME Setting sig
 add n n 1
-stored:
-s db Setting 121
-done_chk:
+j sample_done
+sample_done:
 beq n 3 full
-blt r10 2 main
+blt step 72 next_step
 beqz n none
 s db Setting 132
 j stop
@@ -123,6 +117,10 @@ s db Setting 130
 j stop
 none:
 s db Setting 131
+j stop
+next_step:
+move state 1
+j main
 stop:
-move act 0
+move state 0
 j main

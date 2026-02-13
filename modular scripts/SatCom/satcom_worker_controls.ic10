@@ -1,0 +1,126 @@
+# SatCom controls worker (name auto-naming)
+# names: discover cycle dials cmd channels dish discover_worker
+alias pressed_discover r0
+alias pressed_cycle r1
+alias prev_discover r2
+alias prev_cycle r3
+alias edge_discover r4
+alias edge_cycle r5
+alias token r6
+alias cond r7
+alias housing_hash r8
+alias wrote r9
+define CMD_DISCOVER 1
+define CMD_CYCLE 2
+define CMD_CLEAR 3
+define BUTTON_HASH 491845673
+define DIAL_HASH 554524804
+define MEMORY_HASH HASH("StructureLogicMemory")
+define DISH_HASH HASH("StructureLargeSatelliteDish")
+define DISCOVER_BTN_NAME HASH("discover")
+define CYCLE_BTN_NAME HASH("cycle")
+define DIAL_H_NAME HASH("dial_h")
+define DIAL_V_NAME HASH("dial_v")
+define DISCOVER_WORKER_NAME HASH("discover_worker")
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
+define DISH_NAME HASH("dish")
+init:
+move prev_discover 0
+move prev_cycle 0
+l housing_hash db PrefabHash
+s db Setting 340
+main:
+yield
+lbn cond BUTTON_HASH DISCOVER_BTN_NAME PrefabHash Maximum
+bne cond BUTTON_HASH no_controls
+lbn cond BUTTON_HASH CYCLE_BTN_NAME PrefabHash Maximum
+bne cond BUTTON_HASH no_controls
+lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
+bne cond DIAL_HASH no_controls
+lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
+bne cond DIAL_HASH no_controls
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
+bne cond DISH_HASH main
+lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
+bne cond housing_hash main
+lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
+lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
+beqz pressed_discover discover_low
+beqz prev_discover discover_rise
+move edge_discover 0
+j discover_done
+discover_rise:
+move edge_discover 1
+move prev_discover 1
+j discover_done
+discover_low:
+move prev_discover 0
+move edge_discover 0
+discover_done:
+beqz pressed_cycle cycle_low
+beqz prev_cycle cycle_rise
+move edge_cycle 0
+j route
+cycle_rise:
+move edge_cycle 1
+move prev_cycle 1
+j route
+cycle_low:
+move prev_cycle 0
+move edge_cycle 0
+route:
+or cond edge_discover edge_cycle
+beqz cond manual
+and cond pressed_discover pressed_cycle
+bnez cond send_clear
+bnez edge_discover send_discover
+bnez edge_cycle send_cycle
+manual:
+move wrote 0
+lbn r10 housing_hash DISCOVER_WORKER_NAME Setting Maximum
+beq r10 110 publish
+beq r10 120 publish
+beq r10 121 publish
+lbn r10 DIAL_HASH DIAL_H_NAME Ratio Maximum
+mul r10 r10 359
+lbn r11 DISH_HASH DISH_NAME Horizontal Maximum
+seq cond r11 r10
+bnez cond read_v
+sbn DISH_HASH DISH_NAME Horizontal r10
+move wrote 1
+read_v:
+lbn r10 DIAL_HASH DIAL_V_NAME Ratio Maximum
+mul r10 r10 89
+lbn r11 DISH_HASH DISH_NAME Vertical Maximum
+seq cond r11 r10
+bnez cond publish
+sbn DISH_HASH DISH_NAME Vertical r10
+move wrote 1
+publish:
+beqz wrote steady
+s db Setting 345
+j main
+steady:
+s db Setting 340
+j main
+no_controls:
+s db Setting 344
+j main
+send_discover:
+move cond CMD_DISCOVER
+s db Setting 341
+j send_cmd
+send_cycle:
+move cond CMD_CYCLE
+s db Setting 342
+j send_cmd
+send_clear:
+move cond CMD_CLEAR
+s db Setting 343
+send_cmd:
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
+add token token 1
+sbn MEMORY_HASH CMD_TYPE_NAME Setting cond
+sbn MEMORY_HASH CMD_TOKEN_NAME Setting token
+j main
