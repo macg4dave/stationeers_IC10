@@ -1,5 +1,3 @@
-# SatCom controls worker (name auto-naming)
-# names: discover cycle dials cmd channels dish discover_worker
 alias pressed_discover r0
 alias pressed_cycle r1
 alias prev_discover r2
@@ -29,6 +27,8 @@ init:
 move prev_discover 0
 move prev_cycle 0
 l housing_hash db PrefabHash
+sbn DIAL_HASH DIAL_H_NAME Mode 359
+sbn DIAL_HASH DIAL_V_NAME Mode 89
 s db Setting 340
 main:
 yield
@@ -82,16 +82,14 @@ lbn r10 housing_hash DISCOVER_WORKER_NAME Setting Maximum
 beq r10 110 publish
 beq r10 120 publish
 beq r10 121 publish
-lbn r10 DIAL_HASH DIAL_H_NAME Ratio Maximum
-mul r10 r10 359
+lbn r10 DIAL_HASH DIAL_H_NAME Setting Maximum
 lbn r11 DISH_HASH DISH_NAME Horizontal Maximum
 seq cond r11 r10
 bnez cond read_v
 sbn DISH_HASH DISH_NAME Horizontal r10
 move wrote 1
 read_v:
-lbn r10 DIAL_HASH DIAL_V_NAME Ratio Maximum
-mul r10 r10 89
+lbn r10 DIAL_HASH DIAL_V_NAME Setting Maximum
 lbn r11 DISH_HASH DISH_NAME Vertical Maximum
 seq cond r11 r10
 bnez cond publish

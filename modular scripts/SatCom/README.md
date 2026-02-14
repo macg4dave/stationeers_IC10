@@ -10,9 +10,10 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 - `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
 - `satcom_worker_controls.ic10` - button + dial controls and command publication
-- `satcom_worker_discover.ic10` - discover and refresh contact slots
-- `satcom_worker_cycle.ic10` - cycle/tune contacts and clear active filter only
+- `satcom_worker_discover.ic10` - discover with previous-slot blacklist + min-2
+- `satcom_worker_cycle.ic10` - cycle/tune contacts with per-slot blacklist flow
 - `satcom_worker_display.ic10` - optional H/V LED display updater
+- `satcom_worker_status_led.ic10` - optional status LED color/state updater
 
 ## Name contract
 
@@ -23,7 +24,8 @@ Required exact names:
 - IC Housing: `discover_worker`, `cycle_worker`, `controls_worker`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Large Satellite Dish: `dish`
-- Optional LED Displays: `display_h`, `display_v`
+- Optional IC Housing: `status_led_worker`
+- Optional LED Displays: `display_h`, `display_v`, `display_status`
 
 Implementation notes:
 
@@ -31,6 +33,7 @@ Implementation notes:
 - Master/setup guard read IC Housing prefab from `db PrefabHash`, so use one
   housing variant across SatCom ICs.
 - Display worker resolves small/medium/large LED display prefabs.
+- Status LED worker resolves small/medium/large LED display prefabs.
 
 ## Shared memory contract
 
@@ -47,7 +50,7 @@ Use Logic Memory `Setting` channels:
 Command codes:
 
 - `1` = discover (rebuild contact slots)
-- `2` = cycle (tune next stored contact that is not `-1`)
+- `2` = cycle (blacklist current slot, then tune next stored contact)
 - `3` = clear (clear slots and unlock dish filter)
 
 Workers execute commands only when `cmd_token` changes.
@@ -60,12 +63,15 @@ Workers execute commands only when `cmd_token` changes.
 ## Controls
 
 - Controls worker handles all button and dial input.
+- Controls worker sets dial ranges on startup (`dial_h Mode=359`, `dial_v Mode=89`).
 - Press `discover` to issue command `1`.
+- `discover` auto-tunes the first new contact when scan completes.
 - Press `cycle` to issue command `2`.
 - Press both together to issue command `3`.
 - Turn `dial_h` to manually set dish `Horizontal` when discover is not sweeping.
 - Turn `dial_v` to manually set dish `Vertical` when discover is not sweeping.
 - Contact filter control (`BestContactFilter`) is owned by cycle worker only.
+- Optional `display_status` shows color-coded master state and numeric status.
 
 ## Known engine behaviors
 
@@ -118,14 +124,19 @@ Each chip writes status to its own housing `Setting`.
 
 - `100` = idle
 - `110` = discover start/reset
-- `120` = sweeping step
-- `121` = contact stored
-- `130` = complete with 3 contacts
-- `131` = complete with no contacts
-- `132` = complete with partial contacts
+- `120` = sweeping step / sweep retry
+- `130` = complete with 3 new contacts
+- `132` = complete with 2 new contacts
 - `140` = cleared by clear command
 
 Discover worker never writes `BestContactFilter`.
+
+Discover flow details:
+
+- on `discover`, current `slot0..slot2` are treated as a blacklist for that run
+- worker keeps sweeping until it finds at least 2 new contacts
+- if a sweep finds fewer than 2 new contacts, it restarts sweeping automatically
+- when discover completes, worker emits `cycle` so first new contact is tuned
 
 ### Cycle worker status (`200-299`)
 
@@ -139,18 +150,37 @@ Discover worker never writes `BestContactFilter`.
 
 Cycle worker owns contact skip/lock flow:
 
-- `cycle` command advances to next stored contact where `SignalID != -1`
+- first `cycle` after discover tunes a stored contact
+- next `cycle` blacklists the current slot (`slotN=-1`) and advances to another
+- blacklist persists until next `discover` rebuilds `slot0..slot2`
+- `discover` also clears `BestContactFilter` so scanning is not locked
 - `clear` command resets filter lock (`BestContactFilter=-1`)
-- if `filter_status` memory exists, cycle writes `220/223/230/233` there
+- if `filter_status` memory exists, cycle writes `220/221/223/230/233` there
 
 Note on tooling: some editor diagnostics currently misreport `BestContactFilter`
-for this prefab. Runtime readback statuses (`220/223/230/233`) are the source
-of truth for in-game behavior.
+for this prefab. Runtime readback statuses (`220/221/223/230/233`) are the
+source of truth for in-game behavior.
 
 ### Display worker status (`300-399`)
 
 - `300` = init
 - `310` = updating H/V displays
+
+### Status LED worker status (`320-329`)
+
+- `320` = init
+- `321` = status LED synced
+- `324` = `display_status` missing/wrong type
+
+Status LED color map (`display_status Color`):
+
+- Blue (`0`) = discover/scanning (`2`, `10`)
+- Orange (`3`) = cycle/tuning (`3`, `20`)
+- Green (`2`) = ready/contacts available (`1`, `5`)
+- Yellow (`5`) = no contacts (`6`)
+- Red (`4`) = controls/setup issue (`44`)
+- White (`6`) = init/manual/clear (`0`, `7`, `30`)
+- Purple (`11`) = any unclassified master code
 
 ## Limits
 

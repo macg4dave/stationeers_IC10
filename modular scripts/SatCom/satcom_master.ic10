@@ -6,6 +6,7 @@ alias housing_hash r4
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CYCLE_WORKER_NAME HASH("cycle_worker")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
+define STATUS_LED_WORKER_NAME HASH("status_led_worker")
 init:
 l housing_hash db PrefabHash
 s db Setting 0
@@ -26,8 +27,14 @@ bnez cond check_controls_on
 sbn housing_hash CYCLE_WORKER_NAME On 1
 check_controls_on:
 lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
-bnez cond publish
+bnez cond check_status_led
 sbn housing_hash CONTROLS_WORKER_NAME On 1
+check_status_led:
+lbn cond housing_hash STATUS_LED_WORKER_NAME PrefabHash Maximum
+bne cond housing_hash publish
+lbn cond housing_hash STATUS_LED_WORKER_NAME On Maximum
+bnez cond publish
+sbn housing_hash STATUS_LED_WORKER_NAME On 1
 publish:
 lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
 lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting Maximum

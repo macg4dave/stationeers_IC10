@@ -13,6 +13,8 @@ by prefab+name (`lbn`/`sbn`) and do not require per-chip `d0..d5` mapping.
   - SatCom Setup Guard (recommended)
 - 1x IC Housing + IC Chip (optional)
   - SatCom Display Worker
+- 1x IC Housing + IC Chip (optional)
+  - SatCom Status LED Worker
 - 6x Logic Memory
   - `cmd_token`
   - `cmd_type`
@@ -27,9 +29,10 @@ by prefab+name (`lbn`/`sbn`) and do not require per-chip `d0..d5` mapping.
   - Horizontal (`dial_h`)
   - Vertical (`dial_v`)
 - 1x Large Satellite Dish
-- 2x LED Display (optional)
+- 3x LED Display (optional)
   - Horizontal (`display_h`)
   - Vertical (`display_v`)
+  - Status (`display_status`)
 
 ## Name contract
 
@@ -45,6 +48,7 @@ Set these exact names (case-sensitive):
 - IC Housing: `discover_worker`
 - IC Housing: `cycle_worker`
 - IC Housing: `display_worker` (optional)
+- IC Housing: `status_led_worker` (optional)
 - Logic Memory: `slot0`
 - Logic Memory: `slot1`
 - Logic Memory: `slot2`
@@ -54,6 +58,7 @@ Set these exact names (case-sensitive):
 - Large Satellite Dish: `dish`
 - LED Display: `display_h` (optional)
 - LED Display: `display_v` (optional)
+- LED Display: `display_status` (optional)
 
 Prefab tokens used by scripts:
 
@@ -73,15 +78,19 @@ Prefab tokens used by scripts:
   - `modular scripts/SatCom/satcom_worker_cycle.ic10`
   - `modular scripts/SatCom/satcom_setup_guard.ic10` (recommended)
   - `modular scripts/SatCom/satcom_worker_display.ic10` (optional)
+  - `modular scripts/SatCom/satcom_worker_status_led.ic10` (optional)
 - Apply exact names from **Name contract**.
 - Ensure all SatCom IC housings are the same housing prefab variant.
+- Controls worker initializes dial ranges at startup:
+  - `dial_h` `Mode=359` (0..359 deg)
+  - `dial_v` `Mode=89` (0..89 deg)
 - Power devices and wait a few ticks.
 - Press Discover, then press Cycle.
 
 ## Controls
 
-- Press Discover: scan and store up to 3 contacts.
-- Press Cycle: tune/skip to the next stored contact where `SignalID != -1`.
+- Press Discover: scan until at least 2 new contacts, then auto-tune the first.
+- Press Cycle: blacklist current stored contact (`slotN=-1`) and tune next valid.
 - Press both buttons: clear stored contacts and clear dish filter lock.
 - Turn dial `dial_h`: manually set dish horizontal angle when discover is idle.
 - Turn dial `dial_v`: manually set dish vertical angle when discover is idle.
@@ -96,6 +105,17 @@ Cycle verification status hints:
 - `230` clear write verified
 - `233` clear write mismatch
 - Optional display worker mirrors dish `Horizontal` and `Vertical` to LEDs.
+- Optional status LED worker writes `display_status` color + master status code.
+
+Status LED colors (`display_status`):
+
+- Blue = discover/scanning
+- Orange = cycle/tuning
+- Green = ready/contacts available
+- Yellow = no contacts found
+- Red = controls/setup issue
+- White = init/manual/clear
+- Purple = unclassified state
 
 ## Setup guard status (`db Setting`)
 

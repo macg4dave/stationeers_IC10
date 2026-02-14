@@ -4,11 +4,10 @@ alias cmd r2
 alias state r3
 alias h r4
 alias v r5
-alias dir r6
-alias n r7
-alias step r8
-alias cond r9
-alias sig r10
+alias n r6
+alias step r7
+alias cond r8
+alias sig r9
 define CMD_DISCOVER 1
 define CMD_CLEAR 3
 define NO_SIGNAL -1
@@ -51,7 +50,9 @@ move n 0
 move step 0
 move h 0
 move v 0
-move dir 1
+lbn r10 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn r11 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn r12 MEMORY_HASH SLOT2_NAME Setting Maximum
 sbn MEMORY_HASH SLOT0_NAME Setting NO_SIGNAL
 sbn MEMORY_HASH SLOT1_NAME Setting NO_SIGNAL
 sbn MEMORY_HASH SLOT2_NAME Setting NO_SIGNAL
@@ -62,24 +63,11 @@ beq state 1 do_step
 beq state 2 do_sample
 j main
 do_step:
-move cond 10
-mul cond cond dir
-add cond h cond
-bgt cond 359 high
-blt cond 0 low
-move h cond
-j moved
-high:
-move h 359
-move dir -1
-j bump
-low:
+add h h 10
+blt h 360 moved
 move h 0
-move dir 1
-j bump
-bump:
 add v v 10
-ble v 89 moved
+blt v 90 moved
 move v 0
 moved:
 sbn DISH_HASH DISH_NAME Horizontal h
@@ -94,6 +82,9 @@ beqz cond main
 sleep 1
 lbn sig DISH_HASH DISH_NAME SignalID Maximum
 beq sig NO_SIGNAL sample_done
+beq sig r10 sample_done
+beq sig r11 sample_done
+beq sig r12 sample_done
 beq n 0 save0
 beq n 1 save1
 sbn MEMORY_HASH SLOT2_NAME Setting sig
@@ -110,18 +101,28 @@ j sample_done
 sample_done:
 beq n 3 full
 blt step 72 next_step
-beqz n none
+slt cond n 2
+bnez cond restart
 s db Setting 132
-j stop
+j stop_cycle
 full:
 s db Setting 130
-j stop
-none:
-s db Setting 131
-j stop
+j stop_cycle
+restart:
+move step 0
+move h 0
+move v 0
+move state 1
+s db Setting 120
+j main
 next_step:
 move state 1
 j main
+stop_cycle:
+lbn tok MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
+add tok tok 1
+sbn MEMORY_HASH CMD_TYPE_NAME Setting 2
+sbn MEMORY_HASH CMD_TOKEN_NAME Setting tok
 stop:
 move state 0
 j main
