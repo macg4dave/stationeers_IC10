@@ -8,9 +8,11 @@ alias curr r4
 alias cond r5
 define MODE_NUMBER 0
 define DISH_HASH HASH("StructureLargeSatelliteDish")
+define LED_STD_HASH HASH("StructureConsoleLED")
 define LED_SMALL_HASH HASH("StructureConsoleLED5")
 define LED_MED_HASH HASH("StructureConsoleLED1x2")
 define LED_LARGE_HASH HASH("StructureConsoleLED1x3")
+define LED_ALT_HASH HASH("StructureLEDDisplay")
 define DISH_NAME HASH("dish")
 define DISPLAY_H_NAME HASH("display_h")
 define DISPLAY_V_NAME HASH("display_v")
@@ -26,6 +28,9 @@ beqz h_hash find_h
 lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
 find_h:
+move h_hash LED_STD_HASH
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
+beq cond h_hash have_h
 move h_hash LED_SMALL_HASH
 lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
@@ -35,6 +40,9 @@ beq cond h_hash have_h
 move h_hash LED_LARGE_HASH
 lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
 beq cond h_hash have_h
+move h_hash LED_ALT_HASH
+lbn cond h_hash DISPLAY_H_NAME PrefabHash Maximum
+beq cond h_hash have_h
 move h_hash 0
 j main
 have_h:
@@ -42,6 +50,9 @@ beqz v_hash find_v
 lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 find_v:
+move v_hash LED_STD_HASH
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
+beq cond v_hash sync_on
 move v_hash LED_SMALL_HASH
 lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
@@ -49,6 +60,9 @@ move v_hash LED_MED_HASH
 lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 move v_hash LED_LARGE_HASH
+lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
+beq cond v_hash sync_on
+move v_hash LED_ALT_HASH
 lbn cond v_hash DISPLAY_V_NAME PrefabHash Maximum
 beq cond v_hash sync_on
 move v_hash 0

@@ -32,8 +32,8 @@ Implementation notes:
 - Workers and channels are targeted by prefab+name, not chip pin mapping.
 - Master/setup guard read IC Housing prefab from `db PrefabHash`, so use one
   housing variant across SatCom ICs.
-- Display worker resolves small/medium/large LED display prefabs.
-- Status LED worker resolves small/medium/large LED display prefabs.
+- Display worker resolves LED display prefab variants by exact name.
+- Status LED worker resolves LED display prefab variants by exact name.
 
 ## Shared memory contract
 

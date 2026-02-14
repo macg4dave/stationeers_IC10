@@ -1,9 +1,6 @@
 alias pressed_discover r0
 alias pressed_cycle r1
-alias prev_discover r2
-alias prev_cycle r3
-alias edge_discover r4
-alias edge_cycle r5
+alias both_pressed r2
 alias token r6
 alias cond r7
 alias housing_hash r8
@@ -24,8 +21,6 @@ define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
 define DISH_NAME HASH("dish")
 init:
-move prev_discover 0
-move prev_cycle 0
 l housing_hash db PrefabHash
 sbn DIAL_HASH DIAL_H_NAME Mode 359
 sbn DIAL_HASH DIAL_V_NAME Mode 89
@@ -46,36 +41,10 @@ lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
 lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
 lbn pressed_cycle BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
-beqz pressed_discover discover_low
-beqz prev_discover discover_rise
-move edge_discover 0
-j discover_done
-discover_rise:
-move edge_discover 1
-move prev_discover 1
-j discover_done
-discover_low:
-move prev_discover 0
-move edge_discover 0
-discover_done:
-beqz pressed_cycle cycle_low
-beqz prev_cycle cycle_rise
-move edge_cycle 0
-j route
-cycle_rise:
-move edge_cycle 1
-move prev_cycle 1
-j route
-cycle_low:
-move prev_cycle 0
-move edge_cycle 0
-route:
-or cond edge_discover edge_cycle
-beqz cond manual
-and cond pressed_discover pressed_cycle
-bnez cond send_clear
-bnez edge_discover send_discover
-bnez edge_cycle send_cycle
+and both_pressed pressed_discover pressed_cycle
+bnez both_pressed send_clear
+bnez pressed_discover send_discover
+bnez pressed_cycle send_cycle
 manual:
 move wrote 0
 lbn r10 housing_hash DISCOVER_WORKER_NAME Setting Maximum

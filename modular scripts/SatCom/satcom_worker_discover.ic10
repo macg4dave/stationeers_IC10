@@ -50,6 +50,7 @@ move n 0
 move step 0
 move h 0
 move v 0
+sbn DISH_HASH DISH_NAME BestContactFilter -1
 lbn r10 MEMORY_HASH SLOT0_NAME Setting Maximum
 lbn r11 MEMORY_HASH SLOT1_NAME Setting Maximum
 lbn r12 MEMORY_HASH SLOT2_NAME Setting Maximum
@@ -79,7 +80,7 @@ j main
 do_sample:
 lbn cond DISH_HASH DISH_NAME Idle Maximum
 beqz cond main
-sleep 1
+sleep 5
 lbn sig DISH_HASH DISH_NAME SignalID Maximum
 beq sig NO_SIGNAL sample_done
 beq sig r10 sample_done
@@ -100,21 +101,17 @@ add n n 1
 j sample_done
 sample_done:
 beq n 3 full
-blt step 72 next_step
+blt step 324 next_step
 slt cond n 2
-bnez cond restart
+bnez cond none_found
 s db Setting 132
 j stop_cycle
 full:
 s db Setting 130
 j stop_cycle
-restart:
-move step 0
-move h 0
-move v 0
-move state 1
-s db Setting 120
-j main
+none_found:
+s db Setting 131
+j stop
 next_step:
 move state 1
 j main

@@ -5,9 +5,11 @@ alias color r3
 alias curr r4
 alias cond r5
 define MODE_NUMBER 0
+define LED_STD_HASH HASH("StructureConsoleLED")
 define LED_SMALL_HASH HASH("StructureConsoleLED5")
 define LED_MED_HASH HASH("StructureConsoleLED1x2")
 define LED_LARGE_HASH HASH("StructureConsoleLED1x3")
+define LED_ALT_HASH HASH("StructureLEDDisplay")
 define MASTER_NAME HASH("master")
 define DISPLAY_STATUS_NAME HASH("display_status")
 define COLOR_BLUE 0
@@ -29,6 +31,9 @@ beqz led_hash find_led
 lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
 beq cond led_hash sync_led
 find_led:
+move led_hash LED_STD_HASH
+lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
+beq cond led_hash sync_led
 move led_hash LED_SMALL_HASH
 lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
 beq cond led_hash sync_led
@@ -36,6 +41,9 @@ move led_hash LED_MED_HASH
 lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
 beq cond led_hash sync_led
 move led_hash LED_LARGE_HASH
+lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
+beq cond led_hash sync_led
+move led_hash LED_ALT_HASH
 lbn cond led_hash DISPLAY_STATUS_NAME PrefabHash Maximum
 beq cond led_hash sync_led
 move led_hash 0

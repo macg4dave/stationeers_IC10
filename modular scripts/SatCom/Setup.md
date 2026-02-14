@@ -64,9 +64,11 @@ Prefab tokens used by scripts:
 
 - `StructureLogicMemory`
 - `StructureLargeSatelliteDish`
+- `StructureConsoleLED`
 - `StructureConsoleLED5`
 - `StructureConsoleLED1x2`
 - `StructureConsoleLED1x3`
+- `StructureLEDDisplay`
 
 ## Setup steps
 
