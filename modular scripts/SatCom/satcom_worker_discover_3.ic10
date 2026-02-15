@@ -1,5 +1,5 @@
-# Satellite dish controller    CowsAreEvil
-# Will scan the sky for traders and interrogate
+# SatCom discover worker 3
+# Sector: horizontal 240..360
 alias dish d0
 alias stepv r5
 alias steph r6
@@ -16,22 +16,21 @@ move steph 1
 move trader 0
 s dish Horizontal 240
 s dish Setting 99999
-# Scan the sky for contacts
 seek:
+# Scan pass
 s dish BestContactFilter -1
 sleep 5
 l traderID dish SignalID
 l strength dish SignalStrength
-sgtz r0 strength #is signal found
+sgtz r0 strength
 l r1 dish InterrogationProgress
-slez r1 r1 #has it not been contacted
+slez r1 r1
 and r0 r0 r1
 l r1 dish ContactTypeId
-breqz trader 3 #is a trader type selected
+breqz trader 3
 seq r1 r1 trader
 and r0 r0 r1
-bgtz r0 htrack #contact found
-#still here then nothing found
+bgtz r0 htrack
 movedish:
 l r0 dish Horizontal
 add r0 r0 30
@@ -49,14 +48,14 @@ yield
 l r0 dish Idle
 beqz r0 wait
 j seek
-#Contact found. Aim dish horizontal
 htrack:
+# Signal tracking
 s dish BestContactFilter traderID
 l r0 dish MinimumWattsToContact
 l r1 dish WattsReachingContact
-blt r0 r1 contact #Contact possible
+blt r0 r1 contact
 l r1 dish Setting
-bgt r0 r1 movedish #Not enough power give up
+bgt r0 r1 movedish
 l r0 dish Horizontal
 div r1 strength 4
 mul r1 r1 steph
@@ -65,17 +64,16 @@ s dish Horizontal r0
 hwait:
 yield
 l r0 dish InterrogationProgress
-bgtz r0 seek #already found
+bgtz r0 seek
 l r0 dish SignalID
-breq r0 -1 seek #trader gone
+breq r0 -1 seek
 l newstrength dish SignalStrength
-beq newstrength -1 hwait #wait for signal
+beq newstrength -1 hwait
 sle r0 newstrength strength
 move strength newstrength
 beq r0 1 vtrack
 mul steph steph -1
 j htrack
-#Contact found. aim dish vertical
 vtrack:
 l r0 dish Vertical
 div r1 strength 4
@@ -93,14 +91,14 @@ move strength newstrength
 beq r0 1 htrack
 mul stepv stepv -1
 j vtrack
-#Within contact range so make contact
 contact:
+# Contact + interrogate
 yield
 s dish Activate 1
 interrogate:
 yield
 l r0 dish SignalID
-beq r0 -1 seek #contact gone
+beq r0 -1 seek
 l r0 dish InterrogationProgress
 bne r0 1 interrogate
 l r0 db Setting

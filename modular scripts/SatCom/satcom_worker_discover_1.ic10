@@ -1,5 +1,5 @@
-# Satellite dish controller (discover_1 rewritten)
-# d0-targeted + label-based control flow (no hard line-number jumps)
+# SatCom discover worker 1
+# Sector: horizontal 0..120
 alias dish d0
 alias stepv r5
 alias steph r6
@@ -17,6 +17,7 @@ s dish Horizontal 0
 s dish Setting 99999
 
 seek:
+# Scan pass
 s dish BestContactFilter -1
 sleep 5
 l traderID dish SignalID
@@ -59,6 +60,7 @@ beqz r0 wait
 j seek
 
 htrack:
+# Signal tracking
 s dish BestContactFilter traderID
 l r0 dish MinimumWattsToContact
 l r1 dish WattsReachingContact
@@ -105,6 +107,7 @@ mul stepv stepv -1
 j vtrack
 
 contact:
+# Contact + interrogate
 yield
 s dish Activate 1
 

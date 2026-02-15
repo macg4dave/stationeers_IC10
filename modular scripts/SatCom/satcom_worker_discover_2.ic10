@@ -1,3 +1,5 @@
+# SatCom discover worker 2
+# Sector: horizontal 120..240
 alias dish d0
 alias searchPrecision r0
 alias maxHorSig r1
@@ -36,6 +38,7 @@ j search25
 
 
 search25:
+# Coarse/fine sweep loop
 move counter1 0
 Xloop25:
 move counter2 0
@@ -52,12 +55,12 @@ l tmp dish Horizontal
 add tmp tmp searchPrecision
 s dish Horizontal tmp
 blt counter1 searchMax Xloop25
-j search180 #We'll now search for 180W targets
+j search180
 
 evalSignal:
 sleep timer
 l maxSig dish SignalStrength
-beq maxSig -1 ra #if SignalStrength==-1 return
+beq maxSig -1 ra
 move evalReturn ra
 j signalSearch
 
@@ -68,24 +71,24 @@ blt tmp 5 signalSearch
 div movAmount maxSig 2
 l maxHorSig dish Horizontal
 l maxVerSig dish Vertical
-add currentH maxHorSig movAmount #Forward
+add currentH maxHorSig movAmount
 s dish Horizontal currentH
 jal getSignal
-sub currentV maxVerSig movAmount #Up
+sub currentV maxVerSig movAmount
 s dish Vertical currentV
 jal getSignal
-sub currentH maxHorSig movAmount #Backward
+sub currentH maxHorSig movAmount
 s dish Horizontal currentH
 jal getSignal
-add currentV maxVerSig movAmount #Down
+add currentV maxVerSig movAmount
 s dish Vertical currentV
-jal getSignal #If it comes back, god help us
+jal getSignal
 endSignalSearch:
 move ra evalReturn
 j ra
 
-getSignal: #Dunno how to use ra correctly
-sleep 1 #It could be a 15deg movement
+getSignal:
+sleep 1
 sleep timer
 l tmp dish SignalStrength
 min r8 tmp maxSig
@@ -100,7 +103,8 @@ l maxVerSig dish Vertical
 move maxSig r8
 j ra
 
-search180: #Setting Parameters for 180W search
+search180:
+# Fine pass reset
 beq startOver 1 reset
 move searchPrecision 15
 move searchMax 8
