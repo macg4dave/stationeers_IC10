@@ -57,6 +57,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
+- `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Volatiles are present until Oxygen ratio is >= 33% of Volatiles ratio.
 - `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
 - `landingpad_volatiles_pressure_valve/` — Enables Landingpad Liquid Output + Liquid Digital Valve only at 100% liquid volatiles, with 20 MPa safety cutoff.
 - `SatCom/` — Multi-chip satellite comms scaffold (master + discover worker + cycle worker).

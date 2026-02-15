@@ -16,6 +16,7 @@ define DISCOVER_WORKER_1_NAME HASH("discover_worker_1")
 define DISCOVER_WORKER_2_NAME HASH("discover_worker_2")
 define DISCOVER_WORKER_3_NAME HASH("discover_worker_3")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
+define LARGE_WORKER_NAME HASH("large_dish_worker")
 init:
 l housing_hash db PrefabHash
 move inited 0
@@ -46,6 +47,8 @@ lbn cond housing_hash DISCOVER_WORKER_2_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
 lbn cond housing_hash DISCOVER_WORKER_3_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
+lbn cond housing_hash LARGE_WORKER_NAME PrefabHash Maximum
+bne cond housing_hash err_large_h
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_controls_h
 maybe_init:
@@ -83,6 +86,9 @@ s db Setting 92
 j main
 err_discover_h:
 s db Setting 93
+j main
+err_large_h:
+s db Setting 96
 j main
 err_controls_h:
 s db Setting 90

@@ -4,6 +4,7 @@ alias controls_status r3
 alias housing_hash r4
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
+define LARGE_WORKER_NAME HASH("large_dish_worker")
 init:
 l housing_hash db PrefabHash
 s db Setting 0
@@ -13,13 +14,19 @@ lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
+lbn cond housing_hash LARGE_WORKER_NAME PrefabHash Maximum
+bne cond housing_hash no_large
 lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
 bnez cond check_controls_on
 sbn housing_hash DISCOVER_WORKER_NAME On 1
 check_controls_on:
 lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
-bnez cond publish
+bnez cond check_large_on
 sbn housing_hash CONTROLS_WORKER_NAME On 1
+check_large_on:
+lbn cond housing_hash LARGE_WORKER_NAME On Maximum
+bnez cond publish
+sbn housing_hash LARGE_WORKER_NAME On 1
 publish:
 lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
 lbn controls_status housing_hash CONTROLS_WORKER_NAME Setting Maximum
@@ -42,4 +49,7 @@ s db Setting 10
 j main
 no_controls:
 s db Setting 44
+j main
+no_large:
+s db Setting 46
 j main

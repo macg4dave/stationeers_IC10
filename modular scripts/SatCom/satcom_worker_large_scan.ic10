@@ -1,0 +1,100 @@
+# SatCom large-dish target handoff worker
+# Reads medium dishes dish_1..dish_3 and routes 6x6+ targets to local large dish.
+# d0: Large Satellite Dish (named dish_large in setup docs)
+alias dish d0
+alias sid r0
+alias strength r1
+alias size_x r2
+alias size_z r3
+alias best_id r4
+alias best_strength r5
+alias found r6
+alias cond r7
+alias min_watts r8
+alias hit_watts r9
+alias lock_id r10
+alias fired r11
+alias filter_id r12
+define MEDIUM_DISH_HASH -449434216
+define DISH1_NAME HASH("dish_1")
+define DISH2_NAME HASH("dish_2")
+define DISH3_NAME HASH("dish_3")
+boot:
+move fired 0
+bdns dish boot
+main:
+yield
+bdns dish missing_dish
+move found 0
+move best_id -1
+move best_strength -999999
+lbn sid MEDIUM_DISH_HASH DISH1_NAME SignalID Maximum
+lbn strength MEDIUM_DISH_HASH DISH1_NAME SignalStrength Maximum
+lbn size_x MEDIUM_DISH_HASH DISH1_NAME SizeX Maximum
+lbn size_z MEDIUM_DISH_HASH DISH1_NAME SizeZ Maximum
+jal eval_contact
+lbn sid MEDIUM_DISH_HASH DISH2_NAME SignalID Maximum
+lbn strength MEDIUM_DISH_HASH DISH2_NAME SignalStrength Maximum
+lbn size_x MEDIUM_DISH_HASH DISH2_NAME SizeX Maximum
+lbn size_z MEDIUM_DISH_HASH DISH2_NAME SizeZ Maximum
+jal eval_contact
+lbn sid MEDIUM_DISH_HASH DISH3_NAME SignalID Maximum
+lbn strength MEDIUM_DISH_HASH DISH3_NAME SignalStrength Maximum
+lbn size_x MEDIUM_DISH_HASH DISH3_NAME SizeX Maximum
+lbn size_z MEDIUM_DISH_HASH DISH3_NAME SizeZ Maximum
+jal eval_contact
+beqz found clear_target
+l filter_id dish BestContactFilter
+seq cond filter_id best_id
+bnez cond maybe_activate
+s dish BestContactFilter best_id
+move fired 0
+s db Setting 241
+j main
+maybe_activate:
+l lock_id dish SignalID
+bne lock_id best_id waiting_lock
+l min_watts dish MinimumWattsToContact
+beq min_watts -1 pulse_activate
+l hit_watts dish WattsReachingContact
+blt hit_watts min_watts locked_ready
+pulse_activate:
+bnez fired active_or_sent
+s dish Activate 1
+move fired 1
+active_or_sent:
+s db Setting 243
+j main
+locked_ready:
+s db Setting 242
+j main
+waiting_lock:
+s db Setting 241
+j main
+clear_target:
+l filter_id dish BestContactFilter
+beq filter_id -1 clear_done
+s dish BestContactFilter -1
+clear_done:
+move fired 0
+s db Setting 240
+j main
+missing_dish:
+move fired 0
+s db Setting 244
+j boot
+eval_contact:
+beq sid -1 ra
+beq strength -1 ra
+slt cond size_x 6
+bnez cond ra
+slt cond size_z 6
+bnez cond ra
+beqz found first_pick
+slt cond best_strength strength
+beqz cond ra
+first_pick:
+move best_id sid
+move best_strength strength
+move found 1
+j ra

@@ -10,6 +10,7 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 - `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
 - `satcom_worker_controls.ic10` - auto command worker (buttonless)
+- `satcom_worker_large_scan.ic10` - large dish handoff worker for 6x6+ contacts
 - `satcom_worker_discover_coordinator.ic10` - discover coordinator (`discover_worker`) aggregating worker contacts
 - `satcom_worker_discover_1.ic10` - discover variant 1 (legacy compact)
 - `satcom_worker_discover_2.ic10` - discover variant 2 (grid + local peak)
@@ -49,15 +50,28 @@ Coordinator + discover variants:
   that chip `d0`).
 - Coordinator reads `dish_1..dish_3` `SignalID` values, applies slot blacklist
   from prior run, and writes consolidated results to `slot0..slot2`.
+- `satcom_worker_large_scan.ic10` reads `dish_1..dish_3` and drives a dedicated
+  large dish on local `d0`.
+
+Large-target handoff worker:
+
+- Keep `satcom_worker_large_scan.ic10` housing named `large_dish_worker`.
+- Wire its local `d0` to the large dish and rename that dish `dish_large`.
+- Worker selects contacts where `SizeX >= 6` and `SizeZ >= 6`.
+- If multiple qualify, worker picks highest `SignalStrength`.
+- Worker sets large-dish `BestContactFilter` and performs interrogation handoff.
+- If no qualifying contact exists, worker clears large-dish filter (`-1`).
 
 ## Name contract
 
 Required exact names:
 
 - IC Housing: `discover_worker` (SatCom Discover Coordinator), `controls_worker`
+- IC Housing: `large_dish_worker`
 - IC Housing: `discover_worker_1`, `discover_worker_2`, `discover_worker_3`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Satellite Dish: `dish_1`, `dish_2`, `dish_3` (discover workers)
+- Satellite Dish: `dish_large` (large scan worker local dish)
 
 Implementation notes:
 
@@ -90,6 +104,8 @@ Workers execute commands only when `cmd_token` changes.
   - `discover_1`: `d0` -> `dish_1`
   - `discover_2`: `d0` -> `dish_2`
   - `discover_3`: `d0` -> `dish_3`
+- Large scan worker also requires local pin:
+  - `large_dish_worker`: `d0` -> `dish_large` (Large Satellite Dish)
 - Current dish prefab hash used by SatCom scripts: `-449434216` (Medium Satellite).
 
 ## Controls
@@ -117,6 +133,7 @@ Each chip writes status to its own housing `Setting`.
 - `5` = contacts available
 - `10` = discover command sent
 - `44` = controls worker reports missing/wrong controls
+- `46` = missing/wrong `large_dish_worker` housing
 
 ### Setup guard status (`90-99`)
 
@@ -124,6 +141,7 @@ Each chip writes status to its own housing `Setting`.
 - `91` = missing/wrong `cmd_token`
 - `92` = missing/wrong `cmd_type`
 - `93` = missing/wrong `discover_worker` housing
+- `96` = missing/wrong `large_dish_worker` housing
 - `90` = missing/wrong `controls_worker` housing
 - `97` = missing/wrong `dish_1`/`dish_2`/`dish_3` device
 - `98` = missing/wrong `slot0/slot1/slot2` memory
@@ -141,6 +159,14 @@ Each chip writes status to its own housing `Setting`.
 - `120` = sweeping step / sweep retry
 - `130` = complete with 3 new contacts
 - `132` = complete with 2 new contacts
+
+### Large scan worker status (`240-249`)
+
+- `240` = no qualifying target; filter cleared
+- `241` = qualifying target selected; waiting for lock
+- `242` = locked to target; waiting for watts gate
+- `243` = interrogation sent/in progress
+- `244` = missing `d0` large dish
 
 Coordinator behavior:
 

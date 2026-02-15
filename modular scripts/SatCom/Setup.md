@@ -1,7 +1,8 @@
 # SatCom setup (name auto-naming)
 
 Use exact names and one shared data network. Most SatCom scripts target devices
-by prefab+name (`lbn`/`sbn`), but discover variants still require local `d0`.
+by prefab+name (`lbn`/`sbn`), but discover variants and large scan worker use
+local `d0` dish wiring.
 
 ## Build list
 
@@ -12,6 +13,9 @@ by prefab+name (`lbn`/`sbn`), but discover variants still require local `d0`.
   - Discover worker 2 (`satcom_worker_discover_2.ic10`)
   - Discover worker 3 (`satcom_worker_discover_3.ic10`)
 - 3x **Medium Satellite Dish** (one dedicated dish per discover worker)
+- 1x IC Housing + IC Chip
+  - Large dish scan worker (`satcom_worker_large_scan.ic10`)
+- 1x **Large Satellite Dish** (dedicated to large scan worker)
 
 Per-chip pin map for discover workers:
 
@@ -21,12 +25,15 @@ Per-chip pin map for discover workers:
   - `d0` -> dedicated Medium Satellite Dish named `dish_2` (sweeps `120..240` deg)
 - `satcom_worker_discover_3.ic10`
   - `d0` -> dedicated Medium Satellite Dish named `dish_3` (sweeps `240..360` deg)
+- `satcom_worker_large_scan.ic10`
+  - `d0` -> dedicated Large Satellite Dish named `dish_large`
 
 ### Shared-network master/controls stack (optional)
 
-- 4x IC Housing + IC Chip
+- 5x IC Housing + IC Chip
   - SatCom Master
   - SatCom Controls Worker
+  - SatCom Large Scan Worker (`satcom_worker_large_scan.ic10`, housing name `large_dish_worker`)
   - SatCom Discover Coordinator (`satcom_worker_discover_coordinator.ic10`, housing name `discover_worker`)
   - SatCom Setup Guard (recommended)
 - 3x IC Housing + IC Chip
@@ -47,6 +54,7 @@ Set these exact names (case-sensitive):
 - IC Housing: `master`
 - IC Housing: `setup_guard` (recommended)
 - IC Housing: `controls_worker`
+- IC Housing: `large_dish_worker`
 - IC Housing: `discover_worker` (SatCom Discover Coordinator)
 - IC Housing: `discover_worker_1`
 - IC Housing: `discover_worker_2`
@@ -59,6 +67,7 @@ Set these exact names (case-sensitive):
 - Satellite Dish: `dish_1`
 - Satellite Dish: `dish_2`
 - Satellite Dish: `dish_3`
+- Satellite Dish: `dish_large`
 
 Prefab tokens/hash used by scripts:
 
@@ -70,10 +79,12 @@ Prefab tokens/hash used by scripts:
 - Put all devices on one data network.
 - For multi-dish discover mode, wire each discover chip directly to its own dish
   on `d0`.
-- Name those dishes exactly: `dish_1`, `dish_2`, `dish_3`.
+- Wire `satcom_worker_large_scan.ic10` directly to a large dish on `d0`.
+- Name those dishes exactly: `dish_1`, `dish_2`, `dish_3`, `dish_large`.
 - Paste scripts:
   - `modular scripts/SatCom/satcom_master.ic10`
   - `modular scripts/SatCom/satcom_worker_controls.ic10`
+  - `modular scripts/SatCom/satcom_worker_large_scan.ic10`
   - `modular scripts/SatCom/satcom_worker_discover_coordinator.ic10` (active discover_worker)
   - `modular scripts/SatCom/satcom_worker_discover_1.ic10`
   - `modular scripts/SatCom/satcom_worker_discover_2.ic10`
@@ -81,6 +92,7 @@ Prefab tokens/hash used by scripts:
   - `modular scripts/SatCom/satcom_setup_guard.ic10` (recommended)
 - Apply exact names from **Name contract**.
 - Keep coordinator housing named `discover_worker`.
+- Keep large scan housing named `large_dish_worker`.
 - Name discover algorithm workers `discover_worker_1`, `discover_worker_2`,
   `discover_worker_3`.
 - Ensure all SatCom IC housings are the same housing prefab variant.
@@ -92,6 +104,9 @@ Prefab tokens/hash used by scripts:
 - Controls worker is automatic (no button/lever/dial required).
 - Scan runs when all slots are empty (`slot0=-1`, `slot1=-1`, `slot2=-1`).
 - Coordinator collects from `dish_1`, `dish_2`, `dish_3` and writes shared slots.
+- Large scan worker tracks only contacts where `SizeX >= 6` and `SizeZ >= 6`.
+- If multiple large contacts are visible, strongest signal wins.
+- If no large contact is visible, large dish filter is cleared to `-1`.
 - To trigger another run, set all three slot memories back to `-1`.
 - Empty contact slots use sentinel `-1` only (no legacy `0` empty slots).
 
@@ -102,5 +117,6 @@ Prefab tokens/hash used by scripts:
 - `91` missing/wrong `cmd_token`
 - `92` missing/wrong `cmd_type`
 - `93` missing/wrong `discover_worker` housing
+- `96` missing/wrong `large_dish_worker` housing
 - `97` missing/wrong `dish_1`/`dish_2`/`dish_3` device
 - `98` missing/wrong `slot0/slot1/slot2` memory

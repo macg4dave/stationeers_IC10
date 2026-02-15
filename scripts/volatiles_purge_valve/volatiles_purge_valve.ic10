@@ -1,0 +1,61 @@
+# volatiles_purge_valve
+# Category: Controller
+# Status: Functional
+#
+# Purpose: If the pipe contains Volatiles, turn a Pipe Digital Valve on until
+#          Oxygen ratio is >= 33% of Volatiles ratio.
+#
+# Device registers:
+#   d0 = Pipe Analyzer      (gas pipe)
+#   d1 = Pipe Digital Valve (connected to the same pipe network)
+#
+# Notes:
+# - Pipe Analyzer ratios are 0..1 (mass percent / 100).
+# - We treat very small values as "not present" to avoid float noise.
+
+alias pa d0
+alias valve d1
+
+alias vol r0
+alias o2 r1
+alias cond r2
+alias desired_on r3
+alias current_on r4
+alias o2_target r5
+
+# Treat values <= EPS as "not present" (covers tiny floating noise)
+define EPS 0.000001
+
+# Oxygen target as a fraction of current volatiles ratio (33%)
+define O2_PER_VOL 0.33
+
+wait:
+yield
+bdns d0 wait
+bdns d1 wait
+
+main:
+# Read current gas composition
+l vol pa RatioVolatiles
+l o2 pa RatioOxygen
+
+# Default to OFF
+move desired_on 0
+
+# If volatiles are present AND oxygen < (33% of volatiles) => valve ON
+sgt cond vol EPS
+beqz cond decide
+mul o2_target vol O2_PER_VOL
+slt cond o2 o2_target
+select desired_on cond 1 0
+
+decide:
+# avoid redundant writes (and network spam): only set when it changes
+l current_on valve On
+sne cond desired_on current_on
+beqz cond skip_write
+s valve On desired_on
+skip_write:
+
+yield
+j main
