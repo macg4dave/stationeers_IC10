@@ -10,6 +10,7 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 - `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
 - `satcom_worker_controls.ic10` - button + dial controls and command publication
+- `satcom_worker_discover_coordinator.ic10` - discover coordinator (`discover_worker`) aggregating worker contacts
 - `satcom_worker_discover_1.ic10` - discover variant 1 (legacy compact)
 - `satcom_worker_discover_2.ic10` - discover variant 2 (grid + local peak)
 - `satcom_worker_discover_3.ic10` - discover variant 3 (track/interrogate)
@@ -32,18 +33,21 @@ Important:
   - `d1` LED (status color)
   - `d2` dial (optional eTrade type filter)
 
-If you keep using `satcom_master.ic10`/`satcom_worker_controls.ic10`, those scripts
-still coordinate a single named worker (`discover_worker`) in the shared-network
-contract.
+`satcom_master.ic10`/`satcom_worker_controls.ic10` coordinate one named worker
+(`discover_worker`). In multi-dish mode, assign that role to
+`satcom_worker_discover_coordinator.ic10`.
 
-Discover variants:
+Coordinator + discover variants:
 
-- The repo keeps three working discover implementations.
-- In a modular run, use one discover worker chip as the active worker.
-- Keep that active worker housing named `discover_worker` so master/controls
-  can resolve it by name.
-- Additional discover chips are optional for A/B testing and can be given
-  staging names (for example `discover_worker_2`, `discover_worker_3`).
+- Keep `satcom_worker_discover_coordinator.ic10` housing named `discover_worker` (SatCom Discover Coordinator).
+- Run discover variants on dedicated chips named:
+  - `discover_worker_1`
+  - `discover_worker_2`
+  - `discover_worker_3`
+- Each discover worker uses its own dedicated dish (`dish_1..dish_3`, wired to
+  that chip `d0`).
+- Coordinator reads `dish_1..dish_3` `SignalID` values, applies slot blacklist
+  from prior run, and writes consolidated results to `slot0..slot2`.
 
 ## Name contract
 
@@ -52,10 +56,11 @@ Required exact names:
 - Buttons: `discover`, `cycle` (clear command)
 - Lever (manual gate): `manual_enable`
 - Dials (manual): `dial_h`, `dial_v`
-- IC Housing: `discover_worker`, `controls_worker`
+- IC Housing: `discover_worker` (SatCom Discover Coordinator), `controls_worker`
+- IC Housing: `discover_worker_1`, `discover_worker_2`, `discover_worker_3`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Satellite Dish: `dish_1`, `dish_2`, `dish_3` (discover workers)
-- Medium Satellite Dish: `dish` (shared master/controls stack)
+- Medium Satellite Dish: `dish` (optional manual-control target)
 - Optional IC Housing: `status_led_worker`
 - Optional LED Displays: `display_h`, `display_v`, `display_status`
 
@@ -97,10 +102,10 @@ Workers execute commands only when `cmd_token` changes.
 - Controls worker sets dial ranges on startup (`dial_h Mode=359`, `dial_v Mode=89`).
 - Press `discover` to issue command `1`.
 - Press `cycle` to issue command `3` (clear slots + filter unlock).
-- Toggle `manual_enable` ON to allow manual dial writes (`master` status `7`).
+- Toggle `manual_enable` ON to allow manual dial writes when optional `dish` exists.
 - Toggle `manual_enable` OFF to block manual dial writes.
-- Turn `dial_h` to manually set dish `Horizontal` when discover is not sweeping.
-- Turn `dial_v` to manually set dish `Vertical` when discover is not sweeping.
+- Turn `dial_h` to manually set optional `dish` `Horizontal` when discover is idle.
+- Turn `dial_v` to manually set optional `dish` `Vertical` when discover is idle.
 - Optional `display_status` shows color-coded master state and numeric status.
 
 ## Known engine behaviors
@@ -133,7 +138,7 @@ Each chip writes status to its own housing `Setting`.
 - `90` = missing/wrong `controls_worker` housing
 - `94` = discover button wrong type/name
 - `95` = clear button (`cycle`) wrong type/name
-- `97` = missing/wrong `dish` device
+- `97` = missing/wrong `dish_1`/`dish_2`/`dish_3` device
 - `98` = missing/wrong `slot0/slot1/slot2` memory
 - `99` = missing/wrong `manual_enable` lever or `dial_h`/`dial_v` controls
 
@@ -153,6 +158,14 @@ Each chip writes status to its own housing `Setting`.
 - `130` = complete with 3 new contacts
 - `132` = complete with 2 new contacts
 - `140` = cleared by clear command
+
+Coordinator behavior:
+
+- `discover_worker` status now comes from `satcom_worker_discover_coordinator.ic10`.
+- On command `1` (discover), coordinator snapshots prior `slot0..slot2` as run
+  blacklist, clears slots to `-1`, and starts collecting new IDs from
+  `dish_1..dish_3`.
+- On command `3` (clear), coordinator clears `slot0..slot2` and reports `140`.
 
 Discover worker never writes `BestContactFilter`.
 

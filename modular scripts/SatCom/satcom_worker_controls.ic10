@@ -44,8 +44,6 @@ lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
 bne cond DIAL_HASH no_controls
 lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
 bne cond DIAL_HASH no_controls
-lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
-bne cond DISH_HASH main
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
 lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
@@ -60,6 +58,8 @@ beq r10 120 publish
 beq r10 121 publish
 lbn cond LEVER_HASH MANUAL_ENABLE_NAME Open Maximum
 beqz cond steady
+lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
+bne cond DISH_HASH steady
 lbn dial_h DIAL_HASH DIAL_H_NAME Setting Maximum
 lbn dial_v DIAL_HASH DIAL_V_NAME Setting Maximum
 beq prev_h -1 arm_manual

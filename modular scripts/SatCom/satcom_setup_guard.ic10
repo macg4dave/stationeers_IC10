@@ -1,5 +1,3 @@
-# SatCom setup guard (name auto-naming)
-# names: cmd/channels + discover/clear/dials + worker housings (see Setup.md)
 alias cond r0
 alias housing_hash r1
 alias inited r2
@@ -13,13 +11,18 @@ define CMD_TYPE_NAME HASH("cmd_type")
 define SLOT0_NAME HASH("slot0")
 define SLOT1_NAME HASH("slot1")
 define SLOT2_NAME HASH("slot2")
-define DISH_NAME HASH("dish")
+define DISH1_NAME HASH("dish_1")
+define DISH2_NAME HASH("dish_2")
+define DISH3_NAME HASH("dish_3")
 define DISCOVER_NAME HASH("discover")
 define CYCLE_NAME HASH("cycle")
 define MANUAL_ENABLE_NAME HASH("manual_enable")
 define DIAL_H_NAME HASH("dial_h")
 define DIAL_V_NAME HASH("dial_v")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
+define DISCOVER_WORKER_1_NAME HASH("discover_worker_1")
+define DISCOVER_WORKER_2_NAME HASH("discover_worker_2")
+define DISCOVER_WORKER_3_NAME HASH("discover_worker_3")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
 init:
 l housing_hash db PrefabHash
@@ -47,19 +50,22 @@ lbn cond MEMORY_HASH SLOT1_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_slots
 lbn cond MEMORY_HASH SLOT2_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_slots
-lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
+lbn cond DISH_HASH DISH1_NAME PrefabHash Maximum
+bne cond DISH_HASH err_dish
+lbn cond DISH_HASH DISH2_NAME PrefabHash Maximum
+bne cond DISH_HASH err_dish
+lbn cond DISH_HASH DISH3_NAME PrefabHash Maximum
 bne cond DISH_HASH err_dish
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
+lbn cond housing_hash DISCOVER_WORKER_1_NAME PrefabHash Maximum
+bne cond housing_hash err_discover_h
+lbn cond housing_hash DISCOVER_WORKER_2_NAME PrefabHash Maximum
+bne cond housing_hash err_discover_h
+lbn cond housing_hash DISCOVER_WORKER_3_NAME PrefabHash Maximum
+bne cond housing_hash err_discover_h
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_controls_h
-lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
-bnez cond chk_controls_on
-sbn housing_hash DISCOVER_WORKER_NAME On 1
-chk_controls_on:
-lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
-bnez cond maybe_init
-sbn housing_hash CONTROLS_WORKER_NAME On 1
 maybe_init:
 bnez inited ok
 init_cmd:

@@ -1,0 +1,127 @@
+alias cond r0
+alias token r1
+alias cmd r2
+alias c0 r3
+alias c1 r4
+alias c2 r5
+alias found r6
+alias lastToken r7
+alias phase r8
+alias b0 r9
+alias b1 r10
+alias b2 r11
+alias sid r12
+define MEMORY_HASH HASH("StructureLogicMemory")
+define DISH_HASH -449434216
+define CMD_TOKEN_NAME HASH("cmd_token")
+define CMD_TYPE_NAME HASH("cmd_type")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
+define DISH1_NAME HASH("dish_1")
+define DISH2_NAME HASH("dish_2")
+define DISH3_NAME HASH("dish_3")
+define CMD_DISCOVER 1
+define CMD_CLEAR 3
+init:
+move lastToken -1
+move phase 0
+move found 0
+s db Setting 100
+main:
+yield
+lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
+lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
+beq token lastToken run
+move lastToken token
+beq cmd CMD_CLEAR do_clear
+beq cmd CMD_DISCOVER do_discover
+j run
+do_clear:
+sbn MEMORY_HASH SLOT0_NAME Setting -1
+sbn MEMORY_HASH SLOT1_NAME Setting -1
+sbn MEMORY_HASH SLOT2_NAME Setting -1
+move found 0
+move phase 0
+s db Setting 140
+j main
+do_discover:
+lbn b0 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn b1 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn b2 MEMORY_HASH SLOT2_NAME Setting Maximum
+sbn MEMORY_HASH SLOT0_NAME Setting -1
+sbn MEMORY_HASH SLOT1_NAME Setting -1
+sbn MEMORY_HASH SLOT2_NAME Setting -1
+move found 0
+move phase 1
+s db Setting 110
+j main
+run:
+beqz phase idle
+lbn c0 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn c1 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn c2 MEMORY_HASH SLOT2_NAME Setting Maximum
+move found 0
+beq c0 -1 chk1
+add found found 1
+chk1:
+beq c1 -1 chk2
+add found found 1
+chk2:
+beq c2 -1 collect
+add found found 1
+collect:
+jal collect_1
+jal collect_2
+jal collect_3
+beq found 3 done3
+blt found 2 busy
+done2:
+s db Setting 132
+j main
+done3:
+move phase 0
+s db Setting 130
+j main
+busy:
+s db Setting 120
+j main
+idle:
+s db Setting 100
+j main
+collect_1:
+lbn sid DISH_HASH DISH1_NAME SignalID Maximum
+j eval_sid
+collect_2:
+lbn sid DISH_HASH DISH2_NAME SignalID Maximum
+j eval_sid
+collect_3:
+lbn sid DISH_HASH DISH3_NAME SignalID Maximum
+j eval_sid
+eval_sid:
+beq sid -1 ra
+beq sid b0 ra
+beq sid b1 ra
+beq sid b2 ra
+beq sid c0 ra
+beq sid c1 ra
+beq sid c2 ra
+beq c0 -1 put0
+beq c1 -1 put1
+beq c2 -1 put2
+j ra
+put0:
+sbn MEMORY_HASH SLOT0_NAME Setting sid
+move c0 sid
+add found found 1
+j ra
+put1:
+sbn MEMORY_HASH SLOT1_NAME Setting sid
+move c1 sid
+add found found 1
+j ra
+put2:
+sbn MEMORY_HASH SLOT2_NAME Setting sid
+move c2 sid
+add found found 1
+j ra

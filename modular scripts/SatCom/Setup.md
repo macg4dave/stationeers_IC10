@@ -31,9 +31,10 @@ Per-chip pin map for discover workers:
 - 4x IC Housing + IC Chip
   - SatCom Master
   - SatCom Controls Worker
-  - SatCom Discover Worker (pick one discover variant)
+  - SatCom Discover Coordinator (`satcom_worker_discover_coordinator.ic10`, housing name `discover_worker`)
   - SatCom Setup Guard (recommended)
-- 2x IC Housing + IC Chip (optional staging)
+- 3x IC Housing + IC Chip
+  - SatCom Discover Worker variant 1
   - SatCom Discover Worker variant 2
   - SatCom Discover Worker variant 3
 - 1x IC Housing + IC Chip (optional)
@@ -54,7 +55,7 @@ Per-chip pin map for discover workers:
 - 2x Logic Switch (Dial)
   - Horizontal (`dial_h`)
   - Vertical (`dial_v`)
-- 1x Medium Satellite Dish
+- 1x Medium Satellite Dish (optional, name `dish`, manual-control target)
 - 3x LED Display (optional)
   - Horizontal (`display_h`)
   - Vertical (`display_v`)
@@ -72,9 +73,10 @@ Set these exact names (case-sensitive):
 - IC Housing: `master`
 - IC Housing: `setup_guard` (recommended)
 - IC Housing: `controls_worker`
-- IC Housing: `discover_worker`
-- IC Housing: `discover_worker_2` (optional staging)
-- IC Housing: `discover_worker_3` (optional staging)
+- IC Housing: `discover_worker` (SatCom Discover Coordinator)
+- IC Housing: `discover_worker_1`
+- IC Housing: `discover_worker_2`
+- IC Housing: `discover_worker_3`
 - IC Housing: `display_worker` (optional)
 - IC Housing: `status_led_worker` (optional)
 - Logic Memory: `slot0`
@@ -85,7 +87,6 @@ Set these exact names (case-sensitive):
 - Satellite Dish: `dish_1`
 - Satellite Dish: `dish_2`
 - Satellite Dish: `dish_3`
-- Medium Satellite Dish: `dish` (shared master/controls stack)
 - LED Display: `display_h` (optional)
 - LED Display: `display_v` (optional)
 - LED Display: `display_status` (optional)
@@ -109,14 +110,17 @@ Prefab tokens/hash used by scripts:
 - Paste scripts:
   - `modular scripts/SatCom/satcom_master.ic10`
   - `modular scripts/SatCom/satcom_worker_controls.ic10`
-  - `modular scripts/SatCom/satcom_worker_discover_1.ic10` (active discover worker)
-  - `modular scripts/SatCom/satcom_worker_discover_2.ic10` (optional staging)
-  - `modular scripts/SatCom/satcom_worker_discover_3.ic10` (optional staging)
+  - `modular scripts/SatCom/satcom_worker_discover_coordinator.ic10` (active discover_worker)
+  - `modular scripts/SatCom/satcom_worker_discover_1.ic10`
+  - `modular scripts/SatCom/satcom_worker_discover_2.ic10`
+  - `modular scripts/SatCom/satcom_worker_discover_3.ic10`
   - `modular scripts/SatCom/satcom_setup_guard.ic10` (recommended)
   - `modular scripts/SatCom/satcom_worker_display.ic10` (optional)
   - `modular scripts/SatCom/satcom_worker_status_led.ic10` (optional)
 - Apply exact names from **Name contract**.
-- Keep the active discover worker housing named `discover_worker`.
+- Keep coordinator housing named `discover_worker`.
+- Name discover algorithm workers `discover_worker_1`, `discover_worker_2`,
+  `discover_worker_3`.
 - Ensure all SatCom IC housings are the same housing prefab variant.
 - Controls worker initializes dial ranges at startup:
   - `dial_h` `Mode=359` (0..359 deg)
@@ -127,11 +131,12 @@ Prefab tokens/hash used by scripts:
 ## Controls
 
 - Press Discover: scan until at least 2 new contacts and store them in `slot0..slot2`.
+  - Coordinator collects from `dish_1`, `dish_2`, `dish_3` and writes shared slots.
 - Press Clear (`cycle` button): clear stored contacts and clear dish filter lock.
-- Toggle lever `manual_enable` ON to allow manual dial mode (`master` state `7`).
+- Toggle lever `manual_enable` ON to allow manual dial mode (`master` state `7`) when optional `dish` exists.
 - Toggle lever `manual_enable` OFF to block manual dial writes.
-- Turn dial `dial_h`: manually set dish horizontal angle when discover is idle.
-- Turn dial `dial_v`: manually set dish vertical angle when discover is idle.
+- Turn dial `dial_h`: manually set optional `dish` horizontal angle when discover is idle.
+- Turn dial `dial_v`: manually set optional `dish` vertical angle when discover is idle.
 - Empty contact slots use sentinel `-1` only (no legacy `0` empty slots).
 - Optional display worker mirrors dish `Horizontal` and `Vertical` to LEDs.
 - Optional status LED worker writes `display_status` color + master status code.
@@ -153,6 +158,6 @@ Status LED colors (`display_status`):
 - `93` missing/wrong `discover_worker` housing
 - `94` discover control wrong type/name
 - `95` clear control (`cycle`) wrong type/name
-- `97` missing/wrong `dish` device
+- `97` missing/wrong `dish_1`/`dish_2`/`dish_3` device
 - `98` missing/wrong `slot0/slot1/slot2` memory
 - `99` missing/wrong `manual_enable` lever or dial controls
