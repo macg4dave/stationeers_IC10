@@ -18,11 +18,11 @@ by prefab+name (`lbn`/`sbn`) and do not require per-chip `d0..d5` mapping.
 Per-chip pin map for discover workers:
 
 - `satcom_worker_discover_1.ic10`
-  - `d0` -> dedicated Medium Satellite Dish named `dish_1`
+  - `d0` -> dedicated Medium Satellite Dish named `dish_1` (sweeps `0..120` deg)
 - `satcom_worker_discover_2.ic10`
-  - `d0` -> dedicated Medium Satellite Dish named `dish_2`
+  - `d0` -> dedicated Medium Satellite Dish named `dish_2` (sweeps `120..240` deg)
 - `satcom_worker_discover_3.ic10`
-  - `d0` -> dedicated Medium Satellite Dish named `dish_3`
+  - `d0` -> dedicated Medium Satellite Dish named `dish_3` (sweeps `240..360` deg)
   - `d1` -> optional LED
   - `d2` -> optional Dial
 

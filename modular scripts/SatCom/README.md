@@ -25,6 +25,12 @@ Each discover chip runs against its own dedicated **Medium Satellite Dish**.
 - `satcom_worker_discover_2.ic10` -> its own medium dish (wired to that chip `d0`)
 - `satcom_worker_discover_3.ic10` -> its own medium dish (wired to that chip `d0`)
 
+Default horizontal sweep sectors (to reduce overlap):
+
+- `dish_1` / discover 1: `0..120` deg
+- `dish_2` / discover 2: `120..240` deg
+- `dish_3` / discover 3: `240..360` deg
+
 Important:
 
 - Discovery/targeting logic inside each discover script is intentionally unchanged.

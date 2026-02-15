@@ -14,6 +14,7 @@ move stepv 1
 move steph 1
 
 move trader 0
+s dish Horizontal 240
 s dish Setting 99999
 # Scan the sky for contacts
 seek:
@@ -36,6 +37,8 @@ l r0 dish Horizontal
 add r0 r0 30
 s dish Horizontal r0
 blt r0 360 wait
+move r0 240
+s dish Horizontal r0
 l r0 dish Vertical
 add r0 r0 15
 brlt r0 90 2

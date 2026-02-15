@@ -19,14 +19,14 @@ bdns dish boot
 
 reset:
 move searchPrecision 30
-div searchMax 360 searchPrecision
+move searchMax 4
 move maxHorSig 0
 move maxVerSig 0
 move maxSig 0
 move timer 5
 move startOver 0
 s dish Vertical 60
-s dish Horizontal 0
+s dish Horizontal 120
 s dish Setting 99999
 sleep 10
 start:
@@ -103,9 +103,9 @@ j ra
 search180: #Setting Parameters for 180W search
 beq startOver 1 reset
 move searchPrecision 15
-div searchMax 360 searchPrecision
+move searchMax 8
 move timer 15
-s dish Horizontal 0
+s dish Horizontal 120
 s dish Vertical 60
 s dish Setting 99999
 move startOver 1

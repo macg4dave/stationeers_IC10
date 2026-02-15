@@ -13,6 +13,7 @@ bdns dish boot
 move stepv 1
 move steph 1
 move trader 0
+s dish Horizontal 0
 s dish Setting 99999
 
 seek:
@@ -37,7 +38,9 @@ movedish:
 l r0 dish Horizontal
 add r0 r0 30
 s dish Horizontal r0
-blt r0 360 wait
+blt r0 120 wait
+move r0 0
+s dish Horizontal r0
 l r0 dish Vertical
 add r0 r0 15
 bgt r0 90 wrap_vertical
