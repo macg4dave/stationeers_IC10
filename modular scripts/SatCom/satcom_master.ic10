@@ -1,10 +1,8 @@
 alias cond r0
 alias discover_status r1
-alias cycle_status r2
 alias controls_status r3
 alias housing_hash r4
 define DISCOVER_WORKER_NAME HASH("discover_worker")
-define CYCLE_WORKER_NAME HASH("cycle_worker")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
 define STATUS_LED_WORKER_NAME HASH("status_led_worker")
 init:
@@ -14,17 +12,11 @@ main:
 yield
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
-lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
-bne cond housing_hash main
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash main
 lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
-bnez cond check_cycle_on
-sbn housing_hash DISCOVER_WORKER_NAME On 1
-check_cycle_on:
-lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
 bnez cond check_controls_on
-sbn housing_hash CYCLE_WORKER_NAME On 1
+sbn housing_hash DISCOVER_WORKER_NAME On 1
 check_controls_on:
 lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
 bnez cond check_status_led
@@ -37,11 +29,9 @@ bnez cond publish
 sbn housing_hash STATUS_LED_WORKER_NAME On 1
 publish:
 lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
-lbn cycle_status housing_hash CYCLE_WORKER_NAME Setting Maximum
 lbn controls_status housing_hash CONTROLS_WORKER_NAME Setting Maximum
 beq controls_status 344 no_controls
 beq controls_status 341 discover_sent
-beq controls_status 342 cycle_sent
 beq controls_status 343 clear_sent
 beq controls_status 345 manual_control
 beq discover_status 110 discover_busy
@@ -49,8 +39,6 @@ beq discover_status 120 discover_busy
 beq discover_status 121 discover_busy
 beq discover_status 130 discover_ready
 beq discover_status 132 discover_ready
-beq discover_status 131 discover_none
-beq cycle_status 210 cycle_busy
 s db Setting 1
 j main
 discover_busy:
@@ -59,20 +47,11 @@ j main
 discover_ready:
 s db Setting 5
 j main
-discover_none:
-s db Setting 6
-j main
-cycle_busy:
-s db Setting 3
-j main
 manual_control:
 s db Setting 7
 j main
 discover_sent:
 s db Setting 10
-j main
-cycle_sent:
-s db Setting 20
 j main
 clear_sent:
 s db Setting 30

@@ -1,12 +1,13 @@
 # SatCom setup guard (name auto-naming)
-# names: cmd/channels + discover/cycle/dials + worker housings (see Setup.md)
+# names: cmd/channels + discover/clear/dials + worker housings (see Setup.md)
 alias cond r0
 alias housing_hash r1
 alias inited r2
 define MEMORY_HASH HASH("StructureLogicMemory")
 define BUTTON_HASH 491845673
+define LEVER_HASH 1220484876
 define DIAL_HASH 554524804
-define DISH_HASH HASH("StructureLargeSatelliteDish")
+define DISH_HASH -449434216
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
 define SLOT0_NAME HASH("slot0")
@@ -15,10 +16,10 @@ define SLOT2_NAME HASH("slot2")
 define DISH_NAME HASH("dish")
 define DISCOVER_NAME HASH("discover")
 define CYCLE_NAME HASH("cycle")
+define MANUAL_ENABLE_NAME HASH("manual_enable")
 define DIAL_H_NAME HASH("dial_h")
 define DIAL_V_NAME HASH("dial_v")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
-define CYCLE_WORKER_NAME HASH("cycle_worker")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
 init:
 l housing_hash db PrefabHash
@@ -34,6 +35,8 @@ lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
 bne cond BUTTON_HASH err_discover_type
 lbn cond BUTTON_HASH CYCLE_NAME PrefabHash Maximum
 bne cond BUTTON_HASH err_cycle_type
+lbn cond LEVER_HASH MANUAL_ENABLE_NAME PrefabHash Maximum
+bne cond LEVER_HASH err_dials
 lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
 bne cond DIAL_HASH err_dials
 lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
@@ -48,17 +51,11 @@ lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
 bne cond DISH_HASH err_dish
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_discover_h
-lbn cond housing_hash CYCLE_WORKER_NAME PrefabHash Maximum
-bne cond housing_hash err_cycle_h
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash err_controls_h
 lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
-bnez cond chk_cycle_on
-sbn housing_hash DISCOVER_WORKER_NAME On 1
-chk_cycle_on:
-lbn cond housing_hash CYCLE_WORKER_NAME On Maximum
 bnez cond chk_controls_on
-sbn housing_hash CYCLE_WORKER_NAME On 1
+sbn housing_hash DISCOVER_WORKER_NAME On 1
 chk_controls_on:
 lbn cond housing_hash CONTROLS_WORKER_NAME On Maximum
 bnez cond maybe_init
@@ -104,9 +101,6 @@ s db Setting 94
 j main
 err_cycle_type:
 s db Setting 95
-j main
-err_cycle_h:
-s db Setting 96
 j main
 err_controls_h:
 s db Setting 90

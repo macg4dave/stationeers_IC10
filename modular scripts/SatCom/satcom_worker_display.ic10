@@ -7,7 +7,7 @@ alias v r3
 alias curr r4
 alias cond r5
 define MODE_NUMBER 0
-define DISH_HASH HASH("StructureLargeSatelliteDish")
+define DISH_HASH -449434216
 define LED_STD_HASH HASH("StructureConsoleLED")
 define LED_SMALL_HASH HASH("StructureConsoleLED5")
 define LED_MED_HASH HASH("StructureConsoleLED1x2")

@@ -14,9 +14,7 @@ define MASTER_NAME HASH("master")
 define DISPLAY_STATUS_NAME HASH("display_status")
 define COLOR_BLUE 0
 define COLOR_GREEN 2
-define COLOR_ORANGE 3
 define COLOR_RED 4
-define COLOR_YELLOW 5
 define COLOR_WHITE 6
 define COLOR_PURPLE 11
 init:
@@ -64,9 +62,6 @@ move color COLOR_PURPLE
 beq status 44 use_red
 beq status 2 use_blue
 beq status 10 use_blue
-beq status 3 use_orange
-beq status 20 use_orange
-beq status 6 use_yellow
 beq status 1 use_green
 beq status 5 use_green
 beq status 0 use_white
@@ -78,12 +73,6 @@ move color COLOR_RED
 j apply_color
 use_blue:
 move color COLOR_BLUE
-j apply_color
-use_orange:
-move color COLOR_ORANGE
-j apply_color
-use_yellow:
-move color COLOR_YELLOW
 j apply_color
 use_green:
 move color COLOR_GREEN

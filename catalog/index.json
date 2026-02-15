@@ -104,6 +104,12 @@
       "itemHash": null
     },
     {
+      "wikiTitle": "Medium_Satellite_Dish",
+      "file": "devices/Medium_Satellite_Dish.json",
+      "itemName": null,
+      "itemHash": -449434216
+    },
+    {
       "wikiTitle": "Liquid_Digital_Valve",
       "file": "devices/Liquid_Digital_Valve.json",
       "itemName": null,

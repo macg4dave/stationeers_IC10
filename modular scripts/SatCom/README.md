@@ -1,6 +1,6 @@
 # SatCom control system (modular)
 
-Name-first SatCom automation for a Large Satellite Dish using a master + workers.
+Name-first SatCom automation for a Satellite Dish using a master + workers.
 All active scripts now use exact prefab+name lookup (`lbn`/`sbn`).
 
 Player setup guide: `modular scripts/SatCom/Setup.md`.
@@ -10,20 +10,52 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 - `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
 - `satcom_worker_controls.ic10` - button + dial controls and command publication
-- `satcom_worker_discover.ic10` - discover with previous-slot blacklist + min-2
-- `satcom_worker_cycle.ic10` - cycle/tune contacts with per-slot blacklist flow
+- `satcom_worker_discover_1.ic10` - discover variant 1 (legacy compact)
+- `satcom_worker_discover_2.ic10` - discover variant 2 (grid + local peak)
+- `satcom_worker_discover_3.ic10` - discover variant 3 (track/interrogate)
 - `satcom_worker_display.ic10` - optional H/V LED display updater
 - `satcom_worker_status_led.ic10` - optional status LED color/state updater
+
+## Multi-dish discover mode (current)
+
+Each discover chip runs against its own dedicated **Medium Satellite Dish**.
+
+- `satcom_worker_discover_1.ic10` -> its own medium dish (wired to that chip `d0`)
+- `satcom_worker_discover_2.ic10` -> its own medium dish (wired to that chip `d0`)
+- `satcom_worker_discover_3.ic10` -> its own medium dish (wired to that chip `d0`)
+
+Important:
+
+- Discovery/targeting logic inside each discover script is intentionally unchanged.
+- Integration updates are limited to setup/wiring and device-resolution around workers.
+- `satcom_worker_discover_3.ic10` also uses optional local peripherals:
+  - `d1` LED (status color)
+  - `d2` dial (optional eTrade type filter)
+
+If you keep using `satcom_master.ic10`/`satcom_worker_controls.ic10`, those scripts
+still coordinate a single named worker (`discover_worker`) in the shared-network
+contract.
+
+Discover variants:
+
+- The repo keeps three working discover implementations.
+- In a modular run, use one discover worker chip as the active worker.
+- Keep that active worker housing named `discover_worker` so master/controls
+  can resolve it by name.
+- Additional discover chips are optional for A/B testing and can be given
+  staging names (for example `discover_worker_2`, `discover_worker_3`).
 
 ## Name contract
 
 Required exact names:
 
-- Buttons: `discover`, `cycle`
+- Buttons: `discover`, `cycle` (clear command)
+- Lever (manual gate): `manual_enable`
 - Dials (manual): `dial_h`, `dial_v`
-- IC Housing: `discover_worker`, `cycle_worker`, `controls_worker`
+- IC Housing: `discover_worker`, `controls_worker`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
-- Large Satellite Dish: `dish`
+- Satellite Dish: `dish_1`, `dish_2`, `dish_3` (discover workers)
+- Medium Satellite Dish: `dish` (shared master/controls stack)
 - Optional IC Housing: `status_led_worker`
 - Optional LED Displays: `display_h`, `display_v`, `display_status`
 
@@ -44,13 +76,11 @@ Use Logic Memory `Setting` channels:
 - `slot2` - third discovered `SignalID`
 - `cmd_token` - incrementing command token
 - `cmd_type` - command code
-- `filter_status` (optional) - mirrors cycle filter verification status
 - Empty contact sentinel is `-1` only (`0` is not used as empty).
 
 Command codes:
 
 - `1` = discover (rebuild contact slots)
-- `2` = cycle (blacklist current slot, then tune next stored contact)
 - `3` = clear (clear slots and unlock dish filter)
 
 Workers execute commands only when `cmd_token` changes.
@@ -59,18 +89,18 @@ Workers execute commands only when `cmd_token` changes.
 
 - Put all SatCom devices on one shared data network.
 - No manual `d0..d5` mapping is required for active SatCom scripts.
+- Current dish prefab hash used by SatCom scripts: `-449434216` (Medium Satellite).
 
 ## Controls
 
 - Controls worker handles all button and dial input.
 - Controls worker sets dial ranges on startup (`dial_h Mode=359`, `dial_v Mode=89`).
 - Press `discover` to issue command `1`.
-- `discover` auto-tunes the first new contact when scan completes.
-- Press `cycle` to issue command `2`.
-- Press both together to issue command `3`.
+- Press `cycle` to issue command `3` (clear slots + filter unlock).
+- Toggle `manual_enable` ON to allow manual dial writes (`master` status `7`).
+- Toggle `manual_enable` OFF to block manual dial writes.
 - Turn `dial_h` to manually set dish `Horizontal` when discover is not sweeping.
 - Turn `dial_v` to manually set dish `Vertical` when discover is not sweeping.
-- Contact filter control (`BestContactFilter`) is owned by cycle worker only.
 - Optional `display_status` shows color-coded master state and numeric status.
 
 ## Known engine behaviors
@@ -88,12 +118,9 @@ Each chip writes status to its own housing `Setting`.
 - `0` = init
 - `1` = idle/ready
 - `2` = discover worker busy
-- `3` = cycle worker busy
 - `7` = manual dial control active
 - `5` = contacts available
-- `6` = no contacts found
 - `10` = discover command sent
-- `20` = cycle command sent
 - `30` = clear command sent
 - `44` = controls worker reports missing/wrong controls
 
@@ -105,17 +132,15 @@ Each chip writes status to its own housing `Setting`.
 - `93` = missing/wrong `discover_worker` housing
 - `90` = missing/wrong `controls_worker` housing
 - `94` = discover button wrong type/name
-- `95` = cycle button wrong type/name
-- `96` = missing/wrong `cycle_worker` housing
+- `95` = clear button (`cycle`) wrong type/name
 - `97` = missing/wrong `dish` device
 - `98` = missing/wrong `slot0/slot1/slot2` memory
-- `99` = missing/wrong `dial_h`/`dial_v` dial controls
+- `99` = missing/wrong `manual_enable` lever or `dial_h`/`dial_v` controls
 
 ### Controls worker status (`340-349`)
 
 - `340` = idle/ready
 - `341` = discover command sent
-- `342` = cycle command sent
 - `343` = clear command sent
 - `344` = missing/wrong controls
 - `345` = manual dial write applied
@@ -134,32 +159,10 @@ Discover worker never writes `BestContactFilter`.
 Discover flow details:
 
 - on `discover`, current `slot0..slot2` are treated as a blacklist for that run
+- worker scans coarse first (`30` deg step), then retries fine (`15` deg step)
+- sweep rows are vertical `60` down to `0`, with horizontal full-circle passes
 - worker keeps sweeping until it finds at least 2 new contacts
 - if a sweep finds fewer than 2 new contacts, it restarts sweeping automatically
-- when discover completes, worker emits `cycle` so first new contact is tuned
-
-### Cycle worker status (`200-299`)
-
-- `200` = idle
-- `210` = cycling contacts
-- `220` = tuned (`BestContactFilter` written)
-- `221` = no valid contacts to tune
-- `223` = tune attempted but filter readback mismatch
-- `230` = filter cleared by clear command
-- `233` = clear attempted but filter readback mismatch
-
-Cycle worker owns contact skip/lock flow:
-
-- first `cycle` after discover tunes a stored contact
-- next `cycle` blacklists the current slot (`slotN=-1`) and advances to another
-- blacklist persists until next `discover` rebuilds `slot0..slot2`
-- `discover` also clears `BestContactFilter` so scanning is not locked
-- `clear` command resets filter lock (`BestContactFilter=-1`)
-- if `filter_status` memory exists, cycle writes `220/221/223/230/233` there
-
-Note on tooling: some editor diagnostics currently misreport `BestContactFilter`
-for this prefab. Runtime readback statuses (`220/221/223/230/233`) are the
-source of truth for in-game behavior.
 
 ### Display worker status (`300-399`)
 
@@ -175,9 +178,7 @@ source of truth for in-game behavior.
 Status LED color map (`display_status Color`):
 
 - Blue (`0`) = discover/scanning (`2`, `10`)
-- Orange (`3`) = cycle/tuning (`3`, `20`)
 - Green (`2`) = ready/contacts available (`1`, `5`)
-- Yellow (`5`) = no contacts (`6`)
 - Red (`4`) = controls/setup issue (`44`)
 - White (`6`) = init/manual/clear (`0`, `7`, `30`)
 - Purple (`11`) = any unclassified master code

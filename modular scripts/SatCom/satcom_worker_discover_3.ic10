@@ -1,0 +1,103 @@
+# Satellite dish controller    CowsAreEvil
+# Will scan the sky for traders and interrogate
+define DISH_HASH -449434216
+define DISH_NAME HASH("dish_3")
+alias stepv r5
+alias steph r6
+alias strength r7
+alias newstrength r8
+alias trader r10
+alias traderID r11
+move stepv 1
+move steph 1
+
+move trader 0
+# Scan the sky for contacts
+seek:
+sbn DISH_HASH DISH_NAME BestContactFilter -1
+sleep 5
+lbn traderID DISH_HASH DISH_NAME SignalID Maximum
+lbn strength DISH_HASH DISH_NAME SignalStrength Maximum
+sgtz r0 strength #is signal found
+lbn r1 DISH_HASH DISH_NAME InterrogationProgress Maximum
+slez r1 r1 #has it not been contacted
+and r0 r0 r1
+lbn r1 DISH_HASH DISH_NAME ContactTypeId Maximum
+breqz trader 3 #is a trader type selected
+seq r1 r1 trader
+and r0 r0 r1
+bgtz r0 htrack #contact found
+#still here then nothing found
+movedish:
+lbn r0 DISH_HASH DISH_NAME Horizontal Maximum
+add r0 r0 30
+sbn DISH_HASH DISH_NAME Horizontal r0
+blt r0 360 wait
+lbn r0 DISH_HASH DISH_NAME Vertical Maximum
+add r0 r0 15
+brlt r0 90 2
+move r0 15
+sbn DISH_HASH DISH_NAME Vertical r0
+wait:
+yield
+lbn r0 DISH_HASH DISH_NAME Idle Maximum
+beqz r0 wait
+j seek
+#Contact found. Aim dish horizontal
+htrack:
+sbn DISH_HASH DISH_NAME BestContactFilter traderID
+lbn r0 DISH_HASH DISH_NAME MinimumWattsToContact Maximum
+lbn r1 DISH_HASH DISH_NAME WattsReachingContact Maximum
+blt r0 r1 contact #Contact possible
+lbn r1 DISH_HASH DISH_NAME Setting Maximum
+bgt r0 r1 movedish #Not enough power give up
+lbn r0 DISH_HASH DISH_NAME Horizontal Maximum
+div r1 strength 4
+mul r1 r1 steph
+add r0 r0 r1
+sbn DISH_HASH DISH_NAME Horizontal r0
+hwait:
+yield
+lbn r0 DISH_HASH DISH_NAME InterrogationProgress Maximum
+bgtz r0 seek #already found
+lbn r0 DISH_HASH DISH_NAME SignalID Maximum
+breq r0 -1 seek #trader gone
+lbn newstrength DISH_HASH DISH_NAME SignalStrength Maximum
+beq newstrength -1 hwait #wait for signal
+sle r0 newstrength strength
+move strength newstrength
+beq r0 1 vtrack
+mul steph steph -1
+j htrack
+#Contact found. aim dish vertical
+vtrack:
+lbn r0 DISH_HASH DISH_NAME Vertical Maximum
+div r1 strength 4
+mul r1 r1 stepv
+add r0 r0 r1
+sbn DISH_HASH DISH_NAME Vertical r0
+vwait:
+yield
+lbn r0 DISH_HASH DISH_NAME SignalID Maximum
+breq r0 -1 seek
+lbn newstrength DISH_HASH DISH_NAME SignalStrength Maximum
+beq newstrength -1 vwait
+sle r0 newstrength strength
+move strength newstrength
+beq r0 1 htrack
+mul stepv stepv -1
+j vtrack
+#Within contact range so make contact
+contact:
+yield
+sbn DISH_HASH DISH_NAME Activate 1
+interrogate:
+yield
+lbn r0 DISH_HASH DISH_NAME SignalID Maximum
+beq r0 -1 seek #contact gone
+lbn r0 DISH_HASH DISH_NAME InterrogationProgress Maximum
+bne r0 1 interrogate
+l r0 db Setting
+add r0 r0 1
+s db Setting r0
+j seek

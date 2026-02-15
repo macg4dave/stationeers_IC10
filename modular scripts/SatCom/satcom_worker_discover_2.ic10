@@ -1,0 +1,112 @@
+alias dish d0
+alias searchPrecision r0
+alias maxHorSig r1
+alias maxVerSig r2
+alias maxSig r3
+alias currentH r4
+alias currentV r5
+alias tmp r6
+alias movAmount r7
+alias evalReturn r11
+alias startOver r12
+alias searchMax r13
+alias timer r14
+alias counter1 r15
+alias counter2 r16
+
+boot:
+bdns dish boot
+
+reset:
+move searchPrecision 30
+div searchMax 360 searchPrecision
+move maxHorSig 0
+move maxVerSig 0
+move maxSig 0
+move timer 5
+move startOver 0
+s dish Vertical 60
+s dish Horizontal 0
+s dish Setting 99999
+sleep 10
+start:
+l currentV dish Vertical
+l currentH dish Horizontal
+j search25
+
+
+search25:
+move counter1 0
+Xloop25:
+move counter2 0
+s dish Vertical 60
+Yloop25:
+jal evalSignal
+add counter2 counter2 1
+l tmp dish Vertical
+sub tmp tmp searchPrecision
+s dish Vertical tmp
+blt counter2 3 Yloop25
+add counter1 counter1 1
+l tmp dish Horizontal
+add tmp tmp searchPrecision
+s dish Horizontal tmp
+blt counter1 searchMax Xloop25
+j search180 #We'll now search for 180W targets
+
+evalSignal:
+sleep timer
+l maxSig dish SignalStrength
+beq maxSig -1 ra #if SignalStrength==-1 return
+move evalReturn ra
+j signalSearch
+
+signalSearch:
+jal getSignal
+beq tmp -1 endSignalSearch
+blt tmp 5 signalSearch
+div movAmount maxSig 2
+l maxHorSig dish Horizontal
+l maxVerSig dish Vertical
+add currentH maxHorSig movAmount #Forward
+s dish Horizontal currentH
+jal getSignal
+sub currentV maxVerSig movAmount #Up
+s dish Vertical currentV
+jal getSignal
+sub currentH maxHorSig movAmount #Backward
+s dish Horizontal currentH
+jal getSignal
+add currentV maxVerSig movAmount #Down
+s dish Vertical currentV
+jal getSignal #If it comes back, god help us
+endSignalSearch:
+move ra evalReturn
+j ra
+
+getSignal: #Dunno how to use ra correctly
+sleep 1 #It could be a 15deg movement
+sleep timer
+l tmp dish SignalStrength
+min r8 tmp maxSig
+beq r8 tmp signalFound
+s dish Horizontal maxHorSig
+s dish Vertical maxVerSig
+j ra
+
+signalFound:
+l maxHorSig dish Horizontal
+l maxVerSig dish Vertical
+move maxSig r8
+j ra
+
+search180: #Setting Parameters for 180W search
+beq startOver 1 reset
+move searchPrecision 15
+div searchMax 360 searchPrecision
+move timer 15
+s dish Horizontal 0
+s dish Vertical 60
+s dish Setting 99999
+move startOver 1
+j search25
