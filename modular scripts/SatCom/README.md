@@ -9,13 +9,11 @@ Player setup guide: `modular scripts/SatCom/Setup.md`.
 
 - `satcom_master.ic10` - orchestration and status aggregation
 - `satcom_setup_guard.ic10` - name/type validation + worker/channel init helper
-- `satcom_worker_controls.ic10` - button + dial controls and command publication
+- `satcom_worker_controls.ic10` - auto command worker (buttonless)
 - `satcom_worker_discover_coordinator.ic10` - discover coordinator (`discover_worker`) aggregating worker contacts
 - `satcom_worker_discover_1.ic10` - discover variant 1 (legacy compact)
 - `satcom_worker_discover_2.ic10` - discover variant 2 (grid + local peak)
 - `satcom_worker_discover_3.ic10` - discover variant 3 (track/interrogate)
-- `satcom_worker_display.ic10` - optional H/V LED display updater
-- `satcom_worker_status_led.ic10` - optional status LED color/state updater
 
 ## Multi-dish discover mode (current)
 
@@ -35,9 +33,6 @@ Important:
 
 - Discovery/targeting logic inside each discover script is intentionally unchanged.
 - Integration updates are limited to setup/wiring and device-resolution around workers.
-- `satcom_worker_discover_3.ic10` also uses optional local peripherals:
-  - `d1` LED (status color)
-  - `d2` dial (optional eTrade type filter)
 
 `satcom_master.ic10`/`satcom_worker_controls.ic10` coordinate one named worker
 (`discover_worker`). In multi-dish mode, assign that role to
@@ -59,24 +54,16 @@ Coordinator + discover variants:
 
 Required exact names:
 
-- Buttons: `discover`, `cycle` (clear command)
-- Lever (manual gate): `manual_enable`
-- Dials (manual): `dial_h`, `dial_v`
 - IC Housing: `discover_worker` (SatCom Discover Coordinator), `controls_worker`
 - IC Housing: `discover_worker_1`, `discover_worker_2`, `discover_worker_3`
 - Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
 - Satellite Dish: `dish_1`, `dish_2`, `dish_3` (discover workers)
-- Medium Satellite Dish: `dish` (optional manual-control target)
-- Optional IC Housing: `status_led_worker`
-- Optional LED Displays: `display_h`, `display_v`, `display_status`
 
 Implementation notes:
 
 - Workers and channels are targeted by prefab+name, not chip pin mapping.
 - Master/setup guard read IC Housing prefab from `db PrefabHash`, so use one
   housing variant across SatCom ICs.
-- Display worker resolves LED display prefab variants by exact name.
-- Status LED worker resolves LED display prefab variants by exact name.
 
 ## Shared memory contract
 
@@ -92,27 +79,25 @@ Use Logic Memory `Setting` channels:
 Command codes:
 
 - `1` = discover (rebuild contact slots)
-- `3` = clear (clear slots and unlock dish filter)
 
 Workers execute commands only when `cmd_token` changes.
 
 ## Wiring
 
 - Put all SatCom devices on one shared data network.
-- No manual `d0..d5` mapping is required for active SatCom scripts.
+- Name-targeted workers do not require `d0..d5` mapping.
+- Discover variants still require local pins:
+  - `discover_1`: `d0` -> `dish_1`
+  - `discover_2`: `d0` -> `dish_2`
+  - `discover_3`: `d0` -> `dish_3`
 - Current dish prefab hash used by SatCom scripts: `-449434216` (Medium Satellite).
 
 ## Controls
 
-- Controls worker handles all button and dial input.
-- Controls worker sets dial ranges on startup (`dial_h Mode=359`, `dial_v Mode=89`).
-- Press `discover` to issue command `1`.
-- Press `cycle` to issue command `3` (clear slots + filter unlock).
-- Toggle `manual_enable` ON to allow manual dial writes when optional `dish` exists.
-- Toggle `manual_enable` OFF to block manual dial writes.
-- Turn `dial_h` to manually set optional `dish` `Horizontal` when discover is idle.
-- Turn `dial_v` to manually set optional `dish` `Vertical` when discover is idle.
-- Optional `display_status` shows color-coded master state and numeric status.
+- Controls worker is fully automatic (no button/lever/dial dependencies).
+- Auto-discover triggers when `slot0..slot2` are all `-1` and discover is idle.
+- While discover is active (`110`/`120`), controls worker stays in ready state.
+- To force a new auto discover run, set all `slot0..slot2` back to `-1`.
 
 ## Known engine behaviors
 
@@ -129,10 +114,8 @@ Each chip writes status to its own housing `Setting`.
 - `0` = init
 - `1` = idle/ready
 - `2` = discover worker busy
-- `7` = manual dial control active
 - `5` = contacts available
 - `10` = discover command sent
-- `30` = clear command sent
 - `44` = controls worker reports missing/wrong controls
 
 ### Setup guard status (`90-99`)
@@ -142,19 +125,14 @@ Each chip writes status to its own housing `Setting`.
 - `92` = missing/wrong `cmd_type`
 - `93` = missing/wrong `discover_worker` housing
 - `90` = missing/wrong `controls_worker` housing
-- `94` = discover button wrong type/name
-- `95` = clear button (`cycle`) wrong type/name
 - `97` = missing/wrong `dish_1`/`dish_2`/`dish_3` device
 - `98` = missing/wrong `slot0/slot1/slot2` memory
-- `99` = missing/wrong `manual_enable` lever or `dial_h`/`dial_v` controls
 
 ### Controls worker status (`340-349`)
 
 - `340` = idle/ready
 - `341` = discover command sent
-- `343` = clear command sent
-- `344` = missing/wrong controls
-- `345` = manual dial write applied
+- `344` = missing/wrong `discover_worker` housing
 
 ### Discover worker status (`100-199`)
 
@@ -163,7 +141,6 @@ Each chip writes status to its own housing `Setting`.
 - `120` = sweeping step / sweep retry
 - `130` = complete with 3 new contacts
 - `132` = complete with 2 new contacts
-- `140` = cleared by clear command
 
 Coordinator behavior:
 
@@ -171,7 +148,6 @@ Coordinator behavior:
 - On command `1` (discover), coordinator snapshots prior `slot0..slot2` as run
   blacklist, clears slots to `-1`, and starts collecting new IDs from
   `dish_1..dish_3`.
-- On command `3` (clear), coordinator clears `slot0..slot2` and reports `140`.
 
 Discover worker never writes `BestContactFilter`.
 
@@ -182,25 +158,6 @@ Discover flow details:
 - sweep rows are vertical `60` down to `0`, with horizontal full-circle passes
 - worker keeps sweeping until it finds at least 2 new contacts
 - if a sweep finds fewer than 2 new contacts, it restarts sweeping automatically
-
-### Display worker status (`300-399`)
-
-- `300` = init
-- `310` = updating H/V displays
-
-### Status LED worker status (`320-329`)
-
-- `320` = init
-- `321` = status LED synced
-- `324` = `display_status` missing/wrong type
-
-Status LED color map (`display_status Color`):
-
-- Blue (`0`) = discover/scanning (`2`, `10`)
-- Green (`2`) = ready/contacts available (`1`, `5`)
-- Red (`4`) = controls/setup issue (`44`)
-- White (`6`) = init/manual/clear (`0`, `7`, `30`)
-- Purple (`11`) = any unclassified master code
 
 ## Limits
 

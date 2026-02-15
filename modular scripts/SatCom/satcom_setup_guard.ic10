@@ -2,9 +2,6 @@ alias cond r0
 alias housing_hash r1
 alias inited r2
 define MEMORY_HASH HASH("StructureLogicMemory")
-define BUTTON_HASH 491845673
-define LEVER_HASH 1220484876
-define DIAL_HASH 554524804
 define DISH_HASH -449434216
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
@@ -14,11 +11,6 @@ define SLOT2_NAME HASH("slot2")
 define DISH1_NAME HASH("dish_1")
 define DISH2_NAME HASH("dish_2")
 define DISH3_NAME HASH("dish_3")
-define DISCOVER_NAME HASH("discover")
-define CYCLE_NAME HASH("cycle")
-define MANUAL_ENABLE_NAME HASH("manual_enable")
-define DIAL_H_NAME HASH("dial_h")
-define DIAL_V_NAME HASH("dial_v")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define DISCOVER_WORKER_1_NAME HASH("discover_worker_1")
 define DISCOVER_WORKER_2_NAME HASH("discover_worker_2")
@@ -34,16 +26,6 @@ lbn cond MEMORY_HASH CMD_TOKEN_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_cmd_token
 lbn cond MEMORY_HASH CMD_TYPE_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_cmd_type
-lbn cond BUTTON_HASH DISCOVER_NAME PrefabHash Maximum
-bne cond BUTTON_HASH err_discover_type
-lbn cond BUTTON_HASH CYCLE_NAME PrefabHash Maximum
-bne cond BUTTON_HASH err_cycle_type
-lbn cond LEVER_HASH MANUAL_ENABLE_NAME PrefabHash Maximum
-bne cond LEVER_HASH err_dials
-lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
-bne cond DIAL_HASH err_dials
-lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
-bne cond DIAL_HASH err_dials
 lbn cond MEMORY_HASH SLOT0_NAME PrefabHash Maximum
 bne cond MEMORY_HASH err_slots
 lbn cond MEMORY_HASH SLOT1_NAME PrefabHash Maximum
@@ -102,12 +84,6 @@ j main
 err_discover_h:
 s db Setting 93
 j main
-err_discover_type:
-s db Setting 94
-j main
-err_cycle_type:
-s db Setting 95
-j main
 err_controls_h:
 s db Setting 90
 j main
@@ -116,7 +92,4 @@ s db Setting 97
 j main
 err_slots:
 s db Setting 98
-j main
-err_dials:
-s db Setting 99
 j main

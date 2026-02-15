@@ -1,106 +1,57 @@
-alias pressed_discover r0
-alias pressed_clear r1
-alias dial_h r3
-alias dial_v r4
-alias prev_h r5
-alias token r6
-alias cond r7
-alias housing_hash r8
-alias wrote r9
-alias prev_v r10
-alias same_v r11
+alias token r0
+alias cond r1
+alias housing_hash r2
+alias discover_status r3
+alias slot0 r4
+alias slot1 r5
+alias slot2 r6
+alias all_empty r7
+alias sent_empty r8
 define CMD_DISCOVER 1
-define CMD_CLEAR 3
-define BUTTON_HASH 491845673
-define LEVER_HASH 1220484876
-define DIAL_HASH 554524804
 define MEMORY_HASH HASH("StructureLogicMemory")
-define DISH_HASH -449434216
-define DISCOVER_BTN_NAME HASH("discover")
-define CYCLE_BTN_NAME HASH("cycle")
-define MANUAL_ENABLE_NAME HASH("manual_enable")
-define DIAL_H_NAME HASH("dial_h")
-define DIAL_V_NAME HASH("dial_v")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CMD_TOKEN_NAME HASH("cmd_token")
 define CMD_TYPE_NAME HASH("cmd_type")
-define DISH_NAME HASH("dish")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
 init:
-move prev_h -1
-move prev_v -1
+move sent_empty 0
 l housing_hash db PrefabHash
-sbn DIAL_HASH DIAL_H_NAME Mode 359
-sbn DIAL_HASH DIAL_V_NAME Mode 89
 s db Setting 340
 main:
 yield
-lbn cond BUTTON_HASH DISCOVER_BTN_NAME PrefabHash Maximum
-bne cond BUTTON_HASH no_controls
-lbn cond BUTTON_HASH CYCLE_BTN_NAME PrefabHash Maximum
-bne cond BUTTON_HASH no_controls
-lbn cond LEVER_HASH MANUAL_ENABLE_NAME PrefabHash Maximum
-bne cond LEVER_HASH no_controls
-lbn cond DIAL_HASH DIAL_H_NAME PrefabHash Maximum
-bne cond DIAL_HASH no_controls
-lbn cond DIAL_HASH DIAL_V_NAME PrefabHash Maximum
-bne cond DIAL_HASH no_controls
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
-bne cond housing_hash main
-lbn pressed_discover BUTTON_HASH DISCOVER_BTN_NAME Activate Maximum
-lbn pressed_clear BUTTON_HASH CYCLE_BTN_NAME Activate Maximum
-bnez pressed_clear send_clear
-bnez pressed_discover send_discover
-manual:
-move wrote 0
-lbn r10 housing_hash DISCOVER_WORKER_NAME Setting Maximum
-beq r10 110 publish
-beq r10 120 publish
-beq r10 121 publish
-lbn cond LEVER_HASH MANUAL_ENABLE_NAME Open Maximum
-beqz cond steady
-lbn cond DISH_HASH DISH_NAME PrefabHash Maximum
-bne cond DISH_HASH steady
-lbn dial_h DIAL_HASH DIAL_H_NAME Setting Maximum
-lbn dial_v DIAL_HASH DIAL_V_NAME Setting Maximum
-beq prev_h -1 arm_manual
-seq cond dial_h prev_h
-seq same_v dial_v prev_v
-and cond cond same_v
-bnez cond publish
-arm_manual:
-move prev_h dial_h
-move prev_v dial_v
-lbn r11 DISH_HASH DISH_NAME Horizontal Maximum
-seq cond r11 dial_h
-bnez cond read_v
-sbn DISH_HASH DISH_NAME Horizontal dial_h
-move wrote 1
-read_v:
-lbn r11 DISH_HASH DISH_NAME Vertical Maximum
-seq cond r11 dial_v
-bnez cond publish
-sbn DISH_HASH DISH_NAME Vertical dial_v
-move wrote 1
-publish:
-beqz wrote steady
-s db Setting 345
-j main
-steady:
-s db Setting 340
-j main
-no_controls:
-s db Setting 344
-j main
-send_discover:
+bne cond housing_hash no_worker
+lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
+beq discover_status 110 busy
+beq discover_status 120 busy
+lbn slot0 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn slot1 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn slot2 MEMORY_HASH SLOT2_NAME Setting Maximum
+seq cond slot0 -1
+seq all_empty slot1 -1
+and all_empty cond all_empty
+seq cond slot2 -1
+and all_empty all_empty cond
+beqz all_empty not_empty
+bnez sent_empty ready
 move cond CMD_DISCOVER
-s db Setting 341
-j send_cmd
-send_clear:
-move cond CMD_CLEAR
-s db Setting 343
-send_cmd:
 lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 add token token 1
 sbn MEMORY_HASH CMD_TYPE_NAME Setting cond
 sbn MEMORY_HASH CMD_TOKEN_NAME Setting token
+move sent_empty 1
+s db Setting 341
+j main
+busy:
+s db Setting 340
+j main
+not_empty:
+move sent_empty 0
+ready:
+s db Setting 340
+j main
+no_worker:
+s db Setting 344
 j main

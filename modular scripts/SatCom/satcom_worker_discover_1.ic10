@@ -71,6 +71,8 @@ l r0 dish Horizontal
 div r1 strength 4
 mul r1 r1 steph
 add r0 r0 r1
+max r0 r0 0
+min r0 r0 120
 s dish Horizontal r0
 
 hwait:
@@ -92,6 +94,8 @@ l r0 dish Vertical
 div r1 strength 4
 mul r1 r1 stepv
 add r0 r0 r1
+max r0 r0 0
+min r0 r0 90
 s dish Vertical r0
 
 vwait:

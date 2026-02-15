@@ -22,7 +22,6 @@ define DISH1_NAME HASH("dish_1")
 define DISH2_NAME HASH("dish_2")
 define DISH3_NAME HASH("dish_3")
 define CMD_DISCOVER 1
-define CMD_CLEAR 3
 init:
 move lastToken -1
 move phase 0
@@ -34,17 +33,8 @@ lbn token MEMORY_HASH CMD_TOKEN_NAME Setting Maximum
 lbn cmd MEMORY_HASH CMD_TYPE_NAME Setting Maximum
 beq token lastToken run
 move lastToken token
-beq cmd CMD_CLEAR do_clear
 beq cmd CMD_DISCOVER do_discover
 j run
-do_clear:
-sbn MEMORY_HASH SLOT0_NAME Setting -1
-sbn MEMORY_HASH SLOT1_NAME Setting -1
-sbn MEMORY_HASH SLOT2_NAME Setting -1
-move found 0
-move phase 0
-s db Setting 140
-j main
 do_discover:
 lbn b0 MEMORY_HASH SLOT0_NAME Setting Maximum
 lbn b1 MEMORY_HASH SLOT1_NAME Setting Maximum
@@ -52,7 +42,6 @@ lbn b2 MEMORY_HASH SLOT2_NAME Setting Maximum
 sbn MEMORY_HASH SLOT0_NAME Setting -1
 sbn MEMORY_HASH SLOT1_NAME Setting -1
 sbn MEMORY_HASH SLOT2_NAME Setting -1
-move found 0
 move phase 1
 s db Setting 110
 j main
@@ -77,6 +66,7 @@ jal collect_3
 beq found 3 done3
 blt found 2 busy
 done2:
+move phase 0
 s db Setting 132
 j main
 done3:
