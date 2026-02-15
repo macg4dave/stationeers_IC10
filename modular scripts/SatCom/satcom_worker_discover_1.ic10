@@ -1,127 +1,117 @@
-sbn -449434216 HASH("dish_1") Activate 0 # 7
-sbn -449434216 HASH("dish_1") BestContactFilter -1
-lbn r0 -449434216 HASH("dish_1") Horizontal Maximum # 11
-add r0 r0 19 # 12
-sbn -449434216 HASH("dish_1") Horizontal r0 # 13
-lbn r0 -449434216 HASH("dish_1") Vertical Maximum # 14
-lerp r1 r0 5 0.35 # 15
-lerp r2 r0 89 0.5 # 16
-rand r0 # 17
-lerp r0 r1 r2 r0 # 18
-sbn -449434216 HASH("dish_1") Vertical r0 # 19
-move ra 84 # 22
-sbn -449434216 HASH("dish_1") Setting 0 # 25
-yield # 26
-lbn r15 -449434216 HASH("dish_1") Setting Maximum # 27
-lbn r2 -449434216 HASH("dish_1") SignalID Maximum # 28
-lbn r0 -449434216 HASH("dish_1") Idle Maximum # 29
-breqz r0 -4 # 30
-sbn -449434216 HASH("dish_1") Setting 99999 # 32
-yield # 33
-lbn r0 -449434216 HASH("dish_1") SignalID Maximum # 35
-beq r0 -1 0 # 36
-sbn -449434216 HASH("dish_1") BestContactFilter r0 # 38
-lbn r1 -449434216 HASH("dish_1") ContactSlotIndex Maximum # 40
-max r1 r1 0
-mul sp r1 10 # 41
-ext r3 110219619205120 sp 10 # 42
-get r1 db sp # 43
-push r0 # 44
-bne r0 r1 122 # 45
-get r1 db sp # 46
-bgtz r1 0 # 47
-beq r0 r2 62 # 49
-move r0 r15 # 51
-lbn r1 -449434216 HASH("dish_1") Setting Maximum # 52
-lerp r2 r0 r1 0.5 # 54
-sbn -449434216 HASH("dish_1") Setting r2 # 55
-yield # 56
-lbn r2 -449434216 HASH("dish_1") WattsReachingContact Maximum
-bne r2 -1 70 # 58
-lbn r2 -449434216 HASH("dish_1") SignalID Maximum # 59
-sne r2 r2 -1 # 60
-lbn rr2 -449434216 HASH("dish_1") Setting Maximum # 61
-sub r2 r1 r0 # 62
-bge r2 2 34 # 63
-div r0 r3 r0 # 65
-lerp r1 190 -9810 r0 # 66
-brle r0 0.01 8 # 67
-lerp r1 101.25 -1023.75 r0 # 68
-brle r0 0.05 6 # 69
-lerp r1 67.5 -382.5 r0 # 70
-brle r0 0.1 4 # 71
-lerp r1 24.6875 2.8125 r0 # 72
-brle r0 0.9 2 # 73
-lerp r1 32 2 r0 # 74
-lbn r4 -449434216 HASH("dish_1") Vertical Maximum # 76
-lbn r5 -449434216 HASH("dish_1") Horizontal Maximum # 77
-sle r0 r1 5 # 78
-push r0 # 79
-push r1 # 80
-push r4 # 81
-push r5 # 82
-j ra # 83
-sbn -449434216 HASH("dish_1") Setting 99999 # 86
-move r0 60 # 87
-yield # 88
-sub r0 r0 1 # 89
-lbn r2 -449434216 HASH("dish_1") WattsReachingContact Maximum
-bne r2 -1 70 # 91
-brgtz r0 -4 # 92
-j 0 # 93
-lbn r1 -449434216 HASH("dish_1") SignalStrength Maximum
-move r14 ra # 96
-jal 54 # 97
-lbn r3 -449434216 HASH("dish_1") MinimumWattsToContact Maximum
-blt r2 r3 r14 # 99
-bgt r1 15 r14 # 100
-lbn r0 -449434216 HASH("dish_1") InterrogationProgress Maximum
-bge r0 1 81 # 104
-yield # 105
-sbn -449434216 HASH("dish_1") Activate 1 # 106
-j 76 # 107
-sub sp sp 4 # 110
-push 2 # 111
-j 0 # 112
-move r8 r1 # 117
-add r0 r5 1 # 118
-sbn -449434216 HASH("dish_1") Horizontal r0 # 119
-jal 12 # 120
-sub r10 r1 r8 # 121
-move r8 r1 # 122
-mul r6 r4 deg2rad # 123
-mul r7 r5 deg2rad # 124
-add r0 r4 1 # 125
-sbn -449434216 HASH("dish_1") Vertical r0 # 126
-jal 12 # 127
-sub r9 r1 r8 # 128
-mul r8 r8 deg2rad # 129
-cos r0 r6 # 130
-sin r1 r6 # 131
-cos r2 r8 # 132
-sin r3 r8 # 133
-div r10 r10 r1 # 134
-atan2 r4 r10 r9 # 135
-cos r9 r4 # 136
-sin r10 r4 # 137
-mul r5 r9 r3 # 138
-mul r6 r10 r3 # 139
-mul r10 r0 r2 # 141
-mul r11 r1 r5 # 142
-add r12 r10 r11 # 143
-acos r12 r12 # 145
-mul r12 r12 rad2deg # 146
-min r12 r12 89 # 147
-sbn -449434216 HASH("dish_1") Vertical r12 # 148
-mul r10 r1 r2 # 150
-mul r11 r0 r5 # 151
-sub r12 r10 r11 # 152
-atan2 r12 r6 r12 # 156
-sub r12 r7 r12 # 157
-mul r12 r12 rad2deg # 158
-sbn -449434216 HASH("dish_1") Horizontal r12 # 159
-j 11 # 160
-push 0 # 163
-push -1 # 164
-push -1 # 165
-push -1 # 166
+# Satellite dish controller (discover_1 rewritten)
+# d0-targeted + label-based control flow (no hard line-number jumps)
+alias dish d0
+alias stepv r5
+alias steph r6
+alias strength r7
+alias newstrength r8
+alias trader r10
+alias traderID r11
+
+boot:
+bdns dish boot
+move stepv 1
+move steph 1
+move trader 0
+s dish Setting 99999
+
+seek:
+s dish BestContactFilter -1
+sleep 5
+l traderID dish SignalID
+l strength dish SignalStrength
+sgtz r0 strength
+l r1 dish InterrogationProgress
+slez r1 r1
+and r0 r0 r1
+l r1 dish ContactTypeId
+beqz trader check_contact
+seq r1 r1 trader
+and r0 r0 r1
+
+check_contact:
+bgtz r0 htrack
+j movedish
+
+movedish:
+l r0 dish Horizontal
+add r0 r0 30
+s dish Horizontal r0
+blt r0 360 wait
+l r0 dish Vertical
+add r0 r0 15
+bgt r0 90 wrap_vertical
+j set_vertical
+
+wrap_vertical:
+move r0 15
+
+set_vertical:
+s dish Vertical r0
+
+wait:
+yield
+l r0 dish Idle
+beqz r0 wait
+j seek
+
+htrack:
+s dish BestContactFilter traderID
+l r0 dish MinimumWattsToContact
+l r1 dish WattsReachingContact
+blt r0 r1 contact
+l r1 dish Setting
+bgt r0 r1 movedish
+l r0 dish Horizontal
+div r1 strength 4
+mul r1 r1 steph
+add r0 r0 r1
+s dish Horizontal r0
+
+hwait:
+yield
+l r0 dish InterrogationProgress
+bgtz r0 seek
+l r0 dish SignalID
+breq r0 -1 seek
+l newstrength dish SignalStrength
+beq newstrength -1 hwait
+sle r0 newstrength strength
+move strength newstrength
+beq r0 1 vtrack
+mul steph steph -1
+j htrack
+
+vtrack:
+l r0 dish Vertical
+div r1 strength 4
+mul r1 r1 stepv
+add r0 r0 r1
+s dish Vertical r0
+
+vwait:
+yield
+l r0 dish SignalID
+breq r0 -1 seek
+l newstrength dish SignalStrength
+beq newstrength -1 vwait
+sle r0 newstrength strength
+move strength newstrength
+beq r0 1 htrack
+mul stepv stepv -1
+j vtrack
+
+contact:
+yield
+s dish Activate 1
+
+interrogate:
+yield
+l r0 dish SignalID
+beq r0 -1 seek
+l r0 dish InterrogationProgress
+bne r0 1 interrogate
+l r0 db Setting
+add r0 r0 1
+s db Setting r0
+j seek
