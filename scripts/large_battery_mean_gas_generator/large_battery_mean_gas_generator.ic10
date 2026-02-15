@@ -1,0 +1,56 @@
+# large_battery_mean_gas_generator
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Read all Large Station Batteries on the data network and compute the
+#          mean battery Ratio. If mean Ratio < 30%, turn Gas Fuel Generator on.
+#
+# Device registers:
+#   d0 = Gas Fuel Generator
+#
+# Notes:
+# - Large battery Ratio is 0..1 (fraction). 30% = 0.30.
+# - All target batteries and d0 must be on the same data network.
+# - If no large batteries are detected, generator is forced OFF (fail-safe).
+
+alias gen d0
+
+alias found_hash r0
+alias mean_ratio r1
+alias desired_on r2
+alias current_on r3
+alias cond r4
+
+define LARGE_BATTERY_HASH HASH("StructureBatteryLarge")
+define LOW_RATIO 0.30
+
+wait_devices:
+yield
+bdns d0 wait_devices
+
+main:
+yield
+
+# Check whether at least one large battery exists on this data network.
+lb found_hash LARGE_BATTERY_HASH PrefabHash Maximum
+bne found_hash LARGE_BATTERY_HASH no_batteries
+
+# Mean ratio across all matching large batteries.
+lb mean_ratio LARGE_BATTERY_HASH Ratio Average
+slt desired_on mean_ratio LOW_RATIO
+j decide
+
+no_batteries:
+move desired_on 0
+
+decide:
+# Avoid redundant writes/network spam.
+l current_on gen On
+sne cond desired_on current_on
+beqz cond done
+s gen On desired_on
+
+done:
+# Optional quick status in IC housing: 0=OFF, 1=ON
+s db Setting desired_on
+j main

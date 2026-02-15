@@ -1,0 +1,162 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Kit_(Gas_Fuel_Generator)",
+    "wikiTitle": "Kit_(Gas_Fuel_Generator)",
+    "retrievedAt": "2026-02-15T20:36:21+00:00"
+  },
+  "identity": {
+    "itemName": "ItemKitGasGenerator",
+    "itemHash": 377745425
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Setting",
+        "type": "float",
+        "description": "(Unknown) Affects the Setting output."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the Gas Generator on, when set to 1. Turns it off, when set to 0."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the Gas Generator is turned on and receives power (0 for no, 1 for yes)."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Returns whether the Gas Generator is flashing an error (0 for no, 1 for yes)."
+      },
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": "Returns the pressure in the Gas Generator in kilo pascal (kPa)."
+      },
+      {
+        "name": "Temperature",
+        "type": "float",
+        "description": "Returns the temperature in the Gas Generator in kelvin (K)."
+      },
+      {
+        "name": "Setting",
+        "type": "float",
+        "description": "(Unknown) Affected by the Setting parameter."
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of oxygen in the Gas Generator."
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of carbon dioxide in the Gas Generator."
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of nitrogen in the Gas Generator."
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of pollutant in the Gas Generator."
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of volatiles in the Gas Generator."
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of water in the Gas Generator."
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of nitrous oxide in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidNitrogen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid nitrogen in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidOxygen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid oxygen in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidVolatiles",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid volatiles in the Gas Generator."
+      },
+      {
+        "name": "RatioSteam",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of steam in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidCarbonDioxide",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid carbon dioxide in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidPollutant",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid pollutant in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidNitrousOxide",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid nitrous oxide in the Gas Generator."
+      },
+      {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of hydrogen in the Gas Generator."
+      },
+      {
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of liquid hydrogen in the Gas Generator."
+      },
+      {
+        "name": "RatioPollutedWater",
+        "type": "float",
+        "description": "Returns a range from 0.0 to 1.0. Returns the percentage ratio of the amount of polluted water in the Gas Generator."
+      },
+      {
+        "name": "Maximum",
+        "type": "integer",
+        "description": "(Unknown) Returns 100."
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": "(Unknown) Returns 0.5."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the Gas Generator is turned on. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "float",
+        "description": "???"
+      },
+      {
+        "name": "PowerGeneration",
+        "type": "float",
+        "description": "Returns power production"
+      }
+    ]
+  }
+}

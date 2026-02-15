@@ -44,6 +44,12 @@
       "itemHash": -1252983604
     },
     {
+      "wikiTitle": "Kit_(Gas_Fuel_Generator)",
+      "file": "devices/Kit_(Gas_Fuel_Generator).json",
+      "itemName": "ItemKitGasGenerator",
+      "itemHash": 377745425
+    },
+    {
       "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
       "file": "devices/Kit_(Liquid_Pipe_Analyzer).json",
       "itemName": "ItemLiquidPipeAnalysizer",
@@ -104,12 +110,6 @@
       "itemHash": null
     },
     {
-      "wikiTitle": "Medium_Satellite_Dish",
-      "file": "devices/Medium_Satellite_Dish.json",
-      "itemName": null,
-      "itemHash": -449434216
-    },
-    {
       "wikiTitle": "Liquid_Digital_Valve",
       "file": "devices/Liquid_Digital_Valve.json",
       "itemName": null,
@@ -152,6 +152,12 @@
       "itemHash": 321604921
     },
     {
+      "wikiTitle": "Medium_Satellite_Dish",
+      "file": "devices/Medium_Satellite_Dish.json",
+      "itemName": null,
+      "itemHash": -449434216
+    },
+    {
       "wikiTitle": "Pipe_Analyzer",
       "file": "devices/Pipe_Analyzer.json",
       "itemName": "StructurePipeAnalysizer",
@@ -168,6 +174,18 @@
       "file": "devices/Pipe_Volume_Pump.json",
       "itemName": "ItemPipeVolumePump",
       "itemHash": -1766301997
+    },
+    {
+      "wikiTitle": "Station_Battery",
+      "file": "devices/Station_Battery.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Station_Battery_(Large)",
+      "file": "devices/Station_Battery_(Large).json",
+      "itemName": null,
+      "itemHash": -439865430
     },
     {
       "wikiTitle": "Wall_Cooler",
