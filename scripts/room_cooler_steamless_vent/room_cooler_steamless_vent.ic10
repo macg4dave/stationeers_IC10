@@ -27,10 +27,14 @@ alias desired_cooler_on r3
 alias current_cooler_on r4
 alias desired_vent_on r5
 alias current_vent_on r6
+alias sensor_hash r7
 
 define KELVIN_TO_C 273.15
 
 define COOL_ON_ABOVE_C 30
+
+# Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
+define GAS_SENSOR_HASH -1252983604
 
 # Treat RatioSteam below this as "no steam".
 # Use a small epsilon to avoid float noise.
@@ -43,6 +47,12 @@ bdns d1 wait_devices
 bdns d2 wait_devices
 
 main:
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+l sensor_hash gas_read PrefabHash
+bne sensor_hash GAS_SENSOR_HASH wait_devices
+
 # read temperature (K) and convert to Celsius
 l tempC gas_read Temperature
 sub tempC tempC KELVIN_TO_C
