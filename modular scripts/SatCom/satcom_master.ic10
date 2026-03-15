@@ -1,19 +1,27 @@
 alias cond r0
 alias discover_status r1
+alias slot0 r2
 alias controls_status r3
 alias housing_hash r4
+alias slot1 r5
+alias slot2 r6
+alias all_empty r7
+define MEMORY_HASH HASH("StructureLogicMemory")
 define DISCOVER_WORKER_NAME HASH("discover_worker")
 define CONTROLS_WORKER_NAME HASH("controls_worker")
 define LARGE_WORKER_NAME HASH("large_dish_worker")
+define SLOT0_NAME HASH("slot0")
+define SLOT1_NAME HASH("slot1")
+define SLOT2_NAME HASH("slot2")
 init:
 l housing_hash db PrefabHash
 s db Setting 0
 main:
 yield
 lbn cond housing_hash DISCOVER_WORKER_NAME PrefabHash Maximum
-bne cond housing_hash main
+bne cond housing_hash no_discover
 lbn cond housing_hash CONTROLS_WORKER_NAME PrefabHash Maximum
-bne cond housing_hash main
+bne cond housing_hash no_controls
 lbn cond housing_hash LARGE_WORKER_NAME PrefabHash Maximum
 bne cond housing_hash no_large
 lbn cond housing_hash DISCOVER_WORKER_NAME On Maximum
@@ -30,12 +38,19 @@ sbn housing_hash LARGE_WORKER_NAME On 1
 publish:
 lbn discover_status housing_hash DISCOVER_WORKER_NAME Setting Maximum
 lbn controls_status housing_hash CONTROLS_WORKER_NAME Setting Maximum
-beq controls_status 344 no_controls
+beq controls_status 344 no_discover
 beq controls_status 341 discover_sent
 beq discover_status 110 discover_busy
 beq discover_status 120 discover_busy
-beq discover_status 130 discover_ready
-beq discover_status 132 discover_ready
+lbn slot0 MEMORY_HASH SLOT0_NAME Setting Maximum
+lbn slot1 MEMORY_HASH SLOT1_NAME Setting Maximum
+lbn slot2 MEMORY_HASH SLOT2_NAME Setting Maximum
+seq cond slot0 -1
+seq all_empty slot1 -1
+and all_empty cond all_empty
+seq cond slot2 -1
+and all_empty all_empty cond
+beqz all_empty discover_ready
 s db Setting 1
 j main
 discover_busy:
@@ -46,6 +61,9 @@ s db Setting 5
 j main
 discover_sent:
 s db Setting 10
+j main
+no_discover:
+s db Setting 43
 j main
 no_controls:
 s db Setting 44

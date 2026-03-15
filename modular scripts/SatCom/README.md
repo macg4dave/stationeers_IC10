@@ -130,10 +130,17 @@ Each chip writes status to its own housing `Setting`.
 - `0` = init
 - `1` = idle/ready
 - `2` = discover worker busy
+- `43` = missing/wrong `discover_worker` housing
 - `5` = contacts available
 - `10` = discover command sent
-- `44` = controls worker reports missing/wrong controls
+- `44` = missing/wrong `controls_worker` housing
 - `46` = missing/wrong `large_dish_worker` housing
+
+Master publish behavior:
+
+- `5` is now driven from shared `slot0..slot2` contents, not only the
+  coordinator's transient completion code.
+- This keeps master status at `5` while discovered contacts remain available.
 
 ### Setup guard status (`90-99`)
 
@@ -157,6 +164,7 @@ Each chip writes status to its own housing `Setting`.
 - `100` = idle
 - `110` = discover start/reset
 - `120` = sweeping step / sweep retry
+- `131` = complete with 1 new contact after settle timeout
 - `130` = complete with 3 new contacts
 - `132` = complete with 2 new contacts
 
@@ -184,6 +192,8 @@ Discover flow details:
 - sweep rows are vertical `60` down to `0`, with horizontal full-circle passes
 - worker keeps sweeping until it finds at least 2 new contacts
 - if a sweep finds fewer than 2 new contacts, it restarts sweeping automatically
+- coordinator now settles and completes with `131` if exactly 1 new contact remains
+  stable for several loops, preventing permanent busy state on sparse maps
 
 ## Limits
 

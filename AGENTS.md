@@ -4,6 +4,7 @@ This repo is a **paste-ready IC10 script library** plus **stdlib-only Python too
 Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`.
 
 ## Layout & what to touch
+
 - `scripts/<name>/<name>.ic10` + `scripts/<name>/README.md` (player setup and `d0..d5`).
 - `modular scripts/<feature>/` (master + workers + feature `README.md` + player `Setup.md`).
 - Checklists/patterns/templates: `docs/ic10_script_checklist.md`, `docs/modular_master_worker_pattern.md`, `scripts/_template/`, `modular scripts/_template/`.
@@ -13,6 +14,7 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - VS Code IC10 debugging: `.vscode/extensions.json` + `.vscode/launch.json` (`type: "ic10"`, `Traineratwot.stationeers-ic10`).
 
 ## Non-obvious conventions
+
 - IC10 comments use `#`; labels end with `:`; keep `alias` names short (paste limits count everything).
 - Gate required devices with `bdns` + `yield`; keep in-loop guards before critical `l` reads.
 - Example: `scripts/pipe_temp_hot_cold_valves/pipe_temp_hot_cold_valves.ic10`.
@@ -21,12 +23,14 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - Avoid redundant writes (`On`, `Open`, `Setting`): read first, write only on change.
 - `sbn/lbn` name hashes are exact/case-sensitive (`HASH("IN")` matches `IN`, not `IN_1`).
 - Default to name-targeting for device ops (`sbn/lbn` with exact `HASH("name")`) to keep scripts portable and setup/debug simple.
+- For Solar Panel naming/orientation in this repo, assume only the four cardinal directions are supported: `0`, `90`, `180`, `270` (north/east/south/west). Do not propose diagonal groups like `45`, `135`, `225`, or `315` unless the user explicitly asks for a custom convention.
 - For safety-critical actuation paths, prefer combining prefab hash + exact name (example: Pipe Digital Valve `-1280984102` + `HASH("Hot_Out")`).
 - Use prefab-only targeting only as a fallback when names are unavailable/ambiguous.
 - For any device `Mode`/enum field, read `modeValues` from `catalog/devices/<Device>.json` first; never guess defaults.
 - If a device "does nothing", assume missing in-game settings first: check `docs/usage/README.md` then the device playbook (Active Vent commonly needs **both** `On=1` and `Open=1` plus correct `Mode`/pressure: `docs/usage/active_vent.md`).
 
 ## Modular rules (master + workers)
+
 - Prefer folder-local modular architecture: `modular scripts/<feature>/`, `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, `README.md` (wiring + command/data contract + status table), and player-facing `Setup.md`.
 - For modular `Setup.md`, always include `IC Housing:` name entries in `Name contract` for each non-deprecated feature chip script (end-user setup clarity).
 - For modular `Setup.md`, use `modular scripts/_template/Setup.md` and keep only player actions (build list, setup steps, wiring map, controls).
@@ -34,6 +38,7 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - Prefer Logic Memory token/data channels; wiring order is inter-chip links from `d0` downward, then user inputs, then feature devices.
 
 ## Critical workflows and guardrails
+
 - Validate paste limits for shipped IC10 (**128 lines**, **90 chars/line**, including comments/blanks):
   - `python tools/ic10_size_check.py scripts/ --ext .ic10`
   - `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`

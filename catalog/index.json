@@ -176,6 +176,12 @@
       "itemHash": -1766301997
     },
     {
+      "wikiTitle": "Solar_Panel",
+      "file": "devices/Solar_Panel.json",
+      "itemName": "StructureSolarPanel",
+      "itemHash": -2045627372
+    },
+    {
       "wikiTitle": "Station_Battery",
       "file": "devices/Station_Battery.json",
       "itemName": null,

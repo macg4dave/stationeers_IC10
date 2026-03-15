@@ -11,6 +11,7 @@ alias b0 r9
 alias b1 r10
 alias b2 r11
 alias sid r12
+alias settle r13
 define MEMORY_HASH HASH("StructureLogicMemory")
 define DISH_HASH -449434216
 define CMD_TOKEN_NAME HASH("cmd_token")
@@ -22,10 +23,10 @@ define DISH1_NAME HASH("dish_1")
 define DISH2_NAME HASH("dish_2")
 define DISH3_NAME HASH("dish_3")
 define CMD_DISCOVER 1
+define SETTLE_LIMIT 8
 init:
 move lastToken -1
 move phase 0
-move found 0
 s db Setting 100
 main:
 yield
@@ -43,6 +44,7 @@ sbn MEMORY_HASH SLOT0_NAME Setting -1
 sbn MEMORY_HASH SLOT1_NAME Setting -1
 sbn MEMORY_HASH SLOT2_NAME Setting -1
 move phase 1
+move settle SETTLE_LIMIT
 s db Setting 110
 j main
 run:
@@ -64,7 +66,7 @@ jal collect_1
 jal collect_2
 jal collect_3
 beq found 3 done3
-blt found 2 busy
+blt found 2 maybe_done1
 done2:
 move phase 0
 s db Setting 132
@@ -73,6 +75,15 @@ done3:
 move phase 0
 s db Setting 130
 j main
+maybe_done1:
+beqz found reset_settle
+sub settle settle 1
+bgtz settle busy
+move phase 0
+s db Setting 131
+j main
+reset_settle:
+move settle SETTLE_LIMIT
 busy:
 s db Setting 120
 j main

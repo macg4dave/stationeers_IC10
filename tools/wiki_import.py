@@ -98,7 +98,20 @@ def _parse_wiki_url(url: str) -> tuple[str, str, Optional[str]]:
 def _normalize_type(type_str: str) -> str:
     t = type_str.strip().lower()
     # wiki sometimes uses bool/boolean or integer/int
-    t = {"bool": "boolean", "int": "integer"}.get(t, t)
+    t = {
+        "bool": "boolean",
+        "int": "integer",
+        # Some pages use display units instead of the underlying numeric type.
+        "degree": "integer",
+        "degrees": "integer",
+        "%": "integer",
+        "percent": "integer",
+        "percentage": "integer",
+        "w": "integer",
+        "watt": "integer",
+        "watts": "integer",
+        "kw": "integer",
+    }.get(t, t)
     return t
 
 
@@ -151,6 +164,9 @@ def _infer_type_from_name(field_name: str) -> Optional[str]:
         "error": "boolean",
         "lock": "boolean",
         # Common numeric fields
+        "horizontal": "integer",
+        "vertical": "integer",
+        "charge": "integer",
         "ratio": "float",
         "maximum": "integer",
         "requiredpower": "integer",
@@ -563,6 +579,43 @@ def _extract_transcluded_data_network_title(edit_html: str) -> Optional[str]:
     return m.group(1).strip()
 
 
+def _extract_structure_identity_from_edit_source(
+    edit_html: str,
+    *,
+    structure_name: str,
+) -> tuple[Optional[str], Optional[int]]:
+    """Extract prefab identity from the matching Structurebox in raw wiki source."""
+
+    blocks = re.findall(r"\{\{Structurebox.*?\}\}", edit_html, re.IGNORECASE | re.DOTALL)
+    for block in blocks:
+        name_match = re.search(r"\|\s*name\s*=\s*([^|}{\n]+)", block, re.IGNORECASE)
+        if not name_match:
+            continue
+        if name_match.group(1).strip() != structure_name:
+            continue
+
+        prefab_name_match = re.search(
+            r"\|\s*prefab_name\s*=\s*([A-Za-z0-9_]+)",
+            block,
+            re.IGNORECASE,
+        )
+        prefab_hash_match = re.search(
+            r"\|\s*prefab_hash\s*=\s*([0-9-]+)",
+            block,
+            re.IGNORECASE,
+        )
+
+        prefab_name = prefab_name_match.group(1) if prefab_name_match else None
+        try:
+            prefab_hash = int(prefab_hash_match.group(1)) if prefab_hash_match else None
+        except ValueError:
+            prefab_hash = None
+
+        return prefab_name, prefab_hash
+
+    return None, None
+
+
 def upsert_index(entry: dict) -> None:
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     if INDEX_PATH.exists():
@@ -595,6 +648,8 @@ def main(argv: List[str]) -> int:
     section_start_pos: Optional[int] = None
     if fragment:
         section_start_pos = _find_anchor_pos(html, fragment)
+
+    edit_html = ""
 
     if section_start_pos is not None:
         parameters_table = _extract_first_table_after_anchor_prefix(
@@ -681,6 +736,21 @@ def main(argv: List[str]) -> int:
             )
     else:
         item_name, item_hash = _extract_identity(html)
+
+        if item_name is None or item_name.lower() == "x":
+            if not edit_html:
+                try:
+                    edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
+                except Exception:
+                    edit_html = ""
+
+            if edit_html:
+                structure_item_name, structure_item_hash = _extract_structure_identity_from_edit_source(
+                    edit_html,
+                    structure_name=wiki_title.replace("_", " "),
+                )
+                if structure_item_name is not None or structure_item_hash is not None:
+                    item_name, item_hash = structure_item_name, structure_item_hash
 
     retrieved_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 

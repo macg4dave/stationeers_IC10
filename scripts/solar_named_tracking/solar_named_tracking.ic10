@@ -1,0 +1,96 @@
+# solar_named_tracking
+# Category: Array Controller | Status: Functional
+# d0 = Daylight Sensor
+# Tracks all Solar Panels on the data network by exact name groups.
+# Name groups supported: 0, 90, 180, 270.
+# Day: group name is added as a horizontal offset; night: park at that angle.
+# Assumes Daylight Sensor is mounted flat/facing up; tune constants if needed.
+
+alias daylight d0
+alias sun_h r0
+alias sensor_v r1
+alias target_h r2
+alias target_v r3
+alias cond r4
+alias sensor_dir_deg r5
+alias sensor_prefab r6
+
+define DAYLIGHT_SENSOR_HASH 1076425094
+define SOLAR_PANEL_HASH -2045627372
+define SENSOR_PORT_DIRECTION 0
+define HORIZONTAL_BIAS_DEG 0
+define HORIZONTAL_INVERT 0
+define VERTICAL_BIAS_DEG 0
+define NIGHT_THRESHOLD_DEG 0
+define PANEL_MIN_VERTICAL 15
+define PANEL_MAX_VERTICAL 165
+define NIGHT_PARK_VERTICAL 15
+define STATUS_DAY 1
+define STATUS_NIGHT 2
+define STATUS_BAD_SENSOR 901
+
+wait_devices:
+	yield
+	bdns d0 wait_devices
+
+init:
+	mul sensor_dir_deg SENSOR_PORT_DIRECTION 90
+	j main
+
+main:
+	bdns d0 wait_devices
+	l sensor_prefab daylight PrefabHash
+	bne sensor_prefab DAYLIGHT_SENSOR_HASH bad_sensor
+
+	l sun_h daylight Horizontal
+	l sensor_v daylight Vertical
+	add sun_h sun_h sensor_dir_deg
+	add sun_h sun_h HORIZONTAL_BIAS_DEG
+	add sun_h sun_h 360
+	mod sun_h sun_h 360
+	beqz HORIZONTAL_INVERT no_invert
+	sub sun_h 360 sun_h
+no_invert:
+	sub target_v 90 sensor_v
+	add target_v target_v VERTICAL_BIAS_DEG
+	blt target_v NIGHT_THRESHOLD_DEG night_park
+	max target_v target_v PANEL_MIN_VERTICAL
+	min target_v target_v PANEL_MAX_VERTICAL
+	s db Setting STATUS_DAY
+
+	add target_h sun_h 0
+	mod target_h target_h 360
+	sbn SOLAR_PANEL_HASH HASH("0") Horizontal target_h
+	sbn SOLAR_PANEL_HASH HASH("0") Vertical target_v
+	add target_h sun_h 90
+	mod target_h target_h 360
+	sbn SOLAR_PANEL_HASH HASH("90") Horizontal target_h
+	sbn SOLAR_PANEL_HASH HASH("90") Vertical target_v
+	add target_h sun_h 180
+	mod target_h target_h 360
+	sbn SOLAR_PANEL_HASH HASH("180") Horizontal target_h
+	sbn SOLAR_PANEL_HASH HASH("180") Vertical target_v
+	add target_h sun_h 270
+	mod target_h target_h 360
+	sbn SOLAR_PANEL_HASH HASH("270") Horizontal target_h
+	sbn SOLAR_PANEL_HASH HASH("270") Vertical target_v
+	yield
+	j main
+
+night_park:
+	s db Setting STATUS_NIGHT
+	sbn SOLAR_PANEL_HASH HASH("0") Horizontal 0
+	sbn SOLAR_PANEL_HASH HASH("0") Vertical NIGHT_PARK_VERTICAL
+	sbn SOLAR_PANEL_HASH HASH("90") Horizontal 90
+	sbn SOLAR_PANEL_HASH HASH("90") Vertical NIGHT_PARK_VERTICAL
+	sbn SOLAR_PANEL_HASH HASH("180") Horizontal 180
+	sbn SOLAR_PANEL_HASH HASH("180") Vertical NIGHT_PARK_VERTICAL
+	sbn SOLAR_PANEL_HASH HASH("270") Horizontal 270
+	sbn SOLAR_PANEL_HASH HASH("270") Vertical NIGHT_PARK_VERTICAL
+	yield
+	j main
+
+bad_sensor:
+	s db Setting STATUS_BAD_SENSOR
+	yield
+	j main
