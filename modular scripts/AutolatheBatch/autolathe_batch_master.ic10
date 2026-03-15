@@ -16,12 +16,21 @@ alias recipe r4
 alias batch r5
 alias cond r6
 alias busy r7
+alias hall_token r8
+alias hall_prev r9
+alias hall_cmd r10
+alias hall_pending r11
 
 define BUTTON_HASH 491845673
+define MEMH HASH("StructureLogicMemory")
+define HALL_CTOK HASH("hall_cmd_token")
+define HALL_CTYPE HASH("hall_cmd_type")
 
 init:
 s db Setting 0
 move btn_prev 0
+move hall_prev 0
+move hall_pending 0
 
 main:
 yield
@@ -38,12 +47,20 @@ l worker_status worker Setting
 sgt cond worker_status 109
 slt busy worker_status 140
 and busy cond busy
+lbn hall_token MEMH HALL_CTOK Setting Maximum
+beq hall_token hall_prev hall_seen
+move hall_prev hall_token
+lbn hall_cmd MEMH HALL_CTYPE Setting Maximum
+bne hall_cmd 6 hall_seen
+move hall_pending 1
+hall_seen:
 beqz busy not_busy
 s db Setting 2
 j save_prev
 not_busy:
 seq cond btn_prev 0
 and cond cond btn_now
+or cond cond hall_pending
 beqz cond publish_state
 l recipe slot0 Setting
 beqz recipe invalid_req
@@ -54,6 +71,7 @@ l token cmd_token Setting
 add token token 1
 s cmd_type Setting 1
 s cmd_token Setting token
+move hall_pending 0
 s db Setting 10
 j save_prev
 publish_state:
@@ -64,6 +82,7 @@ done_state:
 s db Setting 5
 j save_prev
 invalid_req:
+move hall_pending 0
 s db Setting 11
 save_prev:
 move btn_prev btn_now

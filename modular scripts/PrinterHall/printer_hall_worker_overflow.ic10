@@ -9,10 +9,10 @@ alias flush r5
 
 define MEMH HASH("StructureLogicMemory")
 define PRH HASH("StructureAutolathe")
-define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
-define CTOK HASH("cmd_token")
-define CTYPE HASH("cmd_type")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
+define CTOK HASH("hall_cmd_token")
+define CTYPE HASH("hall_cmd_type")
 define BUF HASH("buffer_printer")
 
 auto:

@@ -6,8 +6,8 @@ alias c r2
 
 define MEMH HASH("StructureLogicMemory")
 define PRH HASH("StructureAutolathe")
-define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
 define P1 HASH("printer_1")
 define P2 HASH("printer_2")
 define P3 HASH("printer_3")

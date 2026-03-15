@@ -13,16 +13,17 @@ printer at a time.
   - PrinterHall Idle Worker
   - PrinterHall Setup Guard
 - 5x Logic Memory
-  - `cmd_token`
-  - `cmd_type`
-  - `slot0`
-  - `slot1`
-  - `slot2`
-- 4x Logic Switch (Button)
+  - `hall_cmd_token`
+  - `hall_cmd_type`
+  - `hall_slot0`
+  - `hall_slot1`
+  - `hall_slot2`
+- 5x Logic Switch (Button)
   - select printer 1
   - select printer 2
   - select printer 3
   - flush overflow
+  - run selected batch
 - 1x Logic Switch (Switch)
   - hall power
 - 4x Autolathe
@@ -45,15 +46,16 @@ Set these exact names (case-sensitive):
 - IC Housing: `overflow_worker`
 - IC Housing: `idle_worker`
 - IC Housing: `setup_guard`
-- Logic Memory: `cmd_token`
-- Logic Memory: `cmd_type`
-- Logic Memory: `slot0`
-- Logic Memory: `slot1`
-- Logic Memory: `slot2`
+- Logic Memory: `hall_cmd_token`
+- Logic Memory: `hall_cmd_type`
+- Logic Memory: `hall_slot0`
+- Logic Memory: `hall_slot1`
+- Logic Memory: `hall_slot2`
 - Logic Switch (Button): `select_1`
 - Logic Switch (Button): `select_2`
 - Logic Switch (Button): `select_3`
 - Logic Switch (Button): `flush_overflow`
+- Logic Switch (Button): `run_batch`
 - Logic Switch (Switch): `hall_power`
 - Autolathe: `printer_1`
 - Autolathe: `printer_2`
@@ -109,13 +111,15 @@ Internal prefab tokens used by the name-based scripts:
 - Wait until `setup_guard` shows `1`.
 - Turn `hall_power` on.
 - Press one of the select buttons to choose the active printer.
+- Press `run_batch` to trigger the selected cell's local `AutolatheBatch` run.
 
 ## Controls
 
 - `select_1` / `select_2` / `select_3`: choose the active printer.
 - `hall_power`: enables the hall.
 - `flush_overflow`: briefly opens the buffer printer and forces sorter traffic to overflow.
-- `slot2`: idle timeout in loops; default `300` from setup guard.
+- `run_batch`: tells the selected local `AutolatheBatch` cell to start its configured run.
+- `hall_slot2`: idle timeout in loops; default `300` from setup guard.
 
 ## Runtime debug snapshot (required for issue reports)
 
@@ -127,7 +131,7 @@ When debugging, capture these values in one screenshot/note:
 - `overflow_worker` (`db Setting`)
 - `idle_worker` (`db Setting`)
 - `setup_guard` (`db Setting`)
-- `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
+- `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`
 
 Quick interpretation:
 
@@ -136,3 +140,6 @@ Quick interpretation:
 - if selector is `101`, no printer is selected yet
 - if logistics is `340`, its local sorter mapping is wrong or missing
 - if idle is `244`, its local proximity sensor mapping is wrong or missing
+
+These prefixed hall memories are intentional so `PrinterHall` can coexist on the same
+network with local machine features such as `AutolatheBatch`.

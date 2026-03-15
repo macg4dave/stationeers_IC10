@@ -10,10 +10,10 @@ alias cmd r5
 alias flush r6
 
 define MEMH HASH("StructureLogicMemory")
-define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
-define CTOK HASH("cmd_token")
-define CTYPE HASH("cmd_type")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
+define CTOK HASH("hall_cmd_token")
+define CTYPE HASH("hall_cmd_type")
 define LOGIC_MODE 2
 
 auto:

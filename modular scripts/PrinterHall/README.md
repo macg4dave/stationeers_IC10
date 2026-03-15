@@ -58,18 +58,18 @@ Required exact names:
 - IC Housing: `overflow_worker`
 - IC Housing: `idle_worker`
 - IC Housing: `setup_guard`
-- Logic Memory: `cmd_token`, `cmd_type`, `slot0`, `slot1`, `slot2`
-- Logic Switch (Button): `select_1`, `select_2`, `select_3`, `flush_overflow`
+- Logic Memory: `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`
+- Logic Switch (Button): `select_1`, `select_2`, `select_3`, `flush_overflow`, `run_batch`
 - Logic Switch (Switch): `hall_power`
 - Autolathe: `printer_1`, `printer_2`, `printer_3`, `buffer_printer`
 
 ## Shared memory contract
 
-- `cmd_token` - incrementing command token written by master
-- `cmd_type` - last command code
-- `slot0` - active printer index (`0` none, `1..3` printer selection)
-- `slot1` - hall power flag (`0` off, `1` on)
-- `slot2` - idle timeout in loops (default `300`)
+- `hall_cmd_token` - incrementing command token written by master
+- `hall_cmd_type` - last command code
+- `hall_slot0` - active printer index (`0` none, `1..3` printer selection)
+- `hall_slot1` - hall power flag (`0` off, `1` on)
+- `hall_slot2` - idle timeout in loops (default `300`)
 
 Command codes:
 
@@ -77,11 +77,16 @@ Command codes:
 - `2` = select `printer_2`
 - `3` = select `printer_3`
 - `5` = flush overflow path
+- `6` = ask the selected local batch cell to start its configured run
 
 ## Control flow
 
 - Press one of the select buttons to choose the active printer.
 - Turn `hall_power` on to let the selected printer open and receive bus traffic.
+- The `hall_*` memories are intentionally prefixed so this feature can share a data
+  network with local batch cells such as `AutolatheBatch`.
+- Press `run_batch` to ask the currently selected local batch cell to start using that
+  cell's own `slot0` / `slot1` recipe and count settings.
 - The logistics worker releases incoming items to:
   - printer lane while the hall is powered and a printer is selected
   - overflow lane when no printer is selected or during flush windows
@@ -102,6 +107,7 @@ Command codes:
 - `12` = selected printer 2
 - `13` = selected printer 3
 - `15` = flush command sent
+- `16` = run-batch command sent
 - `43` = missing `selector_worker`
 - `44` = missing `logistics_worker`
 - `45` = missing `overflow_worker`
@@ -143,18 +149,20 @@ Command codes:
 
 - `0` = boot
 - `1` = setup valid
-- `91` = missing `cmd_token`
-- `92` = missing `cmd_type`
+- `91` = missing `hall_cmd_token`
+- `92` = missing `hall_cmd_type`
 - `93` = missing required worker/master housing
 - `94` = missing required control name/type
 - `97` = missing required printer name/type
-- `98` = missing `slot0` / `slot1` / `slot2`
+- `98` = missing `hall_slot0` / `hall_slot1` / `hall_slot2`
 
 ## Recovery steps
 
 - If setup guard is not `1`, fix names first.
 - If master is `11`, turn on `hall_power`.
 - If selector stays at `101`, press one of the select buttons.
+- If `run_batch` appears to do nothing, verify the selected printer's local
+  `AutolatheBatch` cell is present and hall-gated.
 - If logistics is `340`, check the local `d0` feed sorter wiring.
 - If idle is `244`, check the local `d0` proximity sensor wiring.
 - If items still go to overflow while the hall is active, confirm the sorter path is:

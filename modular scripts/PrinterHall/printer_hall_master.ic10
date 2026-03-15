@@ -5,6 +5,7 @@ alias b2 r3
 alias b3 r4
 alias bf r5
 alias power r6
+alias br r7
 alias house r8
 alias edge r9
 
@@ -15,14 +16,15 @@ define WSEL HASH("selector_worker")
 define WLOG HASH("logistics_worker")
 define WOVR HASH("overflow_worker")
 define WIDL HASH("idle_worker")
-define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
-define CTOK HASH("cmd_token")
-define CTYPE HASH("cmd_type")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
+define CTOK HASH("hall_cmd_token")
+define CTYPE HASH("hall_cmd_type")
 define BTN1 HASH("select_1")
 define BTN2 HASH("select_2")
 define BTN3 HASH("select_3")
 define BTNF HASH("flush_overflow")
+define RUNB HASH("run_batch")
 define PWR HASH("hall_power")
 
 init:
@@ -31,6 +33,7 @@ move b1 0
 move b2 0
 move b3 0
 move bf 0
+move br 0
 s db Setting 0
 main:
 yield
@@ -68,40 +71,42 @@ seq edge bf 0
 and edge edge c
 move bf c
 bnez edge cmdf
+lbn c BUTH RUNB Activate Maximum
+seq edge br 0
+and edge edge c
+move br c
+bnez edge cmdr
 seq c power 0
 bnez c hall_off
 s db Setting 1
 j main
 cmd1:
-lbn tok MEMH CTOK Setting Maximum
-add tok tok 1
-sbn MEMH SLOT0 Setting 1
-sbn MEMH CTYPE Setting 1
-sbn MEMH CTOK Setting tok
+move c 1
 s db Setting 10
-j main
+j send_sel
 cmd2:
-lbn tok MEMH CTOK Setting Maximum
-add tok tok 1
-sbn MEMH SLOT0 Setting 2
-sbn MEMH CTYPE Setting 2
-sbn MEMH CTOK Setting tok
+move c 2
 s db Setting 12
-j main
+j send_sel
 cmd3:
-lbn tok MEMH CTOK Setting Maximum
-add tok tok 1
-sbn MEMH SLOT0 Setting 3
-sbn MEMH CTYPE Setting 3
-sbn MEMH CTOK Setting tok
+move c 3
 s db Setting 13
-j main
+j send_sel
 cmdf:
+move c 5
+s db Setting 15
+j send_cmd
+cmdr:
+move c 6
+s db Setting 16
+j send_cmd
+send_sel:
+sbn MEMH SLOT0 Setting c
+send_cmd:
 lbn tok MEMH CTOK Setting Maximum
 add tok tok 1
-sbn MEMH CTYPE Setting 5
+sbn MEMH CTYPE Setting c
 sbn MEMH CTOK Setting tok
-s db Setting 15
 j main
 hall_off:
 s db Setting 11

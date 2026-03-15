@@ -8,11 +8,11 @@ define MEMH HASH("StructureLogicMemory")
 define BUTH HASH("StructureLogicButton")
 define SWH HASH("StructureLogicSwitch2")
 define PRH HASH("StructureAutolathe")
-define CTOK HASH("cmd_token")
-define CTYPE HASH("cmd_type")
-define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
-define SLOT2 HASH("slot2")
+define CTOK HASH("hall_cmd_token")
+define CTYPE HASH("hall_cmd_type")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
+define SLOT2 HASH("hall_slot2")
 define MASTER HASH("master")
 define WSEL HASH("selector_worker")
 define WLOG HASH("logistics_worker")
@@ -22,6 +22,7 @@ define BTN1 HASH("select_1")
 define BTN2 HASH("select_2")
 define BTN3 HASH("select_3")
 define BTNF HASH("flush_overflow")
+define RUNB HASH("run_batch")
 define PWR HASH("hall_power")
 define P1 HASH("printer_1")
 define P2 HASH("printer_2")
@@ -61,6 +62,8 @@ bne c BUTH err_ctrl
 lbn c BUTH BTN3 PrefabHash Maximum
 bne c BUTH err_ctrl
 lbn c BUTH BTNF PrefabHash Maximum
+bne c BUTH err_ctrl
+lbn c BUTH RUNB PrefabHash Maximum
 bne c BUTH err_ctrl
 lbn c SWH PWR PrefabHash Maximum
 bne c SWH err_ctrl

@@ -12,6 +12,7 @@ Player setup guide: `modular scripts/AutolatheBatch/Setup.md`.
 - `autolathe_batch_master.ic10` - reads the start button and emits a start command
 - `autolathe_batch_worker_machine.ic10` - drives one Autolathe to a target export count
 - `autolathe_batch_worker_logistics.ic10` - keeps printer materials topped up via sorter + vending
+- `autolathe_batch_worker_hall_gate.ic10` - optional gate that only enables this cell when `PrinterHall` selects it
 - `autolathe_batch_setup_guard.ic10` - validates mappings and initializes command memories
 
 This is intentionally small and useful as a first modular printer/autolathe test case.
@@ -54,6 +55,14 @@ This is intentionally small and useful as a first modular printer/autolathe test
 - `d2` = retry button
 - `d3` = Autolathe
 - `db` = logistics status / current ingot request
+
+### Hall gate worker (optional)
+
+- `d0` = `cell_index` Logic Memory (`1..3` for the hall slot this cell owns)
+- `d1` = batch master housing
+- `d2` = machine worker housing
+- `d3` = logistics worker housing
+- `db` = hall-integration status
 
 ## Shared memory contract
 
@@ -126,6 +135,18 @@ Recommended first test:
 - `243` = missing Autolathe mapping
 - any other value = current ingot hash being requested from the vending machine
 
+### Hall gate worker status (`250-269`, optional)
+
+- `250` = hall power off
+- `251` = hall powered, no active printer selected
+- `260` = this cell is currently selected and enabled
+- `261` = another hall printer is selected; this cell is gated off
+- `262` = invalid `cell_index` value
+- `263` = missing `cell_index` memory mapping
+- `264` = missing batch master housing mapping
+- `265` = missing machine worker housing mapping
+- `266` = missing logistics worker housing mapping
+
 ## Notes
 
 - This worker counts **exports**, not recipe progress. That makes it a good simple test,
@@ -143,10 +164,39 @@ Useful upgrade paths observed in public printer-logistics scripts:
 
 The included logistics worker now implements the first, second, and fourth of those.
 
+## Optional PrinterHall integration
+
+If you want a full hall where one shared bus feeds several local batch cells:
+
+- run one `PrinterHall` feature for hall-level selection, power, overflow, and idle logic
+- run one `AutolatheBatch` cell per physical printer
+- add `autolathe_batch_worker_hall_gate.ic10` to each cell
+
+The hall gate reads `PrinterHall`'s prefixed memory contract:
+
+- `hall_slot0` = selected printer index
+- `hall_slot1` = hall power flag
+
+The local batch master also listens for:
+
+- `hall_cmd_token`
+- `hall_cmd_type = 6`
+
+and only enables the local batch master + machine + logistics workers when:
+
+- hall power is on
+- this cell's `cell_index` matches the selected hall printer index
+
+When the selected hall operator presses `run_batch`, the local batch master starts the
+configured run automatically using this cell's own `slot0` / `slot1` values.
+
+This keeps hall routing and local recipe/material logic separate and easier to debug.
+
 ## Recovery steps
 
 - If setup guard is not `1`, fix mappings first.
 - If master stays at `11`, check `slot0` and `slot1` values.
 - If worker stays at `122`, the Autolathe is usually waiting on materials or power.
 - If logistics worker shows a large non-status value, that value is the ingot hash it is waiting for.
+- If hall gate is `261`, another hall printer is selected and this cell is intentionally gated off.
 - To retry, press the start button again after the worker returns to `100` or `140`.
