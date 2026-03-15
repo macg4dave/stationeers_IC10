@@ -68,21 +68,21 @@ If one group parks correctly and the others are still rotated wrong, adjust only
 3. Rename each Solar Panel to the exact world direction its **data port** faces.
 4. Put the Daylight Sensor on `d0`.
 5. Paste `solar_named_tracking.ic10` into the IC.
-6. If tracking is rotated, adjust `SENSOR_PORT_DIRECTION` in 90° steps.
-7. If needed, fine-tune `HORIZONTAL_BIAS_DEG` and `VERTICAL_BIAS_DEG`.
+6. If tracking is rotated, adjust `SENSOR_DIR_Q` in 90° steps.
+7. If needed, fine-tune `H_BIAS` and `V_BIAS`.
 
 ## Tuning
 
-- `SENSOR_PORT_DIRECTION`: sensor connector direction in quarter-turns (`0..3`).
-- `HORIZONTAL_BIAS_DEG`: extra horizontal trim in degrees.
-- `HORIZONTAL_INVERT`: set to `1` if horizontal motion runs backward.
-- `VERTICAL_BIAS_DEG`: extra vertical trim in degrees.
-- `PANEL_PORT_LOCAL_DEG`: local Solar Panel angle of the data-port side (default `270`).
-- `NIGHT_PARK_BASE_HORIZONTAL`: reference local horizontal park angle.
-- `NIGHT_PARK_OFFSET_0`, `NIGHT_PARK_OFFSET_90`, `NIGHT_PARK_OFFSET_180`, `NIGHT_PARK_OFFSET_270`:
+- `SENSOR_DIR_Q`: sensor connector direction in quarter-turns (`0..3`).
+- `H_BIAS`: extra horizontal trim in degrees.
+- `H_INV`: set to `1` if horizontal motion runs backward.
+- `V_BIAS`: extra vertical trim in degrees.
+- `PANEL_PORT_H`: local Solar Panel angle of the data-port side (default `270`).
+- `PARK_BASE_H`: reference local horizontal park angle.
+- `PARK_OFF_0`, `PARK_OFF_90`, `PARK_OFF_180`, `PARK_OFF_270`:
     fixed night offsets added to the base for each name group.
-- `NIGHT_THRESHOLD_DEG`: below this computed panel elevation, the script parks for night.
-- `NIGHT_PARK_VERTICAL`: night park elevation (default `15`).
+- `NIGHT_TRIG_V`: below this computed panel elevation, the script parks for night.
+- `PARK_V`: night park elevation (default `15`).
 
 ## Debug / status
 

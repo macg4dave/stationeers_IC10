@@ -1,0 +1,97 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Vending_Machine",
+    "wikiTitle": "Vending_Machine",
+    "retrievedAt": "2026-03-15T16:47:47+00:00"
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Not functional on this device"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Locks the device for player interaction when set to 1. Unlocks it, when set to 0."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the device on, when set >= 1. Turns it off, when set to <1."
+      },
+      {
+        "name": "RequestHash",
+        "type": "integer",
+        "description": "Write ItemHash to device to immediate output"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the device is turned on and receives power. (0 for no, 1 for yes)."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Returns whether the device is flashing an error. (0 for no, 1 for yes)."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Not functional on this device."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Reads if the device is locked."
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": "Incremented each time an item stack enter by the Import slot"
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": "Incremented each time an item stack exit by the Export Slot"
+      },
+      {
+        "name": "Ratio",
+        "type": "integer",
+        "description": "Storage space used in percentage."
+      },
+      {
+        "name": "Quantity",
+        "type": "integer",
+        "description": "Storage space used in whole numbers."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Returns ItemHash of device"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the device is turned on. (0 for no, 1 for yes)"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Returns the current amount of power, required by the device, in watts."
+      },
+      {
+        "name": "RequestHash",
+        "type": "integer",
+        "description": "0 unless actively written to"
+      }
+    ]
+  }
+}

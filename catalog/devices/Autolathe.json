@@ -1,0 +1,117 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Autolathe",
+    "wikiTitle": "Autolathe",
+    "retrievedAt": "2026-03-15T16:44:09+00:00"
+  },
+  "identity": {
+    "itemName": "ItemKitAutolathe",
+    "itemHash": -1753893214
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the device off. Also toggles the switch accordingly."
+      },
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Stops purging of stored materials in the structure. Also resets the lever accordingly."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Writing a 0 to the device stops the construction of the chosen item."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Allows manual interaction with the structure."
+      },
+      {
+        "name": "ClearMemory",
+        "type": "boolean",
+        "description": "Writing a 0 to a structure doesn't have any impact."
+      },
+      {
+        "name": "RecipeHash",
+        "type": "integer",
+        "description": "Sets the machine to the recipe corresponding to the written hash number."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "The Autolathe is not powered. This is the same as the physical red powerswitch located on the structure."
+      },
+      {
+        "name": "Open",
+        "type": "boolean",
+        "description": "Output of the Autolathe is closed. This is the same as the physical lever located on the structure."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "The structure is currently producing nothing."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "1 if device is locked, otherwise 0, can be set in most devices and prevents the user from access the values."
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Can be read to return if the device is correctly powered or not, set via the power system, return 1 if powered and O if not."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "1 if device is in error state, otherwise 0."
+      },
+      {
+        "name": "RecipeHash",
+        "type": "integer",
+        "description": "Current hash of the recipe the device is set to produce."
+      },
+      {
+        "name": "Reagents",
+        "type": "integer",
+        "description": "Total number of reagents inside the device (e.g. 92g of iron = 92)."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Idle operating power quantity. Does not include extra power demanded during recipe fabrication."
+      },
+      {
+        "name": "CompletionRatio",
+        "type": "integer",
+        "description": "How complete the current production is for this device, between 0 and 1."
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": "How many items exported since last ClearMemory. This count is based on every ouput stack of items (e.g. 1 item and 12g of iron = 2)."
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": "How many items imported since last ClearMemory. The count is based on stacks (e.g. 92g of iron in on stack = 1)."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "The hash of the structure."
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": "Unique Reference Identifier for this object."
+      }
+    ]
+  }
+}

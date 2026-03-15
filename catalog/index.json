@@ -20,6 +20,12 @@
       "itemHash": -616758353
     },
     {
+      "wikiTitle": "Autolathe",
+      "file": "devices/Autolathe.json",
+      "itemName": "ItemKitAutolathe",
+      "itemHash": -1753893214
+    },
+    {
       "wikiTitle": "Console",
       "file": "devices/Console.json",
       "itemName": null,
@@ -198,6 +204,12 @@
       "file": "devices/Station_Battery_(Large).json",
       "itemName": null,
       "itemHash": -439865430
+    },
+    {
+      "wikiTitle": "Vending_Machine",
+      "file": "devices/Vending_Machine.json",
+      "itemName": null,
+      "itemHash": null
     },
     {
       "wikiTitle": "Wall_Cooler",

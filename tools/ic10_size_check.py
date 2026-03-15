@@ -3,6 +3,7 @@
 Checks Stationeers IC10 chip paste-into-chip constraints:
 - Max 128 lines (includes blank lines and comment-only lines)
 - Max 90 characters per line (includes comments)
+- Max 4096 bytes UTF-8 file size (in-game paste limit)
 
 This repo has not yet standardized script file extensions.
 If you pass a directory, use --ext to control which files are checked.
@@ -27,6 +28,7 @@ from typing import Iterable
 
 DEFAULT_MAX_LINES = 128
 DEFAULT_MAX_COLS = 90
+DEFAULT_MAX_BYTES = 4096
 
 
 @dataclass(frozen=True)
@@ -68,18 +70,32 @@ def _check_text(text: str, max_lines: int, max_cols: int) -> tuple[int, list[int
     return len(lines), offending
 
 
-def check_file(path: Path, max_lines: int, max_cols: int) -> list[Violation]:
+def check_file(path: Path, max_lines: int, max_cols: int, max_bytes: int) -> list[Violation]:
     try:
-        text = path.read_text(encoding="utf-8")
+        raw = path.read_bytes()
     except UnicodeDecodeError:
         # IC10 scripts should be plain text; if decoding fails, report clearly.
         return [Violation(path=path, message="not valid UTF-8 text")]
     except OSError as e:
         return [Violation(path=path, message=f"read error: {e}")]
 
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return [Violation(path=path, message="not valid UTF-8 text")]
+
     line_count, too_long = _check_text(text, max_lines=max_lines, max_cols=max_cols)
+    byte_count = len(raw)
 
     violations: list[Violation] = []
+
+    if byte_count > max_bytes:
+        violations.append(
+            Violation(
+                path=path,
+                message=f"too many bytes: {byte_count} (max {max_bytes})",
+            )
+        )
 
     if line_count > max_lines:
         violations.append(
@@ -118,6 +134,12 @@ def main() -> int:
         help=f"Maximum allowed characters per line (default: {DEFAULT_MAX_COLS})",
     )
     parser.add_argument(
+        "--max-bytes",
+        type=int,
+        default=DEFAULT_MAX_BYTES,
+        help=f"Maximum allowed UTF-8 file size in bytes (default: {DEFAULT_MAX_BYTES})",
+    )
+    parser.add_argument(
         "--ext",
         action="append",
         default=[],
@@ -139,7 +161,14 @@ def main() -> int:
 
     all_violations: list[Violation] = []
     for f in _iter_candidate_files(path, exts=exts):
-        all_violations.extend(check_file(f, max_lines=args.max_lines, max_cols=args.max_cols))
+        all_violations.extend(
+            check_file(
+                f,
+                max_lines=args.max_lines,
+                max_cols=args.max_cols,
+                max_bytes=args.max_bytes,
+            )
+        )
 
     if not all_violations:
         print("OK")
