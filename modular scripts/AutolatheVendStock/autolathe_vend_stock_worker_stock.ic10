@@ -5,31 +5,28 @@ alias hash r2
 alias occ r3
 alias item r4
 alias found r5
-alias power r6
-alias active r7
-alias token r8
-alias wait r9
-alias cond r10
-alias spare r11
+alias token r6
+alias cond r7
+alias mach r8
+alias house r9
 
 define MEMH HASH("StructureLogicMemory")
-define SLOT0 HASH("hall_slot0")
-define SLOT1 HASH("hall_slot1")
-define SLOT3 HASH("hall_slot3")
-define SLOT4 HASH("hall_slot4")
-define CTOK HASH("hall_cmd_token")
-define CTYPE HASH("hall_cmd_type")
+define CTOK HASH("cmd_token")
+define CTYPE HASH("cmd_type")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+define MACH HASH("machine_worker")
+
 auto:
+l house db PrefabHash
 move idx 0
 move slot 2
 move found 0
-move wait 0
 s db Setting 500
+
 main:
 yield
 bdns d0 no_vend
-lbn power MEMH SLOT1 Setting Maximum
-lbn active MEMH SLOT0 Setting Maximum
 move hash 1225836666
 seq cond idx 1
 select hash cond -487378546 hash
@@ -75,10 +72,6 @@ seq cond idx 21
 select hash cond -524289310 hash
 seq cond idx 22
 select hash cond 1800622698 hash
-beqz wait scan
-sub wait wait 1
-j publish
-scan:
 ls occ vend slot Occupied
 beqz occ next_slot
 ls item vend slot OccupantHash
@@ -90,35 +83,29 @@ add slot slot 1
 slt cond slot 102
 bnez cond publish
 move slot 2
-bnez found stocked
-beqz power paused
-beqz active paused
+bnez found next_hash
+lbn mach house MACH Setting Maximum
+sgt cond mach 109
+slt item mach 140
+and cond cond item
+bnez cond missing
 lbn token MEMH CTOK Setting Maximum
 add token token 1
-sbn MEMH SLOT3 Setting hash
-sbn MEMH SLOT4 Setting 1
-sbn MEMH CTYPE Setting 6
+sbn MEMH SLOT0 Setting hash
+sbn MEMH SLOT1 Setting 1
+sbn MEMH CTYPE Setting 1
 sbn MEMH CTOK Setting token
-move wait 200
+missing:
 s db Setting hash
 j main
-stocked:
+next_hash:
 move found 0
 add idx idx 1
 slt cond idx 23
 bnez cond publish
 move idx 0
-j publish
-paused:
-move found 0
-s db Setting 510
-j main
 publish:
-bgtz wait waiting
 s db Setting 500
-j main
-waiting:
-s db Setting hash
 j main
 no_vend:
 s db Setting 540

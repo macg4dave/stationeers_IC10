@@ -1,0 +1,72 @@
+alias mach d0
+alias cond r0
+alias house r1
+alias inited r2
+
+define MEMH HASH("StructureLogicMemory")
+define CTOK HASH("cmd_token")
+define CTYPE HASH("cmd_type")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+define STOCK HASH("stock_worker")
+define WORK HASH("machine_worker")
+define LOG HASH("logistics_worker")
+
+init:
+l house db PrefabHash
+move inited 0
+s db Setting 0
+
+main:
+yield
+bdns d0 no_machine
+lbn cond MEMH CTOK PrefabHash Maximum
+bne cond MEMH err_tok
+lbn cond MEMH CTYPE PrefabHash Maximum
+bne cond MEMH err_type
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH err_slots
+lbn cond MEMH SLOT1 PrefabHash Maximum
+bne cond MEMH err_slots
+lbn cond house STOCK PrefabHash Maximum
+bne cond house err_house
+lbn cond house WORK PrefabHash Maximum
+bne cond house err_house
+lbn cond house LOG PrefabHash Maximum
+bne cond house err_house
+bnez inited ok
+lbn cond MEMH CTYPE Setting Maximum
+beqz cond init_tok
+sbn MEMH CTYPE Setting 0
+init_tok:
+lbn cond MEMH CTOK Setting Maximum
+beqz cond init_0
+sbn MEMH CTOK Setting 0
+init_0:
+lbn cond MEMH SLOT0 Setting Maximum
+beqz cond init_1
+sbn MEMH SLOT0 Setting 0
+init_1:
+lbn cond MEMH SLOT1 Setting Maximum
+beqz cond mark
+sbn MEMH SLOT1 Setting 0
+mark:
+move inited 1
+ok:
+s db Setting 1
+j main
+err_tok:
+s db Setting 91
+j main
+err_type:
+s db Setting 92
+j main
+err_house:
+s db Setting 93
+j main
+no_machine:
+s db Setting 97
+j main
+err_slots:
+s db Setting 98
+j main

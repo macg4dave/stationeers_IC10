@@ -14,6 +14,7 @@ Each modular feature lives in:
 ## Included projects
 
 - `AutolatheBatch/` — Simple modular Autolathe batch-runner test rig (master + worker + setup guard).
+- `AutolatheVendStock/` — Simplified fully automatic single-Autolathe vending stocker (no buttons).
 - `PrinterHall/` — Shared-bus multi-Autolathe hall controller with selector, logistics, overflow, and idle workers.
 - `SatCom/` — Satellite communications modular scaffold.
 - `_template/` — Starter master/worker template for new modular features.

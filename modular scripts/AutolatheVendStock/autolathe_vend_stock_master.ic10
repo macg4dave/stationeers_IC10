@@ -1,0 +1,48 @@
+alias cond r0
+alias house r1
+alias stock r2
+alias mach r3
+
+define STOCK HASH("stock_worker")
+define MACH HASH("machine_worker")
+define LOG HASH("logistics_worker")
+
+init:
+l house db PrefabHash
+s db Setting 0
+
+main:
+yield
+lbn cond house STOCK PrefabHash Maximum
+bne cond house no_stock
+lbn cond house MACH PrefabHash Maximum
+bne cond house no_mach
+lbn cond house LOG PrefabHash Maximum
+bne cond house no_log
+sbn house STOCK On 1
+sbn house MACH On 1
+sbn house LOG On 1
+lbn mach house MACH Setting Maximum
+sgt cond mach 109
+slt stock mach 140
+and cond cond stock
+bnez cond busy
+lbn stock house STOCK Setting Maximum
+beq stock 500 ready
+s db Setting 3
+j main
+busy:
+s db Setting 2
+j main
+ready:
+s db Setting 1
+j main
+no_stock:
+s db Setting 43
+j main
+no_mach:
+s db Setting 44
+j main
+no_log:
+s db Setting 45
+j main

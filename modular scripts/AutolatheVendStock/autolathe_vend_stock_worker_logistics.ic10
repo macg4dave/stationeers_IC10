@@ -1,11 +1,6 @@
-# autolathe_batch_worker_logistics
-# d0 sorter, d1 vending, d2 retry button, d3 autolathe
-# db: 200 idle/ready, 240-243 faults, else current ingot hash request
-
 alias sort d0
 alias vend d1
-alias retry d2
-alias mach d3
+alias mach d2
 alias need r0
 alias tmp r1
 alias oldimp r2
@@ -43,20 +38,15 @@ main:
 yield
 bdns d0 no_sort
 bdns d1 no_vend
-bdns d2 no_button
-bdns d3 no_mach
+bdns d2 no_mach
 l tmp sort Mode
 beq tmp SORT_MODE_LOGIC sort_on
 s sort Mode SORT_MODE_LOGIC
 sort_on:
 l tmp sort On
-bnez tmp check_retry
+bnez tmp route
 s sort On 1
-check_retry:
-l tmp retry Setting
-beqz tmp route_input
-move need CLEAR_REQ
-route_input:
+route:
 ls tmp sort 0 Occupied
 beqz tmp check_arrive
 ls tmp sort 0 OccupantHash
@@ -109,9 +99,6 @@ s db Setting 240
 j main
 no_vend:
 s db Setting 241
-j main
-no_button:
-s db Setting 242
 j main
 no_mach:
 s db Setting 243

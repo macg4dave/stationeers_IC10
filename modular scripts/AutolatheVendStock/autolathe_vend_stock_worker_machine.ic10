@@ -1,14 +1,6 @@
-# autolathe_batch_worker_machine
-# Worker: run an autolathe for N exports of recipe in slot0.
-# d0 cmd_token, d1 cmd_type, d2 slot0 recipe, d3 slot1 count, d4 autolathe
-
-alias cmd_token d0
-alias cmd_type d1
-alias slot0 d2
-alias slot1 d3
-alias mach d4
+alias mach d0
 alias token r0
-alias prev_token r1
+alias prev r1
 alias cmd r2
 alias recipe r3
 alias batch r4
@@ -23,28 +15,30 @@ alias curr_on r12
 alias curr_open r13
 alias last_exp r14
 
+define MEMH HASH("StructureLogicMemory")
+define CTOK HASH("cmd_token")
+define CTYPE HASH("cmd_type")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+
 init:
 s db Setting 100
 move active 0
-move prev_token 0
+move prev 0
 
 main:
 yield
-bdns d0 no_mem
-bdns d1 no_mem
-bdns d2 no_mem
-bdns d3 no_mem
-bdns d4 no_machine
-l token cmd_token Setting
-beq token prev_token no_cmd
-move prev_token token
-l cmd cmd_type Setting
+bdns d0 no_machine
+lbn token MEMH CTOK Setting Maximum
+beq token prev no_cmd
+move prev token
+lbn cmd MEMH CTYPE Setting Maximum
 beq cmd 1 cmd_start
 j main
 cmd_start:
-l recipe slot0 Setting
+lbn recipe MEMH SLOT0 Setting Maximum
 beqz recipe invalid_req
-l batch slot1 Setting
+lbn batch MEMH SLOT1 Setting Maximum
 slt cond 0 batch
 beqz cond invalid_req
 l start_exp mach ExportCount
@@ -105,10 +99,6 @@ s db Setting 140
 j main
 idle:
 s db Setting 100
-j main
-no_mem:
-move active 0
-s db Setting 145
 j main
 no_machine:
 move active 0
