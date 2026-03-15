@@ -1,0 +1,125 @@
+alias vend d0
+alias idx r0
+alias slot r1
+alias hash r2
+alias occ r3
+alias item r4
+alias found r5
+alias power r6
+alias active r7
+alias token r8
+alias wait r9
+alias cond r10
+alias spare r11
+
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("hall_slot0")
+define SLOT1 HASH("hall_slot1")
+define SLOT3 HASH("hall_slot3")
+define SLOT4 HASH("hall_slot4")
+define CTOK HASH("hall_cmd_token")
+define CTYPE HASH("hall_cmd_type")
+auto:
+move idx 0
+move slot 2
+move found 0
+move wait 0
+s db Setting 500
+main:
+yield
+bdns d0 no_vend
+lbn power MEMH SLOT1 Setting Maximum
+lbn active MEMH SLOT0 Setting Maximum
+move hash 1225836666
+seq cond idx 1
+select hash cond -487378546 hash
+seq cond idx 2
+select hash cond 1588896491 hash
+seq cond idx 3
+select hash cond -2038663432 hash
+seq cond idx 4
+select hash cond -1470820996 hash
+seq cond idx 5
+select hash cond 2060134443 hash
+seq cond idx 6
+select hash cond 1947944864 hash
+seq cond idx 7
+select hash cond 1781051034 hash
+seq cond idx 8
+select hash cond -1755116240 hash
+seq cond idx 9
+select hash cond -1394008073 hash
+seq cond idx 10
+select hash cond 969522478 hash
+seq cond idx 11
+select hash cond -1753893214 hash
+seq cond idx 12
+select hash cond 168615924 hash
+seq cond idx 13
+select hash cond 882301399 hash
+seq cond idx 14
+select hash cond 529996327 hash
+seq cond idx 15
+select hash cond 750118160 hash
+seq cond idx 16
+select hash cond -1976947556 hash
+seq cond idx 17
+select hash cond 1025254665 hash
+seq cond idx 18
+select hash cond 323957548 hash
+seq cond idx 19
+select hash cond 231903234 hash
+seq cond idx 20
+select hash cond -551612946 hash
+seq cond idx 21
+select hash cond -524289310 hash
+seq cond idx 22
+select hash cond 1800622698 hash
+beqz wait scan
+sub wait wait 1
+j publish
+scan:
+ls occ vend slot Occupied
+beqz occ next_slot
+ls item vend slot OccupantHash
+sne cond item hash
+bnez cond next_slot
+move found 1
+next_slot:
+add slot slot 1
+slt cond slot 102
+bnez cond publish
+move slot 2
+bnez found stocked
+beqz power paused
+beqz active paused
+lbn token MEMH CTOK Setting Maximum
+add token token 1
+sbn MEMH SLOT3 Setting hash
+sbn MEMH SLOT4 Setting 1
+sbn MEMH CTYPE Setting 6
+sbn MEMH CTOK Setting token
+move wait 200
+s db Setting hash
+j main
+stocked:
+move found 0
+add idx idx 1
+slt cond idx 23
+bnez cond publish
+move idx 0
+j publish
+paused:
+move found 0
+s db Setting 510
+j main
+publish:
+bgtz wait waiting
+s db Setting 500
+j main
+waiting:
+s db Setting hash
+j main
+no_vend:
+s db Setting 540
+j main

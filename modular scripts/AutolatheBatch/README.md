@@ -176,6 +176,8 @@ The hall gate reads `PrinterHall`'s prefixed memory contract:
 
 - `hall_slot0` = selected printer index
 - `hall_slot1` = hall power flag
+- `hall_slot3` = optional hall recipe override
+- `hall_slot4` = optional hall count override
 
 The local batch master also listens for:
 
@@ -188,7 +190,10 @@ and only enables the local batch master + machine + logistics workers when:
 - this cell's `cell_index` matches the selected hall printer index
 
 When the selected hall operator presses `run_batch`, the local batch master starts the
-configured run automatically using this cell's own `slot0` / `slot1` values.
+configured run automatically using either:
+
+- this cell's own `slot0` / `slot1` values, or
+- `hall_slot3` / `hall_slot4` if the hall stock worker supplied an override
 
 This keeps hall routing and local recipe/material logic separate and easier to debug.
 

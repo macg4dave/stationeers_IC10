@@ -44,6 +44,8 @@ Set these exact names (case-sensitive):
 - Logic Memory: `hall_cmd_type` (optional, from PrinterHall)
 - Logic Memory: `hall_slot0` (optional, from PrinterHall)
 - Logic Memory: `hall_slot1` (optional, from PrinterHall)
+- Logic Memory: `hall_slot3` (optional hall recipe override from PrinterHall)
+- Logic Memory: `hall_slot4` (optional hall count override from PrinterHall)
 - Logic Switch (Button): `start_batch`
 - Logic Switch (Button): `retry_ingot`
 - Sorter: `sorter_1`
@@ -120,6 +122,8 @@ Optional PrinterHall integration:
 - Wire the hall gate as shown above.
 - Use `PrinterHall` to select which cell is active; only the selected cell's local chips stay enabled.
 - Press `PrinterHall`'s `run_batch` button to start the selected cell automatically.
+- If `PrinterHall`'s stock worker is enabled, it can also fill `hall_slot3` / `hall_slot4`
+  to override this cell's local `slot0` / `slot1` for an automatic vending restock run.
 
 Recommended first test:
 
@@ -143,6 +147,7 @@ When debugging, capture these values in one screenshot/note:
 - `machine_worker` (`db Setting`)
 - `logistics_worker` (`db Setting`)
 - `hall_gate` (`db Setting`, if used)
+- `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot3`, `hall_slot4` (if integrated)
 - `cmd_token` and `cmd_type`
 - `slot0` and `slot1`
 

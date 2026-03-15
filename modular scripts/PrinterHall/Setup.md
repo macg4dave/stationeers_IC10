@@ -5,19 +5,22 @@ printer at a time.
 
 ## Build list
 
-- 6x IC Housing + IC Chip
+- 7x IC Housing + IC Chip
   - PrinterHall Master
   - PrinterHall Selector Worker
   - PrinterHall Logistics Worker
   - PrinterHall Overflow Worker
   - PrinterHall Idle Worker
+  - PrinterHall Stock Vending Worker
   - PrinterHall Setup Guard
-- 5x Logic Memory
+- 7x Logic Memory
   - `hall_cmd_token`
   - `hall_cmd_type`
   - `hall_slot0`
   - `hall_slot1`
   - `hall_slot2`
+  - `hall_slot3`
+  - `hall_slot4`
 - 5x Logic Switch (Button)
   - select printer 1
   - select printer 2
@@ -31,6 +34,8 @@ printer at a time.
   - `printer_2`
   - `printer_3`
   - `buffer_printer`
+- 1x Vending Machine
+  - `stock_vending`
 - 1x Sorter
   - shared hall feed sorter
 - 1x Proximity Sensor
@@ -45,12 +50,15 @@ Set these exact names (case-sensitive):
 - IC Housing: `logistics_worker`
 - IC Housing: `overflow_worker`
 - IC Housing: `idle_worker`
+- IC Housing: `stock_worker`
 - IC Housing: `setup_guard`
 - Logic Memory: `hall_cmd_token`
 - Logic Memory: `hall_cmd_type`
 - Logic Memory: `hall_slot0`
 - Logic Memory: `hall_slot1`
 - Logic Memory: `hall_slot2`
+- Logic Memory: `hall_slot3`
+- Logic Memory: `hall_slot4`
 - Logic Switch (Button): `select_1`
 - Logic Switch (Button): `select_2`
 - Logic Switch (Button): `select_3`
@@ -61,6 +69,7 @@ Set these exact names (case-sensitive):
 - Autolathe: `printer_2`
 - Autolathe: `printer_3`
 - Autolathe: `buffer_printer`
+- Vending Machine: `stock_vending`
 
 Internal prefab tokens used by the name-based scripts:
 
@@ -95,18 +104,25 @@ Internal prefab tokens used by the name-based scripts:
 
 - `d0` -> hall proximity sensor
 
+### printer_hall_worker_stock_vending.ic10
+
+- `d0` -> finished-goods vending machine
+
 ## Setup steps
 
 - Put all chips, memories, controls, printers, sorter, and sensor on one data network.
+- Route finished-goods outputs from the local printers into `stock_vending`.
 - Paste scripts:
   - `modular scripts/PrinterHall/printer_hall_master.ic10`
   - `modular scripts/PrinterHall/printer_hall_worker_selector.ic10`
   - `modular scripts/PrinterHall/printer_hall_worker_logistics.ic10`
   - `modular scripts/PrinterHall/printer_hall_worker_overflow.ic10`
   - `modular scripts/PrinterHall/printer_hall_worker_idle.ic10`
+  - `modular scripts/PrinterHall/printer_hall_worker_stock_vending.ic10`
   - `modular scripts/PrinterHall/printer_hall_setup_guard.ic10`
 - Apply required names from **Name contract**.
 - Wire the logistics worker and idle worker exactly as shown in **Wiring map**.
+- Wire the stock worker to `stock_vending`.
 - Connect sorter `Output 1` to the printer lane and `Output 0` to overflow / reject.
 - Wait until `setup_guard` shows `1`.
 - Turn `hall_power` on.
@@ -120,6 +136,7 @@ Internal prefab tokens used by the name-based scripts:
 - `flush_overflow`: briefly opens the buffer printer and forces sorter traffic to overflow.
 - `run_batch`: tells the selected local `AutolatheBatch` cell to start its configured run.
 - `hall_slot2`: idle timeout in loops; default `300` from setup guard.
+- `hall_slot3` / `hall_slot4`: optional hall recipe/count override used by the stock worker.
 
 ## Runtime debug snapshot (required for issue reports)
 
@@ -130,14 +147,16 @@ When debugging, capture these values in one screenshot/note:
 - `logistics_worker` (`db Setting`)
 - `overflow_worker` (`db Setting`)
 - `idle_worker` (`db Setting`)
+- `stock_worker` (`db Setting`)
 - `setup_guard` (`db Setting`)
-- `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`
+- `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`, `hall_slot3`, `hall_slot4`
 
 Quick interpretation:
 
 - if setup guard is not `1`, fix names before debugging logic
 - if master is `11`, the hall power switch is off
 - if selector is `101`, no printer is selected yet
+- if stock worker shows a large non-status value, that is the product hash it is currently restocking
 - if logistics is `340`, its local sorter mapping is wrong or missing
 - if idle is `244`, its local proximity sensor mapping is wrong or missing
 

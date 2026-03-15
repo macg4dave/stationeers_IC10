@@ -15,16 +15,19 @@ Player setup guide: `modular scripts/PrinterHall/Setup.md`.
 - `printer_hall_worker_logistics.ic10` - routes shared feed toward printer lane or overflow lane
 - `printer_hall_worker_overflow.ic10` - opens the buffer printer for overflow / flush windows
 - `printer_hall_worker_idle.ic10` - powers only the active printer and idles the hall on timeout
+- `printer_hall_worker_stock_vending.ic10` - watches a finished-goods vending machine and requests missing stock
 - `printer_hall_setup_guard.ic10` - validates names and initializes shared channels once
 
 ## Scope of this version
 
 - Supports up to **3 named Autolathes** as hall printers.
 - Uses a **buffer printer** as overflow storage.
+- Can monitor one finished-goods **Vending Machine** and restock the known hash-backed
+  Autolathe products when their vending stack disappears.
 - Assumes one shared feed sorter where:
   - `Output 1` = printer lane
   - `Output 0` = overflow / reject lane
-- Does **not** yet inspect printer reagent contents by name; that remains a better fit
+- Does **not** yet inspect printer reagent contents by name at the hall level; that remains a better fit
   for local single-printer workers like `AutolatheBatch`.
 
 ## Device mapping per chip
@@ -48,6 +51,11 @@ These scripts use exact prefab+name lookup and do not require local `d0..d5` wir
 - `d0` = hall proximity sensor
 - `db` = idle / power status
 
+### Stock vending worker
+
+- `d0` = finished-goods vending machine
+- `db` = stock / restock status
+
 ## Name contract
 
 Required exact names:
@@ -57,8 +65,9 @@ Required exact names:
 - IC Housing: `logistics_worker`
 - IC Housing: `overflow_worker`
 - IC Housing: `idle_worker`
+- IC Housing: `stock_worker`
 - IC Housing: `setup_guard`
-- Logic Memory: `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`
+- Logic Memory: `hall_cmd_token`, `hall_cmd_type`, `hall_slot0`, `hall_slot1`, `hall_slot2`, `hall_slot3`, `hall_slot4`
 - Logic Switch (Button): `select_1`, `select_2`, `select_3`, `flush_overflow`, `run_batch`
 - Logic Switch (Switch): `hall_power`
 - Autolathe: `printer_1`, `printer_2`, `printer_3`, `buffer_printer`
@@ -70,6 +79,8 @@ Required exact names:
 - `hall_slot0` - active printer index (`0` none, `1..3` printer selection)
 - `hall_slot1` - hall power flag (`0` off, `1` on)
 - `hall_slot2` - idle timeout in loops (default `300`)
+- `hall_slot3` - optional hall recipe override for the selected local batch cell
+- `hall_slot4` - optional hall count override for the selected local batch cell
 
 Command codes:
 
@@ -87,6 +98,8 @@ Command codes:
   network with local batch cells such as `AutolatheBatch`.
 - Press `run_batch` to ask the currently selected local batch cell to start using that
   cell's own `slot0` / `slot1` recipe and count settings.
+- If the stock worker finds a missing finished good in `stock_vending`, it writes
+  `hall_slot3` / `hall_slot4` and emits command `6` to request one replacement stack.
 - The logistics worker releases incoming items to:
   - printer lane while the hall is powered and a printer is selected
   - overflow lane when no printer is selected or during flush windows
@@ -130,6 +143,13 @@ Command codes:
 - `221` = active printer timed out / sleeping
 - `244` = missing proximity sensor on `d0`
 
+### Stock vending worker (`500-599`)
+
+- `500` = scanning / stocked
+- `510` = paused because hall power is off or no printer is selected
+- `540` = missing stock vending machine on `d0`
+- any other value = current item hash being restocked into the vending machine
+
 ### Logistics worker (`300-399`)
 
 - `300` = routing to overflow / hall idle
@@ -163,8 +183,16 @@ Command codes:
 - If selector stays at `101`, press one of the select buttons.
 - If `run_batch` appears to do nothing, verify the selected printer's local
   `AutolatheBatch` cell is present and hall-gated.
+- If stock worker shows a large non-status value, that is the product hash it is currently restocking.
 - If logistics is `340`, check the local `d0` feed sorter wiring.
 - If idle is `244`, check the local `d0` proximity sensor wiring.
 - If items still go to overflow while the hall is active, confirm the sorter path is:
   - `Output 1` -> printer lane
   - `Output 0` -> overflow / reject lane
+
+Current stock-worker limit:
+
+- It only tracks the **23 Autolathe recipes that currently have usable item hashes in the
+  local catalog**.
+- The stock target is **one occupied vending stack per known product hash**, not a guaranteed
+  full max-size stack, because stack maxima are not catalogued per item yet.
