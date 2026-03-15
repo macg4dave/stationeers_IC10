@@ -1,0 +1,53 @@
+# autolathe_batch_setup_guard
+# Setup guard: validate mapped devices and init shared command memories.
+# d0 worker, d1 cmd_token, d2 cmd_type, d3 slot0 recipe, d4 slot1 count, d5 autolathe
+
+alias worker d0
+alias cmd_token d1
+alias cmd_type d2
+alias slot0 d3
+alias slot1 d4
+alias mach d5
+alias inited r0
+alias cond r1
+
+init:
+s db Setting 0
+move inited 0
+
+main:
+yield
+bdns d0 no_worker
+bdns d1 no_token
+bdns d2 no_type
+bdns d3 no_slots
+bdns d4 no_slots
+bdns d5 no_machine
+beqz inited do_init
+l cond worker On
+bnez cond healthy
+s worker On 1
+healthy:
+s db Setting 1
+j main
+do_init:
+s cmd_token Setting 0
+s cmd_type Setting 0
+move inited 1
+s db Setting 10
+j main
+no_worker:
+s db Setting 93
+j main
+no_token:
+s db Setting 91
+j main
+no_type:
+s db Setting 92
+j main
+no_slots:
+s db Setting 98
+j main
+no_machine:
+s db Setting 97
+j main

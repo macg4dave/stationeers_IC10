@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "producers": [
+    {
+      "wikiTitle": "Autolathe",
+      "pageTitle": "Autolathe/Recipes",
+      "file": "recipes/Autolathe/recipes.json",
+      "recipeCount": 63
+    }
+  ]
+}

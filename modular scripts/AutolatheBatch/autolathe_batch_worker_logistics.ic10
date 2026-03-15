@@ -1,0 +1,118 @@
+# autolathe_batch_worker_logistics
+# d0 sorter, d1 vending, d2 retry button, d3 autolathe
+# db: 200 idle/ready, 240-243 faults, else current ingot hash request
+
+alias sort d0
+alias vend d1
+alias retry d2
+alias mach d3
+alias need r0
+alias tmp r1
+alias oldimp r2
+alias vend_req r3
+
+define CLEAR_REQ -1
+define SORT_MODE_LOGIC 2
+
+define REAGENT_IRON -666742878
+define REAGENT_COPPER -1172078909
+define REAGENT_GOLD -409226641
+define REAGENT_SILICON -1195893171
+define REAGENT_STEEL 1331613335
+define REAGENT_LEAD -2002530571
+define REAGENT_NICKEL 556601662
+define REAGENT_SILVER 687283565
+define REAGENT_SOLDER -1206542381
+
+define INGOT_IRON -1301215609
+define INGOT_COPPER -404336834
+define INGOT_GOLD 226410516
+define INGOT_SILICON -290196476
+define INGOT_STEEL -654790771
+define INGOT_LEAD 2134647745
+define INGOT_NICKEL -1406385572
+define INGOT_SILVER -929742000
+define INGOT_SOLDER -82508479
+
+auto:
+move need CLEAR_REQ
+move oldimp 0
+s db Setting 200
+
+main:
+yield
+bdns d0 no_sort
+bdns d1 no_vend
+bdns d2 no_button
+bdns d3 no_mach
+l tmp sort Mode
+beq tmp SORT_MODE_LOGIC sort_on
+s sort Mode SORT_MODE_LOGIC
+sort_on:
+l tmp sort On
+bnez tmp check_retry
+s sort On 1
+check_retry:
+l tmp retry Setting
+beqz tmp route_input
+move need CLEAR_REQ
+route_input:
+ls tmp sort 0 Occupied
+beqz tmp check_arrive
+ls tmp sort 0 OccupantHash
+seq tmp tmp need
+s sort Output tmp
+check_arrive:
+l tmp mach ImportCount
+ble tmp oldimp check_need
+move need CLEAR_REQ
+move oldimp tmp
+check_need:
+l tmp mach Open
+bnez tmp publish
+bne need CLEAR_REQ publish
+lr tmp mach Contents REAGENT_IRON
+slt tmp tmp 50
+select need tmp INGOT_IRON need
+lr tmp mach Contents REAGENT_COPPER
+slt tmp tmp 50
+select need tmp INGOT_COPPER need
+lr tmp mach Contents REAGENT_GOLD
+slt tmp tmp 50
+select need tmp INGOT_GOLD need
+lr tmp mach Contents REAGENT_SILICON
+slt tmp tmp 50
+select need tmp INGOT_SILICON need
+lr tmp mach Contents REAGENT_STEEL
+slt tmp tmp 50
+select need tmp INGOT_STEEL need
+lr tmp mach Required REAGENT_LEAD
+select need tmp INGOT_LEAD need
+lr tmp mach Required REAGENT_NICKEL
+select need tmp INGOT_NICKEL need
+lr tmp mach Required REAGENT_SILVER
+select need tmp INGOT_SILVER need
+lr tmp mach Required REAGENT_SOLDER
+select need tmp INGOT_SOLDER need
+publish:
+s db Setting need
+beq need CLEAR_REQ idle
+l vend_req vend RequestHash
+beq vend_req need main
+s vend RequestHash need
+j main
+idle:
+s db Setting 200
+j main
+no_sort:
+s db Setting 240
+j main
+no_vend:
+s db Setting 241
+j main
+no_button:
+s db Setting 242
+j main
+no_mach:
+s db Setting 243
+j main

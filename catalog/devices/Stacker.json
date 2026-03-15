@@ -1,0 +1,125 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Stacker",
+    "wikiTitle": "Stacker",
+    "retrievedAt": "2026-03-15T17:52:25+00:00",
+    "notes": "Identity cleared manually because the Stacker wiki page also documents Unloader variants and raw import can capture the wrong prefab."
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "Automatic",
+        "settingInterpretation": "Automatically stacks and exports items according to Setting."
+      },
+      {
+        "value": 1,
+        "meaning": "Manual hold",
+        "settingInterpretation": "Stacks and holds items until Output or Activate is triggered."
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Sets stacker mode. See modeValues."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "If set to 1, the Stacker will clear its content via its Export Slot without regard to the Setting"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Locks the device for player interaction when set to 1. Unlocks it when set to 0."
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": "Default is 1. Sets the Stack Size (won't actually stack to that size if item's max stack size is smaller)"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the stacker on when set >= 1. Turns it off when set < 1."
+      },
+      {
+        "name": "ClearMemory",
+        "type": "integer",
+        "description": "Resets ImportCount and ExportCount to zero."
+      },
+      {
+        "name": "Output",
+        "type": "integer",
+        "description": "Value of 0 for Mode 0. If you set this to 1 while in Mode 1 the stacker will export a batch of items from storage with quantity Setting. If there are not enough items in storage, they will not be output."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Returns the current stacker mode. See modeValues."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Returns whether the stacker is locked."
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": "Incremented each time an item stack enter by the Import slot"
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": "Incremented each time an item stack exit by the Export Slot"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Returns whether the stacker is reporting an error."
+      },
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "1 if empty, 0 if something is inside the Stacker. When set to 0 The player can use the lever to clear the Stacker"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": "Default is 1. Shows the Stack Size this Stacker is set to."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "In watts. The Stacker requires 5W to operate."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Returns the stacker prefab hash."
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the stacker is powered and turned on."
+      },
+      {
+        "name": "Output",
+        "type": "integer",
+        "description": "Value of 0 in Mode 0. Mode 1 sets this to -1."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the stacker is turned on."
+      }
+    ]
+  }
+}

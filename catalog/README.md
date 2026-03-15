@@ -16,6 +16,10 @@ Example source page:
 
 - `catalog/devices/<WikiTitle>.json`
   - One JSON file per device page.
+- `catalog/recipes/index.json`
+  - Index of producer-specific recipe catalogs.
+- `catalog/recipes/<Producer>/recipes.json`
+  - One JSON file per recipe-producing device page (starting with fabricators such as `Autolathe`).
 
 ## Schema (v1)
 
@@ -34,6 +38,44 @@ Each device JSON is shaped like:
   - `modeValues` (optional): array of `{ value, meaning, settingInterpretation }` for devices that document an enum-like `Mode` table
   - `parameters`: array of `{ name, type, description }`  (intended “write”)
   - `outputs`: array of `{ name, type, description }`     (intended “read”)
+
+## Recipe catalog schema (v1)
+
+Recipe catalogs are kept separate from device IO catalogs so existing consumers of
+`catalog/index.json` do not need to learn a second schema just to keep working.
+
+- `catalog/recipes/index.json`
+  - `version`: number
+  - `producers`: array of
+    - `wikiTitle`: producer/device title, such as `Autolathe`
+    - `pageTitle`: source wiki page title, such as `Autolathe/Recipes`
+    - `file`: relative path to the producer recipe catalog
+    - `recipeCount`: number of parsed recipes
+
+- `catalog/recipes/<Producer>/recipes.json`
+  - `source`
+    - `kind`: currently `wiki_import`
+    - `wikiUrl`: source page URL
+    - `wikiTitle`: source page title
+    - `retrievedAt`: ISO-8601 timestamp
+  - `producer`
+    - `wikiTitle`: producer/device title
+    - `itemName`: string | null (copied from the device catalog when available)
+    - `itemHash`: number | null (copied from the device catalog when available)
+  - `recipes`: array of
+    - `item`: `{ wikiTitle, displayName, itemName, itemHash }`
+    - `tier`: string
+    - `time`: number
+    - `energy`: number
+    - `inputs`: array of `{ wikiTitle, displayName, quantity }`
+
+### Recipe normalization notes
+
+- The importer preserves wiki link targets such as `Ingot_(Iron)` so later tooling can match exact page titles.
+- The importer also stores human-readable labels via `displayName`.
+- For each recipe output item, the importer also looks up the linked wiki page and stores the in-game `itemName` and `itemHash` when the page exposes them.
+- Decimal commas from the wiki, such as `0,5`, are normalized to JSON numbers like `0.5`.
+- Recipe output data is currently represented by the recipe item itself; individual output stack counts are not inferred beyond what the page explicitly shows.
 
 ### Type normalization
 

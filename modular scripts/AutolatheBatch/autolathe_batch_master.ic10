@@ -1,0 +1,82 @@
+# autolathe_batch_master
+# Master: start a configured autolathe batch.
+# d0 worker, d1 cmd_token, d2 cmd_type, d3 slot0 recipe, d4 slot1 count, d5 start button
+
+alias worker d0
+alias cmd_token d1
+alias cmd_type d2
+alias slot0 d3
+alias slot1 d4
+alias start_btn d5
+alias btn_now r0
+alias btn_prev r1
+alias worker_status r2
+alias token r3
+alias recipe r4
+alias batch r5
+alias cond r6
+alias busy r7
+
+define BUTTON_HASH 491845673
+
+init:
+s db Setting 0
+move btn_prev 0
+
+main:
+yield
+bdns d0 no_worker
+bdns d1 no_mem
+bdns d2 no_mem
+bdns d3 no_mem
+bdns d4 no_mem
+bdns d5 no_button
+l cond start_btn PrefabHash
+bne cond BUTTON_HASH no_button
+l btn_now start_btn Setting
+l worker_status worker Setting
+sgt cond worker_status 109
+slt busy worker_status 140
+and busy cond busy
+beqz busy not_busy
+s db Setting 2
+j save_prev
+not_busy:
+seq cond btn_prev 0
+and cond cond btn_now
+beqz cond publish_state
+l recipe slot0 Setting
+beqz recipe invalid_req
+l batch slot1 Setting
+slt cond 0 batch
+beqz cond invalid_req
+l token cmd_token Setting
+add token token 1
+s cmd_type Setting 1
+s cmd_token Setting token
+s db Setting 10
+j save_prev
+publish_state:
+beq worker_status 140 done_state
+s db Setting 1
+j save_prev
+done_state:
+s db Setting 5
+j save_prev
+invalid_req:
+s db Setting 11
+save_prev:
+move btn_prev btn_now
+j main
+no_worker:
+s db Setting 43
+move btn_prev 0
+j main
+no_mem:
+s db Setting 45
+move btn_prev 0
+j main
+no_button:
+s db Setting 44
+move btn_prev 0
+j main

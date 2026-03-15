@@ -27,6 +27,10 @@ def _is_int_like(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def _is_number_like(value: Any) -> bool:
+    return (isinstance(value, int) or isinstance(value, float)) and not isinstance(value, bool)
+
+
 def _load_json(path: Path) -> tuple[Any | None, str | None]:
     try:
         return json.loads(path.read_text(encoding="utf-8")), None
@@ -138,6 +142,159 @@ def _check_device_schema(
             errors.append(f"{device_path}: io.modeValues must be an array when present")
 
 
+def _check_recipe_material(
+    recipe_path: Path,
+    where: str,
+    material: Any,
+    errors: list[str],
+) -> None:
+    if not isinstance(material, dict):
+        errors.append(f"{where} must be an object")
+        return
+    for key in ("wikiTitle", "displayName"):
+        if key not in material:
+            errors.append(f"{where} missing '{key}'")
+            continue
+        if not isinstance(material[key], str):
+            errors.append(f"{where}.{key} must be a string")
+    if "quantity" not in material:
+        errors.append(f"{where} missing 'quantity'")
+    elif not _is_number_like(material["quantity"]):
+        errors.append(f"{where}.quantity must be a number")
+
+
+def _check_recipe_catalog_schema(
+    recipe_path: Path,
+    expected_wiki_title: str | None,
+    expected_page_title: str | None,
+    expected_recipe_count: int | None,
+    *,
+    errors: list[str],
+    warnings: list[str],
+) -> None:
+    data, err = _load_json(recipe_path)
+    if err:
+        errors.append(f"{recipe_path}: {err}")
+        return
+    if not isinstance(data, dict):
+        errors.append(f"{recipe_path}: top-level must be an object")
+        return
+
+    source = data.get("source")
+    producer = data.get("producer")
+    recipes = data.get("recipes")
+
+    if not isinstance(source, dict):
+        errors.append(f"{recipe_path}: missing/invalid source object")
+    else:
+        source_kind = source.get("kind", "wiki_import")
+        if not isinstance(source_kind, str):
+            errors.append(f"{recipe_path}: source.kind must be a string when present")
+            source_kind = "wiki_import"
+        elif source_kind not in SOURCE_KINDS:
+            errors.append(
+                f"{recipe_path}: source.kind must be one of "
+                f"{sorted(SOURCE_KINDS)} (got '{source_kind}')"
+            )
+
+        for key in ("wikiUrl", "wikiTitle", "retrievedAt"):
+            if key not in source:
+                errors.append(f"{recipe_path}: source missing '{key}'")
+                continue
+            if not isinstance(source[key], str):
+                errors.append(f"{recipe_path}: source.{key} must be a string")
+
+        if isinstance(source.get("wikiTitle"), str) and expected_page_title:
+            if source["wikiTitle"] != expected_page_title:
+                errors.append(
+                    f"{recipe_path}: source.wikiTitle '{source['wikiTitle']}' "
+                    f"!= index pageTitle '{expected_page_title}'"
+                )
+
+    if not isinstance(producer, dict):
+        errors.append(f"{recipe_path}: missing/invalid producer object")
+    else:
+        wiki_title = producer.get("wikiTitle")
+        if not isinstance(wiki_title, str):
+            errors.append(f"{recipe_path}: producer.wikiTitle must be a string")
+        elif expected_wiki_title and wiki_title != expected_wiki_title:
+            errors.append(
+                f"{recipe_path}: producer.wikiTitle '{wiki_title}' "
+                f"!= index wikiTitle '{expected_wiki_title}'"
+            )
+
+        if "itemName" not in producer:
+            errors.append(f"{recipe_path}: producer missing 'itemName'")
+        elif producer["itemName"] is not None and not isinstance(producer["itemName"], str):
+            errors.append(f"{recipe_path}: producer.itemName must be string|null")
+
+        if "itemHash" not in producer:
+            errors.append(f"{recipe_path}: producer missing 'itemHash'")
+        elif producer["itemHash"] is not None and not _is_int_like(producer["itemHash"]):
+            errors.append(f"{recipe_path}: producer.itemHash must be integer|null")
+
+    if not isinstance(recipes, list):
+        errors.append(f"{recipe_path}: recipes must be an array")
+        return
+
+    seen_items: set[str] = set()
+    for i, recipe in enumerate(recipes):
+        where = f"{recipe_path}: recipes[{i}]"
+        if not isinstance(recipe, dict):
+            errors.append(f"{where} must be an object")
+            continue
+
+        item = recipe.get("item")
+        if not isinstance(item, dict):
+            errors.append(f"{where}.item must be an object")
+        else:
+            for key in ("wikiTitle", "displayName"):
+                if key not in item:
+                    errors.append(f"{where}.item missing '{key}'")
+                    continue
+                if not isinstance(item[key], str):
+                    errors.append(f"{where}.item.{key} must be a string")
+            if "itemName" not in item:
+                errors.append(f"{where}.item missing 'itemName'")
+            elif item["itemName"] is not None and not isinstance(item["itemName"], str):
+                errors.append(f"{where}.item.itemName must be string|null")
+            if "itemHash" not in item:
+                errors.append(f"{where}.item missing 'itemHash'")
+            elif item["itemHash"] is not None and not _is_int_like(item["itemHash"]):
+                errors.append(f"{where}.item.itemHash must be integer|null")
+            item_wiki_title = item.get("wikiTitle")
+            if isinstance(item_wiki_title, str):
+                if item_wiki_title in seen_items:
+                    errors.append(f"{where}.item.wikiTitle duplicated: {item_wiki_title}")
+                seen_items.add(item_wiki_title)
+
+        for key in ("tier",):
+            if key not in recipe:
+                errors.append(f"{where} missing '{key}'")
+            elif not isinstance(recipe[key], str):
+                errors.append(f"{where}.{key} must be a string")
+
+        for key in ("time", "energy"):
+            if key not in recipe:
+                errors.append(f"{where} missing '{key}'")
+            elif not _is_number_like(recipe[key]):
+                errors.append(f"{where}.{key} must be a number")
+
+        inputs = recipe.get("inputs")
+        if not isinstance(inputs, list):
+            errors.append(f"{where}.inputs must be an array")
+            continue
+        if not inputs:
+            warnings.append(f"{where}.inputs is empty")
+        for j, material in enumerate(inputs):
+            _check_recipe_material(recipe_path, f"{where}.inputs[{j}]", material, errors)
+
+    if expected_recipe_count is not None and len(recipes) != expected_recipe_count:
+        errors.append(
+            f"{recipe_path}: recipe count {len(recipes)} != index recipeCount {expected_recipe_count}"
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate catalog index and device JSON files")
     parser.add_argument(
@@ -150,6 +307,8 @@ def main() -> int:
     catalog_dir = (ROOT / args.catalog_dir).resolve()
     index_path = catalog_dir / "index.json"
     devices_dir = catalog_dir / "devices"
+    recipes_dir = catalog_dir / "recipes"
+    recipes_index_path = recipes_dir / "index.json"
 
     if not index_path.exists():
         print(f"ERROR: index not found: {index_path}")
@@ -222,6 +381,86 @@ def main() -> int:
         rel = f"devices/{p.name}"
         if rel not in referenced_files:
             errors.append(f"{index_path}: orphan device file not indexed: {rel}")
+
+    if recipes_dir.exists() or recipes_index_path.exists():
+        if not recipes_index_path.exists():
+            errors.append(f"{catalog_dir}: recipes dir exists but recipes/index.json is missing")
+        elif not recipes_dir.exists():
+            errors.append(f"{catalog_dir}: recipes/index.json exists but recipes dir is missing")
+        else:
+            recipes_index, err = _load_json(recipes_index_path)
+            if err:
+                errors.append(f"{recipes_index_path}: {err}")
+            elif not isinstance(recipes_index, dict):
+                errors.append(f"{recipes_index_path}: top-level must be an object")
+            else:
+                producers = recipes_index.get("producers")
+                if not isinstance(producers, list):
+                    errors.append(f"{recipes_index_path}: 'producers' must be an array")
+                else:
+                    seen_recipe_titles: set[str] = set()
+                    seen_recipe_files: set[str] = set()
+                    referenced_recipe_files: set[str] = set()
+
+                    for i, entry in enumerate(producers):
+                        where = f"{recipes_index_path}: producers[{i}]"
+                        if not isinstance(entry, dict):
+                            errors.append(f"{where} must be an object")
+                            continue
+
+                        wiki_title = entry.get("wikiTitle")
+                        page_title = entry.get("pageTitle")
+                        rel_file = entry.get("file")
+                        recipe_count = entry.get("recipeCount")
+
+                        if not isinstance(wiki_title, str) or not wiki_title.strip():
+                            errors.append(f"{where}.wikiTitle must be a non-empty string")
+                            wiki_title = None
+                        if not isinstance(page_title, str) or not page_title.strip():
+                            errors.append(f"{where}.pageTitle must be a non-empty string")
+                            page_title = None
+                        if not isinstance(rel_file, str) or not rel_file.strip():
+                            errors.append(f"{where}.file must be a non-empty string")
+                            continue
+                        if not _is_int_like(recipe_count):
+                            errors.append(f"{where}.recipeCount must be an integer")
+                            recipe_count = None
+
+                        rel_file = rel_file.replace("\\", "/")
+                        if not rel_file.startswith("recipes/"):
+                            errors.append(f"{where}.file must be under recipes/: {rel_file}")
+
+                        if wiki_title:
+                            if wiki_title in seen_recipe_titles:
+                                errors.append(f"{where}.wikiTitle duplicated: {wiki_title}")
+                            seen_recipe_titles.add(wiki_title)
+                        if rel_file in seen_recipe_files:
+                            errors.append(f"{where}.file duplicated: {rel_file}")
+                        seen_recipe_files.add(rel_file)
+                        referenced_recipe_files.add(rel_file)
+
+                        recipe_path = catalog_dir / rel_file
+                        if not recipe_path.exists():
+                            errors.append(f"{where}: missing file: {recipe_path}")
+                            continue
+
+                        _check_recipe_catalog_schema(
+                            recipe_path,
+                            wiki_title,
+                            page_title,
+                            recipe_count,
+                            errors=errors,
+                            warnings=warnings,
+                        )
+
+                    for p in sorted(recipes_dir.rglob("*.json")):
+                        rel = p.relative_to(catalog_dir).as_posix()
+                        if rel == "recipes/index.json":
+                            continue
+                        if rel not in referenced_recipe_files:
+                            errors.append(
+                                f"{recipes_index_path}: orphan recipe file not indexed: {rel}"
+                            )
 
     for msg in errors:
         print(f"ERROR: {msg}")

@@ -1,0 +1,52 @@
+# printer_hall_worker_overflow
+# opens buffer printer when hall is idle or flush is requested
+alias active r0
+alias power r1
+alias tok r2
+alias prev r3
+alias cmd r4
+alias flush r5
+
+define MEMH HASH("StructureLogicMemory")
+define PRH HASH("StructureAutolathe")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+define CTOK HASH("cmd_token")
+define CTYPE HASH("cmd_type")
+define BUF HASH("buffer_printer")
+
+auto:
+move prev 0
+move flush 0
+s db Setting 400
+
+main:
+yield
+lbn active MEMH SLOT0 Setting Maximum
+lbn power MEMH SLOT1 Setting Maximum
+lbn tok MEMH CTOK Setting Maximum
+beq tok prev mode
+move prev tok
+lbn cmd MEMH CTYPE Setting Maximum
+bne cmd 5 mode
+move flush 30
+mode:
+beqz power close
+bgtz flush flush_on
+beqz active hold
+sbn PRH BUF Open 0
+s db Setting 410
+j main
+flush_on:
+sub flush flush 1
+sbn PRH BUF Open 1
+s db Setting 421
+j main
+hold:
+sbn PRH BUF Open 1
+s db Setting 420
+j main
+close:
+sbn PRH BUF Open 0
+s db Setting 400
+j main

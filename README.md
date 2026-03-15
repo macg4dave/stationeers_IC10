@@ -20,6 +20,7 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 - `modular scripts/` - modular multi-chip projects (master + worker IC10 files)
 - `tools/` - helper tools (Python, stdlib-only)
 - `catalog/` - local JSON catalog of device Logic I/O names/types (imported from the Stationeers wiki)
+- `catalog/recipes/` - local JSON catalog of wiki recipe tables for producer devices (starting with `Autolathe`)
 - `.vscode/` - recommended VS Code extension + debug config
 - `.github/copilot-instructions.md` - extra context for AI coding assistants (especially GitHub Copilot)
 
@@ -90,6 +91,12 @@ E.g. For importing from the wiki:
 - Import this item: <URL of the Stationeers wiki page for a device>
 ```
 
+E.g. For importing recipes from the wiki:
+
+```text
+- Import these recipes: <URL of the Stationeers wiki recipes page for a producer>
+```
+
 E.g. For modular (master + workers):
 
 ```text
@@ -157,6 +164,19 @@ python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer
 - Output:
   - `catalog/devices/<WikiTitle>.json`
   - `catalog/index.json`
+
+### Import producer recipes from the Stationeers wiki into `catalog/recipes/`
+
+- Script: `tools/wiki_recipe_import.py`
+- Example:
+
+```bash
+python tools/wiki_recipe_import.py https://stationeers-wiki.com/Autolathe/Recipes
+```
+
+- Output:
+  - `catalog/recipes/<Producer>/recipes.json`
+  - `catalog/recipes/index.json`
 
 ### Check modular Setup.md contract consistency
 

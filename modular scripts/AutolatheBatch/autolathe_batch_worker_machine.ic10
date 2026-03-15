@@ -1,0 +1,116 @@
+# autolathe_batch_worker_machine
+# Worker: run an autolathe for N exports of recipe in slot0.
+# d0 cmd_token, d1 cmd_type, d2 slot0 recipe, d3 slot1 count, d4 autolathe
+
+alias cmd_token d0
+alias cmd_type d1
+alias slot0 d2
+alias slot1 d3
+alias mach d4
+alias token r0
+alias prev_token r1
+alias cmd r2
+alias recipe r3
+alias batch r4
+alias start_exp r5
+alias target_exp r6
+alias curr_exp r7
+alias active r8
+alias cond r9
+alias act r10
+alias curr_recipe r11
+alias curr_on r12
+alias curr_open r13
+alias last_exp r14
+
+init:
+s db Setting 100
+move active 0
+move prev_token 0
+
+main:
+yield
+bdns d0 no_mem
+bdns d1 no_mem
+bdns d2 no_mem
+bdns d3 no_mem
+bdns d4 no_machine
+l token cmd_token Setting
+beq token prev_token no_cmd
+move prev_token token
+l cmd cmd_type Setting
+beq cmd 1 cmd_start
+j main
+cmd_start:
+l recipe slot0 Setting
+beqz recipe invalid_req
+l batch slot1 Setting
+slt cond 0 batch
+beqz cond invalid_req
+l start_exp mach ExportCount
+move target_exp start_exp
+add target_exp target_exp batch
+move last_exp start_exp
+move active 1
+s db Setting 110
+j main
+invalid_req:
+move active 0
+s db Setting 142
+j main
+no_cmd:
+beqz active idle
+l curr_recipe mach RecipeHash
+beq curr_recipe recipe check_on
+s mach RecipeHash recipe
+s db Setting 120
+j main
+check_on:
+l curr_on mach On
+bnez curr_on check_open
+s mach On 1
+s db Setting 120
+j main
+check_open:
+l curr_open mach Open
+beqz curr_open check_done
+s mach Open 0
+s db Setting 120
+j main
+check_done:
+l curr_exp mach ExportCount
+slt cond curr_exp target_exp
+beqz cond done
+sne cond curr_exp last_exp
+beqz cond maybe_pulse
+move last_exp curr_exp
+s db Setting 122
+j main
+maybe_pulse:
+l act mach Activate
+bnez act waiting
+s mach Activate 1
+s db Setting 121
+j main
+waiting:
+s db Setting 122
+j main
+done:
+move active 0
+l act mach Activate
+beqz act done_state
+s mach Activate 0
+done_state:
+s db Setting 140
+j main
+idle:
+s db Setting 100
+j main
+no_mem:
+move active 0
+s db Setting 145
+j main
+no_machine:
+move active 0
+s db Setting 144
+j main

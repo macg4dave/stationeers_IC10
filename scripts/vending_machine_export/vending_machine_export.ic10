@@ -1,0 +1,120 @@
+# vending_machine_export
+# Category: Utility
+# Status: Functional
+#
+# Purpose: Export an exact item count from a Vending Machine.
+# Devices: d0 Vending, d1 Stacker, d2 Sorter, d3 Hash Mem, d4 Count Mem
+# Notes: Sorter uses Mode 2 (logic). Count memory is reset to 0 while busy.
+
+alias vend d0
+alias stk d1
+alias sort d2
+alias mem_hash d3
+alias mem_count d4
+alias prev r0
+alias curr r1
+alias busy r2
+alias req_hash r9
+alias req_count r10
+alias max_stack r11
+alias stk_count r12
+alias stk_set r13
+
+define SORTER_MODE_LOGIC 2
+define STACKER_MODE_MANUAL 1
+define OUT_EXPORT 0
+define OUT_RETURN 1
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+bdns d3 wait_devices
+bdns d4 wait_devices
+
+main:
+yield
+l busy mem_count Setting
+beqz busy main
+l busy mem_hash Setting
+beqz busy main
+jal configure
+l req_count mem_count Setting
+l req_hash mem_hash Setting
+s mem_count Setting 0
+jal export_item
+j main
+
+configure:
+s vend On 1
+s stk On 1
+s sort On 1
+s sort Mode SORTER_MODE_LOGIC
+s stk Mode STACKER_MODE_MANUAL
+s stk ClearMemory 1
+s sort ClearMemory 1
+j ra
+
+export_item:
+push ra
+export_loop:
+ls prev stk 2 Quantity
+s vend RequestHash req_hash
+wait_stacker_fill:
+yield
+ls curr stk 2 Quantity
+beq prev curr wait_stacker_fill
+ls stk_count stk 2 Quantity
+ls max_stack stk 2 MaxQuantity
+jal wait_clear
+min stk_set req_count max_stack
+min stk_set stk_set stk_count
+beq stk_count max_stack flush_stacker
+bgt req_count stk_count export_loop
+flush_stacker:
+s stk Setting stk_set
+s sort Output OUT_EXPORT
+jal run_stacker
+ls stk_count stk 2 Quantity
+sub req_count req_count stk_set
+bgtz req_count export_loop
+beqz stk_count export_done
+s stk Setting stk_count
+s sort Output OUT_RETURN
+jal run_stacker
+export_done:
+pop ra
+j ra
+
+run_stacker:
+push ra
+l prev sort ImportCount
+s stk Output 1
+wait_sorter_intake:
+yield
+l curr sort ImportCount
+beq prev curr wait_sorter_intake
+jal wait_clear
+pop ra
+j ra
+
+wait_clear:
+yield
+ls busy sort 0 Occupied
+bgtz busy wait_clear
+ls busy sort 1 Occupied
+bgtz busy wait_clear
+ls busy sort 2 Occupied
+bgtz busy wait_clear
+ls busy vend 0 Occupied
+bgtz busy wait_clear
+ls busy vend 1 Occupied
+bgtz busy wait_clear
+beq stk_count max_stack wait_clear_end
+ls busy stk 0 Occupied
+bgtz busy wait_clear
+ls busy stk 1 Occupied
+bgtz busy wait_clear
+wait_clear_end:
+j ra

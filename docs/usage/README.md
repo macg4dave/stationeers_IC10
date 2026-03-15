@@ -20,6 +20,8 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 - `active_vent.md` — Active Vent required settings.
 - `active_liquid_outlet.md` — Active Liquid Outlet required settings.
 - `advanced_furnace.md` — Advanced Furnace required settings.
+- `autolathe_printer_automation.md` — design checklist for vending-fed Autolathe / printer automation.
+- `multi_printer_management.md` — hall-level routing, overflow, and idle-shutdown checks for shared printer setups.
 - `daylight_sensor.md` — Daylight Sensor required settings.
 - `gas_sensor.md` — Gas Sensor required settings.
 - `ic_housing.md` — using `db` for status/debug.
@@ -34,5 +36,6 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 - `pipe_analyzer.md` — Pipe Analyzer required settings.
 - `pipe_digital_valve.md` — Pipe Digital Valve required settings.
 - `satcom.md` — SatCom modular setup checklist (required devices + wiring).
+- `sorter.md` — Sorter mode/orientation checks for IC10-controlled routing.
 - `solar_panels.md` — Solar panels required settings.
 - `wall_cooler.md` — Wall Cooler required settings.

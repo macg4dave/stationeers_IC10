@@ -1,0 +1,71 @@
+# printer_hall_worker_logistics
+# d0 feed sorter to printer lane=1, overflow lane=0
+alias sort d0
+alias active r0
+alias power r1
+alias c r2
+alias tok r3
+alias prev r4
+alias cmd r5
+alias flush r6
+
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+define CTOK HASH("cmd_token")
+define CTYPE HASH("cmd_type")
+define LOGIC_MODE 2
+
+auto:
+move prev 0
+move flush 0
+s db Setting 300
+
+main:
+yield
+bdns d0 no_sort
+lbn active MEMH SLOT0 Setting Maximum
+lbn power MEMH SLOT1 Setting Maximum
+lbn tok MEMH CTOK Setting Maximum
+beq tok prev tick
+move prev tok
+lbn cmd MEMH CTYPE Setting Maximum
+bne cmd 5 tick
+move flush 30
+tick:
+l c sort Mode
+beq c LOGIC_MODE sort_on
+s sort Mode LOGIC_MODE
+sort_on:
+l c sort On
+bnez c route
+s sort On 1
+route:
+ls c sort 0 Occupied
+beqz c idle
+beqz flush normal
+sub flush flush 1
+s sort Output 0
+s db Setting 320
+j main
+normal:
+beqz power reject
+beqz active reject
+s sort Output 1
+s db Setting 310
+j main
+reject:
+s sort Output 0
+s db Setting 300
+j main
+idle:
+beqz power off
+beqz active off
+s db Setting 311
+j main
+off:
+s db Setting 300
+j main
+no_sort:
+s db Setting 340
+j main

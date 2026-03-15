@@ -62,6 +62,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
 - `landingpad_volatiles_pressure_valve/` — Enables Landingpad Liquid Output + Liquid Digital Valve only at 100% liquid volatiles, with 20 MPa safety cutoff.
 - `solar_named_tracking/` — Tracks named Solar Panel groups by Daylight Sensor and parks each group at its own home angle at night.
+- `vending_machine_export/` — Exports an exact item count from a Vending Machine by using a Stacker + Sorter return loop.
 - `SatCom/` — Multi-chip satellite comms scaffold (master + discover worker + cycle worker).
 
 Additional scripts in this repo:

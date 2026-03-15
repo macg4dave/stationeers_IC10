@@ -194,6 +194,18 @@
       "itemHash": -934345724
     },
     {
+      "wikiTitle": "Sorter",
+      "file": "devices/Sorter.json",
+      "itemName": "StructureSorter",
+      "itemHash": -1009150565
+    },
+    {
+      "wikiTitle": "Stacker",
+      "file": "devices/Stacker.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Station_Battery",
       "file": "devices/Station_Battery.json",
       "itemName": null,

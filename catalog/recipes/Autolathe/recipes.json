@@ -1,0 +1,1369 @@
+{
+  "source": {
+    "kind": "wiki_import",
+    "wikiUrl": "https://stationeers-wiki.com/Autolathe/Recipes",
+    "wikiTitle": "Autolathe/Recipes",
+    "retrievedAt": "2026-03-15T17:37:58+00:00"
+  },
+  "producer": {
+    "wikiTitle": "Autolathe",
+    "itemName": "ItemKitAutolathe",
+    "itemHash": -1753893214
+  },
+  "recipes": [
+    {
+      "item": {
+        "wikiTitle": "Iron_Frames",
+        "displayName": "Iron Frames",
+        "itemName": "ItemIronFrames",
+        "itemHash": 1225836666
+      },
+      "tier": "Tier One",
+      "time": 4,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 4
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Iron_Sheets",
+        "displayName": "Iron Sheets",
+        "itemName": "ItemIronSheets",
+        "itemHash": -487378546
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Plastic_Sheets",
+        "displayName": "Plastic Sheets",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 0.5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Glass_Sheets",
+        "displayName": "Glass Sheets",
+        "itemName": "ItemGlassSheets",
+        "itemHash": 1588896491
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Stellite_Glass_Sheets",
+        "displayName": "Stellite Glass Sheets",
+        "itemName": "ItemStelliteGlassSheets",
+        "itemHash": -2038663432
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Stellite)",
+          "displayName": "Ingot (Stellite)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Steel_Sheets",
+        "displayName": "Steel Sheets",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 3,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 0.5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Steel_Frames",
+        "displayName": "Steel Frames",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 7,
+      "energy": 800,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Iron_Wall)",
+        "displayName": "Kit (Wall Iron)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Railing)",
+        "displayName": "Kit (Railing)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 100,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Composite_Cladding)",
+        "displayName": "Kit (Composite Cladding)",
+        "itemName": "ItemKitCompositeCladding",
+        "itemHash": -1470820996
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Wall)",
+        "displayName": "Kit (Wall)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Reinforced_Windows)",
+        "displayName": "Kit (Reinforced Windows)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 7,
+      "energy": 700,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Window_Shutter)",
+        "displayName": "Kit (Window Shutter)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 7,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Ladder)",
+        "displayName": "Kit (Ladder)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 3,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Pipe)",
+        "displayName": "Kit (Pipe)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 0.5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Cable_Coil",
+        "displayName": "Cable Coil",
+        "itemName": "ItemCableCoilHeavy",
+        "itemHash": 2060134443
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 0.5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Furnace)",
+        "displayName": "Kit (Furnace)",
+        "itemName": "StructureFurnace",
+        "itemHash": 1947944864
+      },
+      "tier": "Tier One",
+      "time": 120,
+      "energy": 12000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 30
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Arc_Furnace)",
+        "displayName": "Kit (Arc Furnace)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 60,
+      "energy": 6000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Electronics_Printer)",
+        "displayName": "Kit (Electronics Printer)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 120,
+      "energy": 12000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Rocket_Manufactory)",
+        "displayName": "Kit (Rocket Manufactory)",
+        "itemName": "StructureRocketManufactory",
+        "itemHash": 1781051034
+      },
+      "tier": "Tier One",
+      "time": 120,
+      "energy": 12000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Security_Printer)",
+        "displayName": "Kit (Security Printer)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 180,
+      "energy": 36000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 20
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 20
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Blast_Door)",
+        "displayName": "Kit (Blast Door)",
+        "itemName": "ItemKitBlastDoor",
+        "itemHash": -1755116240
+      },
+      "tier": "Tier Two",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 3
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Furniture)",
+        "displayName": "Kit (Furniture)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Tables)",
+        "displayName": "Kit (Tables)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Chairs)",
+        "displayName": "Kit (Chairs)",
+        "itemName": "ItemKitChairs",
+        "itemHash": -1394008073
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Beds)",
+        "displayName": "Kit (Beds)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Sorter)",
+        "displayName": "Kit (Sorter)",
+        "itemName": "ItemKitSorter",
+        "itemHash": 969522478
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 1
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 10
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Hydraulic_Pipe_Bender)",
+        "displayName": "Kit (Hydraulic Pipe Bender)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 180,
+      "energy": 18000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Autolathe)",
+        "displayName": "Kit (Autolathe)",
+        "itemName": "ItemKitAutolathe",
+        "itemHash": -1753893214
+      },
+      "tier": "Tier One",
+      "time": 180,
+      "energy": 36000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Door)",
+        "displayName": "Kit (Door)",
+        "itemName": "ItemKitDoor",
+        "itemHash": 168615924
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 3
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 7
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Interior_Doors)",
+        "displayName": "Kit (Interior Doors)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 3
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Wall_Light",
+        "displayName": "Wall Light",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        },
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Arch_Wall)",
+        "displayName": "Kit (Wall Arch)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Flat_Wall)",
+        "displayName": "Kit (Wall Flat)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Geometry_Wall)",
+        "displayName": "Kit (Wall Geometry)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Padded_Wall)",
+        "displayName": "Kit (Wall Padded)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Locker)",
+        "displayName": "Kit (Locker)",
+        "itemName": "ItemKitLocker",
+        "itemHash": 882301399
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Sign)",
+        "displayName": "Kit (Sign)",
+        "itemName": "ItemKitSign",
+        "itemHash": 529996327
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 100,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Stairs)",
+        "displayName": "Kit (Stairs)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 20,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Stairwell)",
+        "displayName": "Kit (Stairwell)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 20,
+      "energy": 6000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Stacker)",
+        "displayName": "Kit (Stacker)",
+        "itemName": "StructureUnloader",
+        "itemHash": 750118160
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 10
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Empty_Can",
+        "displayName": "Empty Can",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 70,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Cardboard_Box",
+        "displayName": "Cardboard Box",
+        "itemName": "CardboardBox",
+        "itemHash": -1976947556
+      },
+      "tier": "Tier One",
+      "time": 2,
+      "energy": 120,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Basic_Chutes",
+        "displayName": "Kit_(Chutes)",
+        "itemName": "ItemKitChute",
+        "itemHash": 1025254665
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Powered_Chutes",
+        "displayName": "Kit (Powered Chutes)",
+        "itemName": "StructureChuteDigitalFlip",
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Constantan)",
+          "displayName": "Ingot (Constantan)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Electrum)",
+          "displayName": "Ingot (Electrum)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(SDB_Hopper)",
+        "displayName": "Kit (SDB Hopper)",
+        "itemName": "ItemKitSDBHopper",
+        "itemHash": 323957548
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 700,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(SDB_Silo)",
+        "displayName": "Kit (SDB Silo)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 120,
+      "energy": 24000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 20
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 15
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Composite_Floor_Grating)",
+        "displayName": "Kit (Composite Floor Grating)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 3,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Tool_Manufactory)",
+        "displayName": "Kit (Tool Manufactory)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 120,
+      "energy": 24000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Recycler)",
+        "displayName": "Kit (Recycler)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 60,
+      "energy": 12000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Centrifuge)",
+        "displayName": "Kit (Centrifuge)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 60,
+      "energy": 18000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Combustion_Centrifuge)",
+        "displayName": "Kit (Combustion Centrifuge)",
+        "itemName": "KitStructureCombustionCentrifuge",
+        "itemHash": 231903234
+      },
+      "tier": "Tier Two",
+      "time": 120,
+      "energy": 24000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Constantan)",
+          "displayName": "Ingot (Constantan)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Invar)",
+          "displayName": "Ingot (Invar)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 20
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Deep_Miner)",
+        "displayName": "Kit (Deep Miner)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier Two",
+      "time": 180,
+      "energy": 72000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Constantan)",
+          "displayName": "Ingot (Constantan)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Electrum)",
+          "displayName": "Ingot (Electrum)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Invar)",
+          "displayName": "Ingot (Invar)",
+          "quantity": 10
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 50
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Crate_Mount)",
+        "displayName": "Kit (Crate Mount)",
+        "itemName": "ItemKitCrateMount",
+        "itemHash": -551612946
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 10
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Crate)",
+        "displayName": "Kit (Crate)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 10
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Crate_MkII)",
+        "displayName": "Kit (Crate MkII)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier Two",
+      "time": 10,
+      "energy": 200,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 10
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Space_Helmet",
+        "displayName": "Space Helmet",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 15,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Gold)",
+          "displayName": "Ingot (Gold)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Eva_Suit",
+        "displayName": "Eva Suit",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 15,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 5
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 5
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Egg_Carton",
+        "displayName": "Egg Carton",
+        "itemName": "ItemEggCarton",
+        "itemHash": -524289310
+      },
+      "tier": "Tier One",
+      "time": 10,
+      "energy": 100,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Silicon)",
+          "displayName": "Ingot (Silicon)",
+          "quantity": 2
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Coffee_Mug",
+        "displayName": "Coffee Mug",
+        "itemName": "ItemCoffeeMug",
+        "itemHash": 1800622698
+      },
+      "tier": "Tier One",
+      "time": 1,
+      "energy": 70,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Flag_ODA)",
+        "displayName": "Kit (Flag ODA)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 5,
+      "energy": 100,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 8
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Respawn_Point_Wall_Mounted)",
+        "displayName": "Kit (Respawn Point Wall Mounted)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 20,
+      "energy": 500,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 1
+        },
+        {
+          "wikiTitle": "Ingot_(Iron)",
+          "displayName": "Ingot (Iron)",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "item": {
+        "wikiTitle": "Kit_(Access_Bridge)",
+        "displayName": "Kit (Access Bridge)",
+        "itemName": null,
+        "itemHash": null
+      },
+      "tier": "Tier One",
+      "time": 30,
+      "energy": 15000,
+      "inputs": [
+        {
+          "wikiTitle": "Ingot_(Copper)",
+          "displayName": "Ingot (Copper)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Solder)",
+          "displayName": "Ingot (Solder)",
+          "quantity": 2
+        },
+        {
+          "wikiTitle": "Ingot_(Steel)",
+          "displayName": "Ingot (Steel)",
+          "quantity": 10
+        }
+      ]
+    }
+  ]
+}
