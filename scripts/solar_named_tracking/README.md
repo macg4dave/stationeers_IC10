@@ -1,14 +1,16 @@
 # solar_named_tracking
 
 **Purpose:**
-Tracks all Solar Panels on the same data network using one Daylight Sensor and exact
-panel-name groups. Group names represent each panel group's **data-port world direction**.
-During the day, the script compensates for that mount direction. At night, every group
-parks toward its own named side.
+Tracks normal and heavy Solar Panels on the same data network using one Daylight Sensor
+and exact panel-name groups. Group names represent each panel group's **data-port world
+direction**. During the day, the script compensates for that mount direction. At night,
+it uses a shared base park angle plus per-group offsets so mixed panel orientations can
+be tuned.
 
 ## Devices
 
-- **Required:** 1 Daylight Sensor, 1 or more Solar Panels on the same data network
+- **Required:** 1 Daylight Sensor, 1 or more Solar Panels and/or Heavy Solar Panels on
+    the same data network
 - **Optional:** None
 
 ## Device registers
@@ -17,8 +19,8 @@ parks toward its own named side.
 
 ## Exact panel names supported
 
-Rename each Solar Panel to one of these exact values based on the direction its
-**data port faces in the world**:
+Rename each Solar Panel or Heavy Solar Panel to one of these exact values based on the
+direction its **data port faces in the world**:
 
 - `0`
 - `90`
@@ -43,23 +45,21 @@ These map to the game's four practical data-port directions:
 
 - Solar Panel `Horizontal` is a **local panel angle**, not a world compass heading.
 - The game's Solar Panel docs define the panel data-port side as local `270°`.
-- This script therefore treats the group name as the panel's **world** data-port
-    direction and compensates for it automatically.
+- This script treats the group name as the panel's **world** data-port direction and
+    compensates for it during daytime tracking.
+- Night parking is tuned separately using one shared base angle plus one fixed offset
+    per group.
 
 Formulas used:
 
 - **Daytime:** `panel horizontal = sun horizontal + 270 - data-port direction`
-- **Night:** `panel horizontal = 270`
+- **Night:** `panel horizontal = NIGHT_PARK_BASE_HORIZONTAL + NIGHT_PARK_OFFSET_group`
 
-Examples:
+Default night offsets keep the `270` group as the reference park heading and rotate the
+other groups in `90°` steps from that base.
 
-- A panel named `270` (data port faces west) needs no daytime horizontal correction.
-- A panel named `90` (data port faces east) tracks with `sun horizontal + 180`.
-- At night, both groups write local `270`, which points each panel toward its own
-    named data-port side.
-
-This is useful when mixed panel groups are mounted in different cardinal orientations
-but should still track correctly from one shared Daylight Sensor.
+If one group parks correctly and the others are still rotated wrong, adjust only the
+`NIGHT_PARK_OFFSET_*` constants in `90°` steps until all groups line up.
 
 ## Usage
 
@@ -78,6 +78,9 @@ but should still track correctly from one shared Daylight Sensor.
 - `HORIZONTAL_INVERT`: set to `1` if horizontal motion runs backward.
 - `VERTICAL_BIAS_DEG`: extra vertical trim in degrees.
 - `PANEL_PORT_LOCAL_DEG`: local Solar Panel angle of the data-port side (default `270`).
+- `NIGHT_PARK_BASE_HORIZONTAL`: reference local horizontal park angle.
+- `NIGHT_PARK_OFFSET_0`, `NIGHT_PARK_OFFSET_90`, `NIGHT_PARK_OFFSET_180`, `NIGHT_PARK_OFFSET_270`:
+    fixed night offsets added to the base for each name group.
 - `NIGHT_THRESHOLD_DEG`: below this computed panel elevation, the script parks for night.
 - `NIGHT_PARK_VERTICAL`: night park elevation (default `15`).
 
@@ -95,7 +98,10 @@ The IC Housing `db Setting` shows:
   so the panel target elevation is computed as `90 - sensor Vertical`.
 - The Solar Panel `Horizontal` value is interpreted in the panel's local frame; the
     script compensates using the named data-port direction for each group.
-- Solar Panel writes are batch-targeted by prefab hash and exact name hash.
+- Night parking is intentionally exposed as base + offsets because different panel
+    build conventions can need different quarter-turn corrections.
+- Solar Panel and Heavy Solar Panel writes are batch-targeted by prefab hash and exact
+    name hash.
 - See `docs/usage/daylight_sensor.md` and `docs/usage/solar_panels.md`.
 
 ## Status

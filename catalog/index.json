@@ -182,6 +182,12 @@
       "itemHash": -2045627372
     },
     {
+      "wikiTitle": "Solar_Panel_Heavy",
+      "file": "devices/Solar_Panel_Heavy.json",
+      "itemName": null,
+      "itemHash": -934345724
+    },
+    {
       "wikiTitle": "Station_Battery",
       "file": "devices/Station_Battery.json",
       "itemName": null,

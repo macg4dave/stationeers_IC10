@@ -1,0 +1,64 @@
+{
+  "source": {
+    "kind": "best_guess",
+    "wikiUrl": "https://stationeers-wiki.com/Solar_Panel",
+    "wikiTitle": "Solar_Panel_Heavy",
+    "retrievedAt": "2026-03-15T00:00:00+00:00",
+    "notes": "Copied from Solar_Panel while a dedicated heavy variant page/source is unavailable; behavior and IO assumed equivalent. Prefab hash set to -934345724."
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": -934345724
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Horizontal",
+        "type": "integer",
+        "description": "Set the horizontal rotation of the Solar Panel (clockwise, 0-360°, data port is at 270°)"
+      },
+      {
+        "name": "Vertical",
+        "type": "integer",
+        "description": "Sets the vertical angle of the Solar Panel (As of at least version 0.2.3263.16264, solar panels accept input in degrees above the horizon instead of in percent, so the solar panels travel between inputs of 15 and 165, with 90 being straight up. Previously, this was supposedly a Percentage \"accepting 0-100% which translates to 15°-165°, 50%=90° =zenith\")"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the solar panel on or off"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Charge",
+        "type": "integer",
+        "description": "Returns the power generated in Watts"
+      },
+      {
+        "name": "Horizontal",
+        "type": "integer",
+        "description": "Returns the horizontal rotation of the Solar Panel"
+      },
+      {
+        "name": "Vertical",
+        "type": "integer",
+        "description": "Returns the vertical angle of the Solar Panel"
+      },
+      {
+        "name": "Maximum",
+        "type": "integer",
+        "description": "Maximum possible power for this planet"
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": "How close to maximum current performance is, 1.0 means panel is perfectly directed and unobstructed"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns the on/off state of the solar panel"
+      }
+    ]
+  }
+}
