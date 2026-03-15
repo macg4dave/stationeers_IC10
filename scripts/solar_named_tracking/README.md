@@ -2,8 +2,9 @@
 
 **Purpose:**
 Tracks all Solar Panels on the same data network using one Daylight Sensor and exact
-panel-name groups. During the day, each group's name is used as a horizontal offset.
-At night, each group parks back to its own starting angle.
+panel-name groups. Group names represent each panel group's **data-port world direction**.
+During the day, the script compensates for that mount direction. At night, every group
+parks toward its own named side.
 
 ## Devices
 
@@ -16,7 +17,8 @@ At night, each group parks back to its own starting angle.
 
 ## Exact panel names supported
 
-Rename each Solar Panel to one of these exact values:
+Rename each Solar Panel to one of these exact values based on the direction its
+**data port faces in the world**:
 
 - `0`
 - `90`
@@ -25,7 +27,7 @@ Rename each Solar Panel to one of these exact values:
 
 All panels sharing the same exact name will move together as one group.
 
-These map to the game's four practical facing directions:
+These map to the game's four practical data-port directions:
 
 - `0` = north
 - `90` = east
@@ -39,22 +41,31 @@ These map to the game's four practical facing directions:
 
 ## How the naming works
 
-- **Daytime:** group angle = `sun horizontal + name`
-- **Night:** group angle = `name`
+- Solar Panel `Horizontal` is a **local panel angle**, not a world compass heading.
+- The game's Solar Panel docs define the panel data-port side as local `270°`.
+- This script therefore treats the group name as the panel's **world** data-port
+    direction and compensates for it automatically.
+
+Formulas used:
+
+- **Daytime:** `panel horizontal = sun horizontal + 270 - data-port direction`
+- **Night:** `panel horizontal = 270`
 
 Examples:
 
-- A panel named `0` tracks with no extra horizontal offset and parks at `0`.
-- A panel named `90` tracks with a +90° horizontal offset and parks at `90`.
+- A panel named `270` (data port faces west) needs no daytime horizontal correction.
+- A panel named `90` (data port faces east) tracks with `sun horizontal + 180`.
+- At night, both groups write local `270`, which points each panel toward its own
+    named data-port side.
 
-This is useful when different panel groups need different cardinal horizontal
-offsets or when you want a predictable night parking direction per group.
+This is useful when mixed panel groups are mounted in different cardinal orientations
+but should still track correctly from one shared Daylight Sensor.
 
 ## Usage
 
 1. Place and power a Daylight Sensor and connect it to the same data network as the IC.
 2. Mount the Daylight Sensor **flat / facing up** as the default setup.
-3. Rename each Solar Panel to one of the supported exact names above.
+3. Rename each Solar Panel to the exact world direction its **data port** faces.
 4. Put the Daylight Sensor on `d0`.
 5. Paste `solar_named_tracking.ic10` into the IC.
 6. If tracking is rotated, adjust `SENSOR_PORT_DIRECTION` in 90° steps.
@@ -66,6 +77,7 @@ offsets or when you want a predictable night parking direction per group.
 - `HORIZONTAL_BIAS_DEG`: extra horizontal trim in degrees.
 - `HORIZONTAL_INVERT`: set to `1` if horizontal motion runs backward.
 - `VERTICAL_BIAS_DEG`: extra vertical trim in degrees.
+- `PANEL_PORT_LOCAL_DEG`: local Solar Panel angle of the data-port side (default `270`).
 - `NIGHT_THRESHOLD_DEG`: below this computed panel elevation, the script parks for night.
 - `NIGHT_PARK_VERTICAL`: night park elevation (default `15`).
 
@@ -81,6 +93,8 @@ The IC Housing `db Setting` shows:
 
 - This script assumes the Daylight Sensor's `Vertical` behaves like a zenith angle,
   so the panel target elevation is computed as `90 - sensor Vertical`.
+- The Solar Panel `Horizontal` value is interpreted in the panel's local frame; the
+    script compensates using the named data-port direction for each group.
 - Solar Panel writes are batch-targeted by prefab hash and exact name hash.
 - See `docs/usage/daylight_sensor.md` and `docs/usage/solar_panels.md`.
 
