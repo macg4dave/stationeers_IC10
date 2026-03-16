@@ -72,7 +72,8 @@ can reset pressures to defaults):
 
 - `Setting` to the target room pressure (`LOW_PRESSURE_KPA` or `HIGH_PRESSURE_KPA`)
 - `PressureExternal` to the target room pressure (`LOW_PRESSURE_KPA` or `HIGH_PRESSURE_KPA`)
-- `PressureInternal` to a pipe constraint (`MIN_PIPE_PRESSURE_KPA` or `MAX_PIPE_PRESSURE_KPA`)
+- `PressureInternal` to a pipe-pressure constraint (`MIN_PIPE_PRESSURE_KPA` while intake,
+  `MAX_PIPE_PRESSURE_KPA` while exhaust)
 
 Troubleshooting if it “does nothing”:
 
@@ -83,6 +84,9 @@ Troubleshooting if it “does nothing”:
   electrical power. If `Power = 0`, check the vent's cable/power network first.
 - For **intake/pressurize** (Mode `0`, pipe → room): ensure the pipe network pressure is
   above your target room pressure (e.g. > `LOW_PRESSURE_KPA`).
+- In **Outward** mode, `PressureInternal` is the minimum pipe pressure floor. Setting it too
+  high (for example `120`) can prevent the vent from moving gas even when the rest of the
+  script is correct.
 - For **exhaust/depressurize** (Mode `1`, room → pipe): ensure the pipe network has
   somewhere for gas to go (tank/storage/active vent to space) and isn't already maxed.
 - Unrelated Active Vents on the same network will be ignored unless they also use the exact

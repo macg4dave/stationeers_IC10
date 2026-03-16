@@ -15,11 +15,12 @@ based on exact device name matches using `HASH()` + `sbn`, gated by room tempera
 
 ## Batch / hashes
 
-- Active Vent prefab hash: `HASH("StructureActiveVent")`
-- Name hashes (exact match):
-   - Intake group: `HASH("IN")`
-   - Exhaust group: `HASH("OUT")`
+- Active Vent prefab hash: `HASH("StructureActiveVent")` = `-1129453144`
+- Intake group name hash (exact match): `HASH("IN")`
+- Exhaust group name hash (exact match): `HASH("OUT")`
 
+> **Important:** IC10 batch writes use the device **Prefab Hash**, not item hash.
+> For Active Vents, use `-1129453144` (`StructureActiveVent`), not item hash `-842048328`.
 > **Important:** `sbn` matches **exact** name hashes only. It does **not** match substrings.
 > To target a group, rename **every** intake vent to the exact same name (e.g. `IN`), and
 > **every** exhaust vent to another exact name (e.g. `OUT`). If you want different words,
