@@ -55,12 +55,20 @@ class RecipeItem:
 
 
 @dataclass
+class ItemPageMetadata:
+    itemName: str | None
+    itemHash: int | None
+    stackSize: int | None
+
+
+@dataclass
 class RecipeRecord:
     item: RecipeItem
     tier: str
     time: int | float
     energy: int | float
     inputs: list[RecipeMaterial]
+    stackSize: int = 1
 
 
 @dataclass
@@ -199,8 +207,32 @@ def _last_match_str(text: str, pattern: str) -> Optional[str]:
     return matches[-1].group(1)
 
 
-def _extract_identity_from_wikitext(page_title: str, wikitext: str) -> tuple[Optional[str], Optional[int]]:
-    """Fallback identity extraction from raw wiki source for item pages."""
+def _parse_stack_size(raw_value: str) -> Optional[int]:
+    match = re.search(r"([0-9]+)", raw_value)
+    if not match:
+        return None
+    try:
+        stack_size = int(match.group(1))
+    except ValueError:
+        return None
+    return stack_size if stack_size > 0 else None
+
+
+def _extract_stack_size_from_html(html: str) -> Optional[int]:
+    match = re.search(
+        r"<th[^>]*>\s*Stacks\s*</th>\s*<td[^>]*>(.*?)</td>",
+        html,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return None
+    text = re.sub(r"<[^>]+>", " ", match.group(1))
+    text = unescape(re.sub(r"\s+", " ", text)).strip()
+    return _parse_stack_size(text)
+
+
+def _extract_metadata_from_wikitext(page_title: str, wikitext: str) -> ItemPageMetadata:
+    """Fallback identity/stack extraction from raw wiki source for item pages."""
 
     blocks = re.findall(r"\{\{(?:Itembox|Structurebox).*?\}\}", wikitext, re.IGNORECASE | re.DOTALL)
     if blocks:
@@ -214,9 +246,11 @@ def _extract_identity_from_wikitext(page_title: str, wikitext: str) -> tuple[Opt
             item_hash_match = re.search(r"\|\s*item_hash\s*=\s*([0-9-]+)", block, re.IGNORECASE)
             prefab_name_match = re.search(r"\|\s*prefab_name\s*=\s*([A-Za-z0-9_]+)", block, re.IGNORECASE)
             prefab_hash_match = re.search(r"\|\s*prefab_hash\s*=\s*([0-9-]+)", block, re.IGNORECASE)
+            stacks_match = re.search(r"\|\s*stacks\s*=\s*([^|}{\n]+)", block, re.IGNORECASE)
 
             item_name = item_name_match.group(1) if item_name_match else None
             prefab_name = prefab_name_match.group(1) if prefab_name_match else None
+            stack_size = _parse_stack_size(stacks_match.group(1)) if stacks_match else None
 
             item_hash: Optional[int]
             prefab_hash: Optional[int]
@@ -230,44 +264,51 @@ def _extract_identity_from_wikitext(page_title: str, wikitext: str) -> tuple[Opt
                 prefab_hash = None
 
             if item_name is not None or item_hash is not None:
-                return item_name, item_hash
+                return ItemPageMetadata(item_name, item_hash, stack_size)
             if prefab_name is not None or prefab_hash is not None:
-                return prefab_name, prefab_hash
+                return ItemPageMetadata(prefab_name, prefab_hash, stack_size)
 
     parser = _TextOnly()
     parser.feed(wikitext)
     text = unescape(" ".join(parser.parts))
     text = re.sub(r"\s+", " ", text)
+    stack_size = _last_match_int(text, r"\bStacks\b\s*=?\s*([0-9]+)")
 
     item_name = _last_match_str(text, r"\bItem(?:_|\s+)Name\b\s*=?\s*([A-Za-z0-9_]+)\b")
     item_hash = _last_match_int(text, r"\bItem(?:_|\s+)Hash\b\s*=?\s*([0-9-]+)\b")
     if item_name is not None or item_hash is not None:
-        return item_name, item_hash
+        return ItemPageMetadata(item_name, item_hash, stack_size)
 
     prefab_name = _last_match_str(text, r"\bPrefab(?:_|\s+)Name\b\s*=?\s*([A-Za-z0-9_]+)\b")
     prefab_hash = _last_match_int(text, r"\bPrefab(?:_|\s+)Hash\b\s*=?\s*([0-9-]+)\b")
-    return prefab_name, prefab_hash
+    return ItemPageMetadata(prefab_name, prefab_hash, stack_size)
 
 
-def _lookup_item_identity(page_title: str, cache: dict[str, tuple[Optional[str], Optional[int]]]) -> tuple[Optional[str], Optional[int]]:
+def _lookup_item_metadata(page_title: str, cache: dict[str, ItemPageMetadata]) -> ItemPageMetadata:
     if page_title in cache:
         return cache[page_title]
 
     page_url = _build_page_url(page_title)
+    stack_size: Optional[int] = None
     try:
         html = fetch_html(page_url)
         item_name, item_hash = _extract_identity(html)
+        stack_size = _extract_stack_size_from_html(html)
     except Exception:
         item_name, item_hash = None, None
 
-    if item_name is None and item_hash is None:
+    if item_name is None and item_hash is None or stack_size is None:
         try:
             wikitext = fetch_wikitext(page_title)
-            item_name, item_hash = _extract_identity_from_wikitext(page_title, wikitext)
+            meta = _extract_metadata_from_wikitext(page_title, wikitext)
+            if item_name is None and item_hash is None:
+                item_name, item_hash = meta.itemName, meta.itemHash
+            if stack_size is None:
+                stack_size = meta.stackSize
         except Exception:
-            item_name, item_hash = None, None
+            pass
 
-    cache[page_title] = (item_name, item_hash)
+    cache[page_title] = ItemPageMetadata(item_name, item_hash, stack_size)
     return cache[page_title]
 
 
@@ -286,13 +327,13 @@ _ROW_RE = re.compile(
 def parse_recipes(wikitext: str) -> list[RecipeRecord]:
     table = _extract_recipe_table(wikitext)
     recipes: list[RecipeRecord] = []
-    identity_cache: dict[str, tuple[Optional[str], Optional[int]]] = {}
+    identity_cache: dict[str, ItemPageMetadata] = {}
 
     for match in _ROW_RE.finditer(table):
         item = _parse_recipe_item(match.group("item"))
-        item_name, item_hash = _lookup_item_identity(item.wikiTitle, identity_cache)
-        item.itemName = item_name
-        item.itemHash = item_hash
+        meta = _lookup_item_metadata(item.wikiTitle, identity_cache)
+        item.itemName = meta.itemName
+        item.itemHash = meta.itemHash
         tier = re.sub(r"\s+", " ", match.group("tier")).strip()
         details = match.group("details")
 
@@ -329,6 +370,7 @@ def parse_recipes(wikitext: str) -> list[RecipeRecord]:
                 time=time_value,
                 energy=energy_value,
                 inputs=inputs,
+                stackSize=meta.stackSize or 1,
             )
         )
 
@@ -354,6 +396,33 @@ def _load_device_identity(producer_title: str) -> tuple[Optional[str], Optional[
     item_name = identity.get("itemName") if isinstance(identity.get("itemName"), str) else None
     item_hash = identity.get("itemHash") if isinstance(identity.get("itemHash"), int) else None
     return item_name, item_hash
+
+
+def _load_existing_stack_sizes(out_path: Path) -> dict[str, int]:
+    if not out_path.exists():
+        return {}
+
+    try:
+        data = json.loads(out_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    recipes = data.get("recipes")
+    if not isinstance(recipes, list):
+        return {}
+
+    stack_sizes: dict[str, int] = {}
+    for recipe in recipes:
+        if not isinstance(recipe, dict):
+            continue
+        item = recipe.get("item")
+        if not isinstance(item, dict):
+            continue
+        wiki_title = item.get("wikiTitle")
+        stack_size = recipe.get("stackSize")
+        if isinstance(wiki_title, str) and isinstance(stack_size, int) and stack_size > 0:
+            stack_sizes[wiki_title] = stack_size
+    return stack_sizes
 
 
 def upsert_recipe_index(entry: dict[str, Any]) -> None:
@@ -385,6 +454,15 @@ def main(argv: list[str] | None = None) -> int:
     recipes = parse_recipes(wikitext)
     item_name, item_hash = _load_device_identity(producer_title)
     retrieved_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    out_dir = RECIPES_DIR / producer_title
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "recipes.json"
+    existing_stack_sizes = _load_existing_stack_sizes(out_path)
+
+    for recipe in recipes:
+        existing_stack_size = existing_stack_sizes.get(recipe.item.wikiTitle)
+        if existing_stack_size is not None and recipe.stackSize == 1:
+            recipe.stackSize = existing_stack_size
 
     catalog = RecipeCatalogEntry(
         source={
@@ -401,9 +479,6 @@ def main(argv: list[str] | None = None) -> int:
         recipes=[asdict(recipe) for recipe in recipes],
     )
 
-    out_dir = RECIPES_DIR / producer_title
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "recipes.json"
     out_path.write_text(
         json.dumps(asdict(catalog), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",

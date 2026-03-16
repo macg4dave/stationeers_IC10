@@ -4,11 +4,11 @@ alias mach d2
 alias need r0
 alias tmp r1
 alias oldimp r2
-alias vend_req r3
-
+alias level r3
 define CLEAR_REQ -1
 define SORT_MODE_LOGIC 2
-
+define LOW_REAGENT 50
+define TARGET_REAGENT 200
 define REAGENT_IRON -666742878
 define REAGENT_COPPER -1172078909
 define REAGENT_GOLD -409226641
@@ -18,7 +18,6 @@ define REAGENT_LEAD -2002530571
 define REAGENT_NICKEL 556601662
 define REAGENT_SILVER 687283565
 define REAGENT_SOLDER -1206542381
-
 define INGOT_IRON -1301215609
 define INGOT_COPPER -404336834
 define INGOT_GOLD 226410516
@@ -28,12 +27,10 @@ define INGOT_LEAD 2134647745
 define INGOT_NICKEL -1406385572
 define INGOT_SILVER -929742000
 define INGOT_SOLDER -82508479
-
 auto:
 move need CLEAR_REQ
 move oldimp 0
 s db Setting 200
-
 main:
 yield
 bdns d0 no_sort
@@ -55,40 +52,66 @@ s sort Output tmp
 check_arrive:
 l tmp mach ImportCount
 ble tmp oldimp check_need
-move need CLEAR_REQ
 move oldimp tmp
 check_need:
 l tmp mach Open
 bnez tmp publish
-bne need CLEAR_REQ publish
+bne need CLEAR_REQ track_need
+scan_need:
 lr tmp mach Contents REAGENT_IRON
-slt tmp tmp 50
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_IRON need
 lr tmp mach Contents REAGENT_COPPER
-slt tmp tmp 50
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_COPPER need
 lr tmp mach Contents REAGENT_GOLD
-slt tmp tmp 50
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_GOLD need
 lr tmp mach Contents REAGENT_SILICON
-slt tmp tmp 50
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_SILICON need
 lr tmp mach Contents REAGENT_STEEL
-slt tmp tmp 50
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_STEEL need
-lr tmp mach Required REAGENT_LEAD
+lr tmp mach Contents REAGENT_LEAD
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_LEAD need
-lr tmp mach Required REAGENT_NICKEL
+lr tmp mach Contents REAGENT_NICKEL
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_NICKEL need
-lr tmp mach Required REAGENT_SILVER
+lr tmp mach Contents REAGENT_SILVER
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_SILVER need
-lr tmp mach Required REAGENT_SOLDER
+lr tmp mach Contents REAGENT_SOLDER
+slt tmp tmp LOW_REAGENT
 select need tmp INGOT_SOLDER need
+j publish
+track_need:
+move level REAGENT_SOLDER
+seq tmp need INGOT_IRON
+select level tmp REAGENT_IRON level
+seq tmp need INGOT_COPPER
+select level tmp REAGENT_COPPER level
+seq tmp need INGOT_GOLD
+select level tmp REAGENT_GOLD level
+seq tmp need INGOT_SILICON
+select level tmp REAGENT_SILICON level
+seq tmp need INGOT_STEEL
+select level tmp REAGENT_STEEL level
+seq tmp need INGOT_LEAD
+select level tmp REAGENT_LEAD level
+seq tmp need INGOT_NICKEL
+select level tmp REAGENT_NICKEL level
+seq tmp need INGOT_SILVER
+select level tmp REAGENT_SILVER level
+lr level mach Contents level
+slt tmp level TARGET_REAGENT
+bnez tmp publish
+move need CLEAR_REQ
+j scan_need
 publish:
 s db Setting need
 beq need CLEAR_REQ idle
-l vend_req vend RequestHash
-beq vend_req need main
 s vend RequestHash need
 j main
 idle:

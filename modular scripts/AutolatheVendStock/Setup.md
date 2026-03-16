@@ -17,9 +17,9 @@ Use this page to set up a simple fully automatic **Autolathe -> Vending Machine*
   - `slot1`
 - 1x Autolathe
 - 1x Vending Machine
-  - finished-goods stock vending
+  - finished-goods stock vending (`vend stock` role)
 - 1x Vending Machine
-  - ingot-supply vending
+  - ingot-supply vending (`vend ingot` role)
 - 1x Sorter
 
 ## Name contract
@@ -48,7 +48,7 @@ Internal prefab tokens used by the name-based scripts:
 
 ### autolathe_vend_stock_worker_stock.ic10
 
-- `d0` -> finished-goods vending machine
+- `d0` -> finished-goods vending machine (`vend stock` role)
 
 ### autolathe_vend_stock_worker_machine.ic10
 
@@ -57,7 +57,7 @@ Internal prefab tokens used by the name-based scripts:
 ### autolathe_vend_stock_worker_logistics.ic10
 
 - `d0` -> Sorter
-- `d1` -> ingot-supply vending machine
+- `d1` -> ingot-supply vending machine (`vend ingot` role)
 - `d2` -> Autolathe
 
 ### autolathe_vend_stock_setup_guard.ic10
@@ -86,9 +86,14 @@ There are no buttons or dials in normal use.
 
 The script family is fully automatic:
 
-- the stock worker notices a missing tracked product in the finished-goods vending machine
-- the machine worker builds one replacement item
-- the logistics worker keeps the Autolathe fed from the ingot-supply vending machine
+- the finished-goods vending machine (`vend stock`) is the thing being monitored for stock
+- the stock worker notices a missing tracked product there and requests it
+- the machine worker builds the requested replacement item
+- the ingot-supply vending machine (`vend ingot`) only keeps the Autolathe fed,
+  refilling any tracked reagent that drops below `50` back toward `200`
+
+At the moment, "stock satisfied" means the stock worker sees at least one occupied vending stack for the
+tracked item. Exact per-item quantity targets are not implemented yet.
 
 ## Runtime debug snapshot (required for issue reports)
 

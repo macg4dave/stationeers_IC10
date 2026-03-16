@@ -2,6 +2,7 @@ alias cond r0
 alias house r1
 alias stock r2
 alias mach r3
+alias log r4
 
 define STOCK HASH("stock_worker")
 define MACH HASH("machine_worker")
@@ -19,16 +20,28 @@ lbn cond house MACH PrefabHash Maximum
 bne cond house no_mach
 lbn cond house LOG PrefabHash Maximum
 bne cond house no_log
+lbn stock house STOCK On Maximum
+bnez stock stock_on
 sbn house STOCK On 1
+stock_on:
+lbn mach house MACH On Maximum
+bnez mach mach_on
 sbn house MACH On 1
+mach_on:
+lbn log house LOG On Maximum
+bnez log read_mach
 sbn house LOG On 1
+read_mach:
 lbn mach house MACH Setting Maximum
 sgt cond mach 109
 slt stock mach 140
 and cond cond stock
 bnez cond busy
+lbn log house LOG Setting Maximum
+bne log 200 restocking
 lbn stock house STOCK Setting Maximum
 beq stock 500 ready
+restocking:
 s db Setting 3
 j main
 busy:

@@ -67,6 +67,7 @@ Recipe catalogs are kept separate from device IO catalogs so existing consumers 
     - `tier`: string
     - `time`: number
     - `energy`: number
+    - `stackSize` (optional): integer, manually curated output stack limit; use `1` until verified
     - `inputs`: array of `{ wikiTitle, displayName, quantity }`
 
 ### Recipe normalization notes
@@ -74,8 +75,12 @@ Recipe catalogs are kept separate from device IO catalogs so existing consumers 
 - The importer preserves wiki link targets such as `Ingot_(Iron)` so later tooling can match exact page titles.
 - The importer also stores human-readable labels via `displayName`.
 - For each recipe output item, the importer also looks up the linked wiki page and stores the in-game `itemName` and `itemHash` when the page exposes them.
+- When an item page exposes an infobox `stacks` value (example: `Glass_Sheets` -> `50x`), the importer also stores that as recipe `stackSize`.
 - Decimal commas from the wiki, such as `0,5`, are normalized to JSON numbers like `0.5`.
 - Recipe output data is currently represented by the recipe item itself; individual output stack counts are not inferred beyond what the page explicitly shows.
+- Recipe entries may also include a manually curated `stackSize` integer for the output item.
+  Use `1` as the safe default when the in-game stack limit has not been verified yet.
+  If the wiki page does not expose a stack value, existing manual `stackSize` values are preserved on re-import.
 
 ### Type normalization
 

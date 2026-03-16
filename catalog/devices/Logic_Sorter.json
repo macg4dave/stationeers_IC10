@@ -1,0 +1,109 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Logic_Sorter",
+    "wikiTitle": "Logic_Sorter",
+    "retrievedAt": "2026-03-16T07:42:47+00:00"
+  },
+  "identity": {
+    "itemName": "StructureLogicSorter",
+    "itemHash": 873418029
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "All",
+        "settingInterpretation": "Every filter instruction in sorter memory must return true for the item to go to Export (accept)."
+      },
+      {
+        "value": 1,
+        "meaning": "Any",
+        "settingInterpretation": "At least one filter instruction in sorter memory must return true for the item to go to Export (accept)."
+      },
+      {
+        "value": 2,
+        "meaning": "None",
+        "settingInterpretation": "The item goes to Export (accept) only when no filter instructions return true."
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Sets how the sorter combines filter results. See modeValues for All, Any, and None behavior."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Locks the Logic Sorter for manual interaction when set to 1. Unlocks it when set to 0."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Turns the Logic Sorter on when set to 1 and off when set to 0."
+      },
+      {
+        "name": "ClearMemory",
+        "type": "integer",
+        "description": "When set to 1, clears the import/export counter memory and then resets itself back to 0."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Returns whether the Logic Sorter is powered."
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Returns the current filter-combination mode. See modeValues."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "Returns whether the Logic Sorter is in an error state."
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Returns whether the Logic Sorter is locked for manual interaction."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Returns whether the Logic Sorter is turned on."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Returns the idle operating power required by the Logic Sorter in watts."
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": "Returns how many item stacks have been exported since the last ClearMemory action."
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": "Returns how many item stacks have been imported since the last ClearMemory action."
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Returns the Logic Sorter prefab hash."
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": "Returns the device reference ID."
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": "Returns the hash of the device's in-game custom name."
+      }
+    ]
+  }
+}

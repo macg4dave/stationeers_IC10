@@ -280,6 +280,13 @@ def _check_recipe_catalog_schema(
             elif not _is_number_like(recipe[key]):
                 errors.append(f"{where}.{key} must be a number")
 
+        if "stackSize" in recipe:
+            stack_size = recipe["stackSize"]
+            if not _is_int_like(stack_size):
+                errors.append(f"{where}.stackSize must be an integer when present")
+            elif stack_size < 1:
+                errors.append(f"{where}.stackSize must be >= 1")
+
         inputs = recipe.get("inputs")
         if not isinstance(inputs, list):
             errors.append(f"{where}.inputs must be an array")

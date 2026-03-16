@@ -16,7 +16,8 @@ fully automatic feature:
 - no buttons
 - no hall selection
 - no per-cell gating
-- one shared finished-goods vending target
+- one shared finished-goods vending target (`vend stock` role)
+- one ingot-supply vending machine that only keeps the Autolathe topped up (`vend ingot` role)
 - one local Autolathe that auto-restocks missing products
 
 ## Architecture
@@ -36,7 +37,7 @@ fully automatic feature:
 
 ### Stock worker
 
-- `d0` = finished-goods vending machine
+- `d0` = finished-goods vending machine (`vend stock` role)
 - `db` = stock worker status / current missing product hash
 
 ### Machine worker
@@ -47,7 +48,7 @@ fully automatic feature:
 ### Logistics worker
 
 - `d0` = Sorter
-- `d1` = ingot-supply vending machine
+- `d1` = ingot-supply vending machine (`vend ingot` role)
 - `d2` = Autolathe
 - `db` = logistics status / current ingot request
 
@@ -87,8 +88,23 @@ Command codes:
 
 ## Automatic stock behavior
 
+Intended workflow:
+
+1. the finished-goods vending machine (`vend stock`) acts as the demand signal
+2. when a tracked product is missing or below its target stock level, the stock worker requests it
+3. the machine worker runs the Autolathe until that stock request is satisfied
+4. the ingot-supply vending machine (`vend ingot`) does **not** decide what to build; it only keeps the
+   Autolathe's reagents topped up so the machine worker can continue building
+
 The stock worker currently tracks the **23 Autolathe recipes with usable item hashes** in the
 local catalog and tries to keep **one occupied vending stack** for each of them.
+
+The logistics worker expects the ingot-supply vending machine to hold the Autolathe's feed ingots
+and uses a simple hysteresis refill rule:
+
+- if a tracked reagent drops below `50`, it becomes the active refill request
+- the worker keeps pulsing vending requests for that ingot until the Autolathe reaches `200`
+- then it clears that request and scans for the next low reagent
 
 When one tracked item is missing from the finished-goods vending machine:
 
@@ -98,6 +114,13 @@ When one tracked item is missing from the finished-goods vending machine:
 4. machine worker builds one item
 5. finished goods should be routed into the vending machine
 6. stock worker advances to the next tracked product only after it sees that stack exist
+
+Current limitation:
+
+- the current stock worker treats "stock met" as **one occupied vending stack exists** for that item
+- it does **not yet** maintain an exact configurable quantity target per item
+- that exact-count behavior is a sensible next upgrade, but the ingot top-up path is intentionally kept
+  separate so you do not need a full recipe/build-list system just to keep the Autolathe fed
 
 ## Status protocol (`db Setting`)
 
@@ -128,7 +151,7 @@ When one tracked item is missing from the finished-goods vending machine:
 - `240` = missing Sorter on `d0`
 - `241` = missing ingot vending machine on `d1`
 - `243` = missing Autolathe on `d2`
-- any other value = current ingot hash being requested
+- any other value = current ingot hash being requested toward the `200` target
 
 ### Stock worker (`500-599`)
 
@@ -150,7 +173,7 @@ When one tracked item is missing from the finished-goods vending machine:
 
 - The current local recipe catalog only exposes **23 usable item hashes** for Autolathe products.
 - This feature therefore cannot yet stock every wiki-listed Autolathe recipe automatically.
-- It targets **one occupied vending stack**, not a guaranteed full max-size stack.
+- It currently targets **one occupied vending stack**, not a guaranteed full max-size stack or exact count.
 
 ## Recovery steps
 
