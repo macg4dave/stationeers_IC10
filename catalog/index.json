@@ -188,6 +188,12 @@
       "itemHash": -1766301997
     },
     {
+      "wikiTitle": "Small_Satellite_Dish",
+      "file": "devices/Small_Satellite_Dish.json",
+      "itemName": null,
+      "itemHash": 1960952220
+    },
+    {
       "wikiTitle": "Solar_Panel",
       "file": "devices/Solar_Panel.json",
       "itemName": "StructureSolarPanel",

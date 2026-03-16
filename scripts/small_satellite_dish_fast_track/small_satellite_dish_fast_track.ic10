@@ -1,0 +1,127 @@
+# small_satellite_dish_fast_track
+# Category: Controller / Status: Functional
+# d0 = Small Satellite Dish, db = IC Housing status
+alias dish d0
+alias tmp r0
+alias ok r1
+alias sig r2
+alias new_sig r3
+alias sid r4
+alias hstep r5
+alias vstep r6
+alias fired r7
+alias need_w r8
+alias hit_w r9
+define WATTS 99999
+define STARTV 15
+define SWH 30
+define SWV 15
+define STEP 4
+define SETTLE 5
+boot:
+bdns dish boot
+move hstep STEP
+move vstep STEP
+move fired 0
+s dish On 1
+s dish Setting WATTS
+s dish Horizontal 0
+s dish Vertical STARTV
+s dish BestContactFilter -1
+main:
+yield
+bdns dish boot
+l tmp dish Error
+bnez tmp err
+l tmp dish Idle
+beqz tmp main
+l sid dish SignalID
+l sig dish SignalStrength
+beq sid -1 sweep
+beq sig -1 sweep
+l tmp dish BestContactFilter
+bne tmp sid lock
+l need_w dish MinimumWattsToContact
+beq need_w -1 fire
+l hit_w dish WattsReachingContact
+blt hit_w need_w move_h
+fire:
+beq fired 1 move_h
+s dish Activate 1
+move fired 1
+s db Setting 130
+move_h:
+s db Setting 120
+l tmp dish Horizontal
+add tmp tmp hstep
+blt tmp 0 hlow
+bgt tmp 360 hhigh
+set_h:
+s dish Horizontal tmp
+wait_h:
+yield
+l tmp dish Idle
+beqz tmp wait_h
+l sid dish SignalID
+beq sid -1 sweep_reset
+l new_sig dish SignalStrength
+beq new_sig -1 wait_h
+sle ok sig new_sig
+move sig new_sig
+beqz ok flip_h
+move_v:
+l tmp dish Vertical
+add tmp tmp vstep
+max tmp tmp 0
+min tmp tmp 90
+s dish Vertical tmp
+wait_v:
+yield
+l tmp dish Idle
+beqz tmp wait_v
+l sid dish SignalID
+beq sid -1 sweep_reset
+l new_sig dish SignalStrength
+beq new_sig -1 wait_v
+sle ok sig new_sig
+move sig new_sig
+bnez ok main
+mul vstep vstep -1
+j main
+flip_h:
+mul hstep hstep -1
+j move_v
+hlow:
+add tmp tmp 360
+j set_h
+hhigh:
+sub tmp tmp 360
+j set_h
+lock:
+s dish BestContactFilter sid
+move fired 0
+s db Setting 110
+j main
+sweep:
+s db Setting 100
+sweep_reset:
+s dish BestContactFilter -1
+move fired 0
+l tmp dish Horizontal
+add tmp tmp SWH
+s dish Horizontal tmp
+blt tmp 360 sweep_wait
+move tmp 0
+s dish Horizontal tmp
+l tmp dish Vertical
+add tmp tmp SWV
+sle ok tmp 90
+select tmp ok tmp STARTV
+s dish Vertical tmp
+sweep_wait:
+sleep SETTLE
+j main
+err:
+s db Setting 902
+yield
+j main

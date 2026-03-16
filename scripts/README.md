@@ -49,6 +49,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 ## Script list
 
 - `led_display_hms_clock/` — Drives 3 LED Displays as a 24h HH:MM:SS clock.
+- `small_satellite_dish_fast_track/` — One-chip early-game auto sweep/lock tracker for a Small Satellite Dish.
 - `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
 - `large_satellite_dish_cycle_contacts/` — Collects unique contacts, then button-cycles lock target in discovery order.
 - `large_satellite_dish_led_readout/` — Mirrors dish `Horizontal`, `Vertical`, `SizeX`, and `SizeZ` to 4 LED Displays.
