@@ -1,0 +1,76 @@
+# small_dish_handoff_worker_scanning
+# d0 = Scanning Medium Dish, d1 = handoff Logic Memory, db = status
+alias dish d0
+alias mem d1
+alias tmp r0
+alias slot r1
+alias sid r2
+alias sig r3
+alias last r4
+alias v r5
+alias tok r6
+define WATTS 99999
+define STARTV 15
+define SWH 30
+define SWV 15
+define SETTLE 5
+define SLOT_EMPTY 0
+define SLOT_BUSY -1
+boot:
+bdns dish boot
+bdns mem boot
+move last SLOT_EMPTY
+move tok 0
+s mem Setting SLOT_EMPTY
+s dish On 1
+s dish Setting WATTS
+s dish Horizontal 0
+s dish Vertical STARTV
+s dish BestContactFilter SLOT_EMPTY
+main:
+yield
+bdns dish boot
+bdns mem boot
+l tmp dish Error
+bnez tmp err
+l tmp dish Idle
+beqz tmp main
+l slot mem Setting
+l sid dish SignalID
+l sig dish SignalStrength
+beq sid -1 sweep
+beq sig -1 sweep
+bne slot SLOT_EMPTY hold
+beq sid last hold
+add tok tok 1
+s mem Setting tok
+move last sid
+s dish BestContactFilter sid
+s db Setting 110
+j main
+hold:
+s db Setting 120
+s dish BestContactFilter sid
+j main
+sweep:
+s db Setting 100
+move last SLOT_EMPTY
+s dish BestContactFilter SLOT_EMPTY
+l tmp dish Horizontal
+add tmp tmp SWH
+s dish Horizontal tmp
+blt tmp 360 sweep_wait
+move tmp 0
+s dish Horizontal tmp
+l v dish Vertical
+add v v SWV
+sle tmp v 90
+select v tmp v STARTV
+s dish Vertical v
+sweep_wait:
+sleep SETTLE
+j main
+err:
+s db Setting 190
+yield
+j main

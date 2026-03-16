@@ -21,6 +21,9 @@ Then it turns the vent off and unlocks it.
 This script also includes a small timing workaround for some builds: it writes vent
 `Mode`, waits **one tick** (`yield`), then writes the pressure/setpoint fields.
 
+While the vent is active, the script also checks that `Mode`, `On`, `Open`, and `Lock`
+still match the intended state. If they drift, it re-applies the active configuration.
+
 ## Devices
 
 Required:
@@ -56,6 +59,8 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
 - Active Vent `Mode` values:
   - `0` = Outward (pipe → room) — pressurize / “intake”
   - `1` = Inward (room → pipe) — depressurize / “exhaust”
+  - If your vent moves gas in the wrong direction, swap `MODE_OUTWARD` and
+    `MODE_INWARD` in the script. Some builds/mod setups appear to invert this.
 
 The script sets these Active Vent parameters (after setting `Mode`; changing `Mode`
 can reset pressures to defaults):
@@ -70,6 +75,8 @@ Troubleshooting if it “does nothing”:
   above your target room pressure (e.g. > `LOW_PRESSURE_KPA`).
 - For **exhaust/depressurize** (Mode `1`, room → pipe): ensure the pipe network has
   somewhere for gas to go (tank/storage/active vent to space) and isn't already maxed.
+- If pressure changes in the **wrong direction**, swap the `MODE_OUTWARD` /
+  `MODE_INWARD` constant values in `room_pressure_active_vent.ic10`.
 - Ensure the vent face is inside the room you want to pressurize.
 - Double-check chip device assignments: `d0` is the Gas Sensor, `d1` is the Active Vent.
 

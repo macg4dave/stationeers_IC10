@@ -1,0 +1,120 @@
+# small_dish_handoff_worker_contact
+# d0 = Contact Medium Dish
+# d1 = handoff Logic Memory, d2 = Scanning Medium Dish, db = status
+alias dish d0
+alias mem d1
+alias scout d2
+alias tmp r0
+alias target r1
+alias fired r2
+alias need r3
+alias hit r4
+alias v r5
+define WATTS 99999
+define PAD_INDEX 0
+define STARTV 15
+define SWH 30
+define SWV 15
+define SETTLE 5
+define SLOT_EMPTY 0
+define SLOT_BUSY -1
+boot:
+bdns dish boot
+bdns mem boot
+bdns scout boot
+move target SLOT_EMPTY
+move fired 0
+s dish On 1
+s dish Setting WATTS
+s dish TargetPadIndex PAD_INDEX
+s dish BestContactFilter SLOT_EMPTY
+move tmp 0
+s dish Horizontal tmp
+s dish Vertical STARTV
+main:
+yield
+bdns dish boot
+bdns mem boot
+bdns scout boot
+l tmp dish Error
+bnez tmp err
+bne target SLOT_EMPTY track
+l tmp mem Setting
+beq tmp SLOT_EMPTY idle
+beq tmp SLOT_BUSY reset_busy
+l target scout SignalID
+beq target SLOT_EMPTY clear_slot
+move fired 0
+s mem Setting SLOT_BUSY
+s dish TargetPadIndex PAD_INDEX
+l tmp scout Horizontal
+s dish Horizontal tmp
+l tmp scout Vertical
+s dish Vertical tmp
+s db Setting 210
+j main
+clear_slot:
+s mem Setting SLOT_EMPTY
+s db Setting 200
+j main
+reset_busy:
+s mem Setting SLOT_EMPTY
+s db Setting 200
+j main
+idle:
+s db Setting 200
+j main
+track:
+s dish TargetPadIndex PAD_INDEX
+s dish BestContactFilter target
+l tmp dish Idle
+beqz tmp main
+l tmp dish SignalID
+beq tmp target aim_ok
+beq tmp SLOT_EMPTY search
+s db Setting 221
+j search
+aim_ok:
+l need dish MinimumWattsToContact
+beq need SLOT_EMPTY fire
+l hit dish WattsReachingContact
+blt hit need wait_watts
+fire:
+beq fired 1 active
+s dish Activate 1
+move fired 1
+s db Setting 230
+j main
+wait_watts:
+s db Setting 220
+j main
+active:
+l tmp dish SignalID
+bne tmp SLOT_EMPTY main
+lost:
+move target SLOT_EMPTY
+move fired 0
+s mem Setting SLOT_EMPTY
+s dish BestContactFilter SLOT_EMPTY
+s db Setting 240
+j main
+search:
+s db Setting 221
+l tmp dish Horizontal
+add tmp tmp SWH
+s dish Horizontal tmp
+blt tmp 360 search_wait
+move tmp 0
+s dish Horizontal tmp
+l v dish Vertical
+add v v SWV
+sle tmp v 90
+select v tmp v STARTV
+s dish Vertical v
+search_wait:
+sleep SETTLE
+j main
+err:
+s db Setting 290
+yield
+j main
