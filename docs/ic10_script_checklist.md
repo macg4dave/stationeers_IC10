@@ -82,6 +82,8 @@ When writing batch network scripts:
 
 - Prefer an authoritative numeric prefab hash from `catalog/devices/<Device>.json` when known.
   - Example: Pipe Digital Valve prefab hash is documented as `-1280984102`.
+- Do **not** substitute item hash for prefab hash. For example, Active Vent batch writes must use
+  prefab hash `-1129453144` (`StructureActiveVent`), not item hash `-842048328`.
 - Keep name hashes explicit and exact (`HASH("cold")` means exactly `cold`, case-sensitive).
 - If using `On` as actuator state, consider writing `Lock=0` before `On` when device behavior can be lock-gated.
 - In script README usage steps, include exact rename text users should apply in-game.

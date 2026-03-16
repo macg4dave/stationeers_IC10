@@ -56,3 +56,19 @@ If you see the values “stick” only briefly (or revert immediately), add a on
 If using `lbn`/`sbn`, **NameHash is exact**:
 
 - Rename ALL vents in the group to the same exact name (duplicates are fine), e.g. `IN` and `OUT`.
+
+## Batch hash gotcha (important)
+
+IC10 batch writes (`sb` / `sbn`) target devices by **Prefab Hash**, not item hash.
+
+- For Active Vents, use prefab hash `-1129453144` (`StructureActiveVent`) for batch writes.
+- Do **not** use item hash `-842048328` for IC10 batch targeting; that can make a script look
+  correct while silently failing to hit the vents.
+
+Quick debug order for batch-controlled Active Vents:
+
+1. confirm the vent has real electrical power (`Power = 1`)
+2. confirm the vent is on the same data network as the IC
+3. confirm the script uses prefab hash `-1129453144`
+4. if using `sbn`, confirm the in-game name matches the `HASH("...")` string exactly
+5. confirm `Mode` is written before `PressureExternal` / `PressureInternal`

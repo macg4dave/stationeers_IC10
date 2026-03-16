@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reads a **Gas Sensor** for room pressure and drives an **Active Vent** mode:
+Reads a **Gas Sensor** for room pressure and batch-drives a **named group of Active Vents on the same data network**:
 
 - If **Pressure < 90 kPa** → set vent to **Intake** mode and turn it **On**
 - If **Pressure > 120 kPa** → set vent to **Exhaust** mode and turn it **On**
@@ -10,7 +10,7 @@ Reads a **Gas Sensor** for room pressure and drives an **Active Vent** mode:
 
 The check runs every **1 second** when idle.
 
-While the vent is actively changing pressure, the script sets `Lock = 1` and keeps it
+While the vents are actively changing pressure, the script sets `Lock = 1` and keeps them
 locked until the room reaches the opposite threshold:
 
 - Intake continues until **HIGH_PRESSURE_KPA**
@@ -21,25 +21,24 @@ Then it turns the vent off and unlocks it.
 This script also includes a small timing workaround for some builds: it writes vent
 `Mode`, waits **one tick** (`yield`), then writes the pressure/setpoint fields.
 
-While the vent is active, the script also checks that `Mode`, `On`, `Open`, and `Lock`
-still match the intended state. If they drift, it re-applies the active configuration.
+While active, it periodically re-applies the batch vent configuration so testing is easy
+even if a vent gets bumped out of sync.
 
 ## Devices
 
 Required:
 
 - 1× Gas Sensor
-- 1× Active Vent
+- 1+ × Active Vent on the same data network
 
 ## Device registers
 
 - `d0` = Gas Sensor
-- `d1` = Active Vent
 
 Suggested in-game names (optional):
 
 - Gas Sensor: `room_sensor_1`
-- Active Vent: `room_vent_1`
+- Active Vents: rename every controlled vent exactly to `ROOM_VENT`
 
 ## Tuning
 
@@ -50,12 +49,18 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
 - `MIN_PIPE_PRESSURE_KPA` (default `10`)
 - `MAX_PIPE_PRESSURE_KPA` (default `60000`)
 - `LOOP_SLEEP_S` (default `1`)
+- `REAPPLY_TICKS` (default `12`)
+- `VENT_NAME_HASH` (default `HASH("ROOM_VENT")`)
 
 ## Notes
 
 - Pressure is in **kPa**.
 - If the Gas Sensor reports a value that looks like **Pa** (e.g. ~101000), the script
   auto-normalizes to kPa.
+- The script batch-targets Active Vents using:
+  - prefab hash `-1129453144` (`StructureActiveVent`)
+  - exact name hash `HASH("ROOM_VENT")`
+- Rename every vent you want controlled to exactly `ROOM_VENT`.
 - Active Vent `Mode` values:
   - `0` = Outward (pipe → room) — pressurize / “intake”
   - `1` = Inward (room → pipe) — depressurize / “exhaust”
@@ -71,13 +76,20 @@ can reset pressures to defaults):
 
 Troubleshooting if it “does nothing”:
 
+- Make sure every Active Vent you want controlled is on the **same data network** as the IC.
+- Make sure every target vent is named exactly `ROOM_VENT`.
+- IC10 batch writes (`sb`/`sbn`) use the device **Prefab Hash**, not the item hash.
+- `Power` is not a command you can force from IC10; it reflects whether the vent has real
+  electrical power. If `Power = 0`, check the vent's cable/power network first.
 - For **intake/pressurize** (Mode `0`, pipe → room): ensure the pipe network pressure is
   above your target room pressure (e.g. > `LOW_PRESSURE_KPA`).
 - For **exhaust/depressurize** (Mode `1`, room → pipe): ensure the pipe network has
   somewhere for gas to go (tank/storage/active vent to space) and isn't already maxed.
+- Unrelated Active Vents on the same network will be ignored unless they also use the exact
+  name `ROOM_VENT`.
 - If pressure changes in the **wrong direction**, swap the `MODE_OUTWARD` /
   `MODE_INWARD` constant values in `room_pressure_active_vent.ic10`.
 - Ensure the vent face is inside the room you want to pressurize.
-- Double-check chip device assignments: `d0` is the Gas Sensor, `d1` is the Active Vent.
+- Double-check chip device assignments: `d0` is the Gas Sensor.
 
 Status: **Functional**
