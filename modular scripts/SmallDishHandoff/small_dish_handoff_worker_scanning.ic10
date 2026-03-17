@@ -16,17 +16,18 @@ define SWV 15
 define SETTLE 5
 define SLOT_EMPTY 0
 define SLOT_BUSY -1
+define NO_CONTACT -1
 boot:
 bdns dish boot
 bdns mem boot
-move last SLOT_EMPTY
+move last NO_CONTACT
 move tok 0
 s mem Setting SLOT_EMPTY
 s dish On 1
 s dish Setting WATTS
 s dish Horizontal 0
 s dish Vertical STARTV
-s dish BestContactFilter SLOT_EMPTY
+s dish BestContactFilter NO_CONTACT
 main:
 yield
 bdns dish boot
@@ -38,8 +39,8 @@ beqz tmp main
 l slot mem Setting
 l sid dish SignalID
 l sig dish SignalStrength
-beq sid -1 sweep
-beq sig -1 sweep
+beq sid NO_CONTACT sweep
+beq sig NO_CONTACT sweep
 bne slot SLOT_EMPTY hold
 beq sid last hold
 add tok tok 1
@@ -54,8 +55,8 @@ s dish BestContactFilter sid
 j main
 sweep:
 s db Setting 100
-move last SLOT_EMPTY
-s dish BestContactFilter SLOT_EMPTY
+move last NO_CONTACT
+s dish BestContactFilter NO_CONTACT
 l tmp dish Horizontal
 add tmp tmp SWH
 s dish Horizontal tmp

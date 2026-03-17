@@ -56,6 +56,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
 - `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
+- `pipe_pressure_active_vent/` — Reads a Pipe Analyzer pressure and batch-drives named Active Vents to fill the pipe to a target MPa.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
 - `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Volatiles are present until Oxygen ratio is >= 33% of Volatiles ratio.

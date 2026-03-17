@@ -18,6 +18,7 @@ define SWV 15
 define SETTLE 5
 define SLOT_EMPTY 0
 define SLOT_BUSY -1
+define NO_CONTACT -1
 boot:
 bdns dish boot
 bdns mem boot
@@ -27,7 +28,7 @@ move fired 0
 s dish On 1
 s dish Setting WATTS
 s dish TargetPadIndex PAD_INDEX
-s dish BestContactFilter SLOT_EMPTY
+s dish BestContactFilter NO_CONTACT
 move tmp 0
 s dish Horizontal tmp
 s dish Vertical STARTV
@@ -43,7 +44,7 @@ l tmp mem Setting
 beq tmp SLOT_EMPTY idle
 beq tmp SLOT_BUSY reset_busy
 l target scout SignalID
-beq target SLOT_EMPTY clear_slot
+beq target NO_CONTACT clear_slot
 move fired 0
 s mem Setting SLOT_BUSY
 s dish TargetPadIndex PAD_INDEX
@@ -71,12 +72,12 @@ l tmp dish Idle
 beqz tmp main
 l tmp dish SignalID
 beq tmp target aim_ok
-beq tmp SLOT_EMPTY search
+beq tmp NO_CONTACT search
 s db Setting 221
 j search
 aim_ok:
 l need dish MinimumWattsToContact
-beq need SLOT_EMPTY fire
+beq need NO_CONTACT fire
 l hit dish WattsReachingContact
 blt hit need wait_watts
 fire:
@@ -90,12 +91,12 @@ s db Setting 220
 j main
 active:
 l tmp dish SignalID
-bne tmp SLOT_EMPTY main
+bne tmp NO_CONTACT main
 lost:
 move target SLOT_EMPTY
 move fired 0
 s mem Setting SLOT_EMPTY
-s dish BestContactFilter SLOT_EMPTY
+s dish BestContactFilter NO_CONTACT
 s db Setting 240
 j main
 search:

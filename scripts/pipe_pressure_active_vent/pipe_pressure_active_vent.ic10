@@ -1,0 +1,67 @@
+# pipe_pressure_active_vent (batch)
+alias pipe d0
+alias p r0
+alias cond r1
+alias state r2
+alias target r3
+alias low r4
+alias ticks r5
+define STATE_IDLE 0
+define STATE_FILL 1
+define TARGET_PRESSURE_MPA 10
+define HYSTERESIS_KPA 100
+define MODE_FILL 1
+define LOOP_SLEEP_S 1
+define REAPPLY_TICKS 12
+define ACTIVE_VENT_PREFAB_HASH -1129453144
+define VENT_NAME_HASH HASH("PIPE_VENT")
+wait:
+yield
+bdns pipe wait
+move state STATE_IDLE
+move ticks 0
+j stop
+
+main:
+bdns pipe wait
+mul target TARGET_PRESSURE_MPA 1000
+sub low target HYSTERESIS_KPA
+l p pipe Pressure
+seq cond state STATE_FILL
+beqz cond decide
+sge cond p target
+bnez cond stop
+sgt cond ticks 0
+beqz cond do_fill
+sub ticks ticks 1
+yield
+j main
+decide:
+slt cond p low
+bnez cond do_fill
+seq cond state STATE_IDLE
+bnez cond idle
+j stop
+idle:
+sleep LOOP_SLEEP_S
+j main
+do_fill:
+move state STATE_FILL
+move ticks REAPPLY_TICKS
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 0
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Mode MODE_FILL
+yield
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Setting target
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Open 1
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH On 1
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 1
+yield
+j main
+stop:
+move state STATE_IDLE
+move ticks 0
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 0
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH On 0
+sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Open 0
+sleep LOOP_SLEEP_S
+j main
