@@ -19,7 +19,7 @@ locked until the room reaches the opposite threshold:
 Then it turns the vent off and unlocks it.
 
 This script also includes a small timing workaround for some builds: it writes vent
-`Mode`, waits **one tick** (`yield`), then writes the pressure/setpoint fields.
+`Mode`, waits **one tick** (`yield`), then writes the main setpoint/state fields.
 
 While active, it periodically re-applies the batch vent configuration so testing is easy
 even if a vent gets bumped out of sync.
@@ -46,8 +46,6 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
 
 - `LOW_PRESSURE_KPA` (default `90`)
 - `HIGH_PRESSURE_KPA` (default `120`)
-- `MIN_PIPE_PRESSURE_KPA` (default `10`)
-- `MAX_PIPE_PRESSURE_KPA` (default `60000`)
 - `LOOP_SLEEP_S` (default `1`)
 - `REAPPLY_TICKS` (default `12`)
 - `VENT_NAME_HASH` (default `HASH("ROOM_VENT")`)
@@ -68,12 +66,14 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
     `MODE_INWARD` in the script. Some builds/mod setups appear to invert this.
 
 The script sets these Active Vent parameters (after setting `Mode`; changing `Mode`
-can reset pressures to defaults):
+can reset the vent's extra pressure-limit fields to defaults):
 
-- `Setting` to the target room pressure (`LOW_PRESSURE_KPA` or `HIGH_PRESSURE_KPA`)
-- `PressureExternal` to the target room pressure (`LOW_PRESSURE_KPA` or `HIGH_PRESSURE_KPA`)
-- `PressureInternal` to a pipe-pressure constraint (`MIN_PIPE_PRESSURE_KPA` while intake,
-  `MAX_PIPE_PRESSURE_KPA` while exhaust)
+- `Setting` to the target room pressure in **kPa**
+- `Open` to `1`
+- `On` to `1`
+
+It intentionally does **not** force `PressureExternal` / `PressureInternal`.
+For this manual-style controller, those fields are left at the vent's mode defaults.
 
 Troubleshooting if it “does nothing”:
 
@@ -82,11 +82,11 @@ Troubleshooting if it “does nothing”:
 - IC10 batch writes (`sb`/`sbn`) use the device **Prefab Hash**, not the item hash.
 - `Power` is not a command you can force from IC10; it reflects whether the vent has real
   electrical power. If `Power = 0`, check the vent's cable/power network first.
+- If you inspect a manually working vent and see values like `PressureExternal = 0`,
+  `PressureInternal = 50662.5`, `Setting = 50`, that points to `Setting` being the useful
+  control target for this script while the other pressure fields are left alone.
 - For **intake/pressurize** (Mode `0`, pipe → room): ensure the pipe network pressure is
   above your target room pressure (e.g. > `LOW_PRESSURE_KPA`).
-- In **Outward** mode, `PressureInternal` is the minimum pipe pressure floor. Setting it too
-  high (for example `120`) can prevent the vent from moving gas even when the rest of the
-  script is correct.
 - For **exhaust/depressurize** (Mode `1`, room → pipe): ensure the pipe network has
   somewhere for gas to go (tank/storage/active vent to space) and isn't already maxed.
 - Unrelated Active Vents on the same network will be ignored unless they also use the exact

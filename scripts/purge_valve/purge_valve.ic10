@@ -33,6 +33,7 @@ alias liquid_err r5
 alias has_contents r6
 alias led_on r7
 alias led_color r8
+alias current_open r9
 
 define MIN_PRESSURE_KPA 0.001
 define COLOR_GREEN 2
@@ -92,8 +93,13 @@ s liquid_valve On desired_on
 skip_valve:
 
 l current_on vent On
+l current_open vent Open
+sne cond desired_on current_open
+bnez cond write_vent
 sne cond desired_on current_on
 beqz cond skip_vent
+write_vent:
+s vent Open desired_on
 s vent On desired_on
 skip_vent:
 

@@ -38,7 +38,11 @@ If the analyzer reports `Error = 1`, the vent is forced **OFF**.
 3. In the IC editor, set:
    - `d0` to the Pipe Analyzer
    - `d1` to the Active Vent
-4. Configure the Active Vent settings **in-game** (Mode, pressure settings, etc.). The script only toggles `On`.
+4. Configure the Active Vent settings **in-game**. For normal use, set the desired `Mode`
+   and use `Setting` as the main pressure target. The script now keeps `Open` matched to
+   the vent `On` state for you. Leave
+   `PressureExternal` / `PressureInternal` at their mode defaults unless you specifically
+   want custom vent pressure limits.
 
 ## Tuning
 

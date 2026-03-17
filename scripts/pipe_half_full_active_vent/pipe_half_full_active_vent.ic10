@@ -16,6 +16,7 @@ alias current_on r4
 alias on_p r5
 alias off_p r6
 alias tmp r7
+alias current_open r8
 
 define TARGET_PRESSURE_KPA 100
 
@@ -30,6 +31,7 @@ bdns d1 wait_devices
 main:
 # read current vent state (used for hysteresis + redundant write avoidance)
 l current_on vent On
+l current_open vent Open
 move desired_on current_on
 
 # if analyzer error => force OFF
@@ -57,8 +59,12 @@ select desired_on cond 0 desired_on
 
 decide_write:
 # avoid redundant writes (and network spam)
+sne cond desired_on current_open
+bnez cond do_write
 sne cond desired_on current_on
 beqz cond skip_write
+do_write:
+s vent Open desired_on
 s vent On desired_on
 skip_write:
 

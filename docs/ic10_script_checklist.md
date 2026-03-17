@@ -116,7 +116,7 @@ In `scripts/<script_name>/README.md` include:
 - Purpose (plain language)
 - Required devices + what goes in `d0..d5`
 - In-game settings prerequisites (link `docs/usage/<device>.md` when applicable)
-  - Example: Active Vents often require **both** `On=1` **and** `Open=1`, plus correct `Mode`/pressure settings (`docs/usage/active_vent.md`)
+  - Example: Active Vents often require **both** `On=1` **and** `Open=1`, plus correct `Mode` and usually a sensible `Setting` target. Leave `PressureExternal` / `PressureInternal` alone unless you specifically need advanced vent regulation (`docs/usage/active_vent.md`)
 - Tuning constants + units
 - Status
 

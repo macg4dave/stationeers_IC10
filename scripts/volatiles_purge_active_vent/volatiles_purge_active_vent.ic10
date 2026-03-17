@@ -12,7 +12,7 @@
 # Notes:
 # - Pipe Analyzer ratios are 0..1 (mass percent / 100).
 # - We treat very small values as "not present" to avoid float noise.
-# - The script forces the vent to Mode=Outward (1).
+# - The script forces the vent to Mode=Outward (0) and keeps Open matched to On.
 
 alias pa d0
 alias vent d1
@@ -23,6 +23,7 @@ alias cond r2
 alias desired_on r3
 alias current_on r4
 alias current_mode r5
+alias current_open r6
 
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
@@ -30,8 +31,8 @@ define EPS 0.000001
 # Oxygen target ratio (33%)
 define O2_TARGET 0.33
 
-# Active Vent Mode: 1 = Outward
-define MODE_OUTWARD 1
+# Active Vent Mode: 0 = Outward
+define MODE_OUTWARD 0
 
 wait:
 yield
@@ -62,8 +63,13 @@ select desired_on cond 1 0
 decide:
 # avoid redundant writes (and network spam): only set when it changes
 l current_on vent On
+l current_open vent Open
+sne cond desired_on current_open
+bnez cond write_state
 sne cond desired_on current_on
 beqz cond skip_write
+write_state:
+s vent Open desired_on
 s vent On desired_on
 skip_write:
 

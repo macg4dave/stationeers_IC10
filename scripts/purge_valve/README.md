@@ -40,7 +40,12 @@ Note: this script reads the lever's `Open` state (the data network property for 
 ## Usage
 
 1. Place and wire the devices so the analyzer is reading the pipe you care about, and the valve/vent/outlet are connected to the purge path.
-2. Configure the **Active Vent** and **Active Liquid Outlet** modes/settings in their UIs (this script only toggles `On`).
+2. Configure the **Active Vent** and **Active Liquid Outlet** modes/settings in their UIs.
+  For the Active Vent, normal manual-style setup is: choose the correct `Mode` and use
+  `Setting` as the main target. The script now keeps vent `Open` matched to vent `On`.
+  Leave `PressureExternal` /
+  `PressureInternal` at their defaults unless you specifically want custom vent limits.
+  This script does not set vent `Mode` or `Setting`.
 3. In the IC housing, assign devices to `d0..d5` as above.
 4. Paste `purge_valve.ic10` into the IC.
 5. Flip the lever ON to enable purging; flip it OFF to stop.

@@ -18,6 +18,7 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 
 - `modular_wiring_setup.md` — modular chip/link wiring order + end-user setup flow.
 - `active_vent.md` — Active Vent required settings.
+  - Includes the repo's current guidance: for normal room control, prefer `Mode` + `Setting` + `Open` + `On`; do not force `PressureExternal` / `PressureInternal` unless you need custom pressure limits.
 - `active_liquid_outlet.md` — Active Liquid Outlet required settings.
 - `advanced_furnace.md` — Advanced Furnace required settings.
 - `autolathe_printer_automation.md` — design checklist for vending-fed Autolathe / printer automation.

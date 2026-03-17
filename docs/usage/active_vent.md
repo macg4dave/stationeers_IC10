@@ -24,20 +24,26 @@ When a script "sets the vent" but nothing happens, it's usually because one of t
 - `Lock = 1` after configuration (optional, but many scripts do it to prevent manual/in-game overrides)
 - Pressure / setpoint properties used by that script, e.g.:
   - `Setting`
-  - `PressureExternal`
-  - `PressureInternal`
+  - sometimes `PressureExternal`
+  - sometimes `PressureInternal`
 
-### Max-flow setpoints (rule of thumb)
+For many simple/manual-style controllers, **`Setting` is the main pressure target**.
+Leave `PressureExternal` / `PressureInternal` at the vent's mode defaults unless you
+specifically want regulator/back-pressure behavior.
 
-If your goal is "move gas as fast as possible" (i.e. don't let the vent's own pressure
-limits be the bottleneck), a reliable pattern is:
+### Normal control vs advanced limits
 
-- Set `Setting` and `PressureExternal` to your pipe max (e.g. `MAX_PIPE_PRESSURE_KPA`)
-- Set `PressureInternal` based on `Mode`:
-  - **Outward** (pipe → room): set `PressureInternal` to a *low* minimum pipe pressure
-    (e.g. 0–10 kPa). Setting it to pipe max can prevent outward flow.
-  - **Inward** (room → pipe): set `PressureInternal` to a *high* maximum pipe pressure
-    (e.g. `MAX_PIPE_PRESSURE_KPA`).
+For normal room control, a reliable pattern is:
+
+- set `Mode`
+- wait one tick if needed
+- set `Setting`
+- set `Open = 1`
+- set `On = 1`
+
+Only write `PressureExternal` / `PressureInternal` when you deliberately want to customize
+the vent's extra pressure limits. Those fields can matter, but they are also an easy way
+to accidentally block flow.
 
 ### Mode can reset pressures (gotcha)
 
@@ -50,6 +56,19 @@ If you see the values “stick” only briefly (or revert immediately), add a on
 - write `Mode`
 - wait one tick (`yield`)
 - then write `Setting` / `PressureExternal` / `PressureInternal`
+
+## Practical clue from manual testing
+
+If a manually working vent shows values like:
+
+- `PressureExternal = 0`
+- `PressureInternal = 50662.5`
+- `Setting = 50`
+
+that is a good hint that the vent is happily working with a normal `Setting` target and
+its own mode/default pressure behavior. In that case, matching manual behavior in IC10
+usually means writing **`Mode` + `Setting` + `Open` + `On`**, not forcing both extra
+pressure fields.
 
 ## Batch/name-hash gotcha
 
@@ -71,4 +90,5 @@ Quick debug order for batch-controlled Active Vents:
 2. confirm the vent is on the same data network as the IC
 3. confirm the script uses prefab hash `-1129453144`
 4. if using `sbn`, confirm the in-game name matches the `HASH("...")` string exactly
-5. confirm `Mode` is written before `PressureExternal` / `PressureInternal`
+5. confirm `Mode` is written before `Setting`
+6. if your script also writes `PressureExternal` / `PressureInternal`, confirm those writes happen after `Mode` and are actually needed

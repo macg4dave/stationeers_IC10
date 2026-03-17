@@ -40,13 +40,29 @@ based on exact device name matches using `HASH()` + `sbn`, gated by room tempera
 
 - `TEMP_THRESHOLD_C`: temperature threshold in °C.
 - `MODE_OUTWARD` / `MODE_INWARD`: swap values if your vents behave opposite of expected.
+- `INTAKE_SETTING_KPA`: intake-group vent `Setting` target while ON.
+- `EXHAUST_SETTING_KPA`: exhaust-group vent `Setting` target while ON.
 - `LOOP_SLEEP_S`: polling interval for temperature (and minimum time between state changes).
 - `REAPPLY_TICKS`: while vents are ON, how often to re-apply vent settings (reduces spam vs. every loop).
 
 ## Notes
 
-- Some builds reset vent pressure fields when `Mode` changes. This script writes `Mode`,
-  waits one tick (`yield`), then writes `Setting` / `PressureExternal` / `PressureInternal`.
+- Repo guidance now treats **`Setting` as the main pressure target** for most Active Vent
+  controllers.
+- `PressureExternal` / `PressureInternal` are advanced limit fields; overriding them can
+  accidentally block flow if you do not specifically want regulator/back-pressure behavior.
+- If you are building a simple/manual-style vent controller, prefer:
+  - set `Mode`
+  - wait one tick (`yield`)
+  - set `Setting`
+  - set `Open = 1`
+  - set `On = 1`
+- This script now follows that pattern:
+  - intake group writes `Mode = Outward`, `Setting = INTAKE_SETTING_KPA`, `Open = 1`, `On = 1`
+  - exhaust group writes `Mode = Inward`, `Setting = EXHAUST_SETTING_KPA`, `Open = 1`, `On = 1`
+- If you inspect a manually working vent and see values like `PressureExternal = 0`,
+  `PressureInternal = 50662.5`, `Setting = 50`, that is a good hint that `Setting` is the
+  useful control target while the extra pressure-limit fields are best left alone.
 
 ## Status
 
