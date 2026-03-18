@@ -28,6 +28,8 @@ sbn MEMH SLOT3 Setting 0
 s db Setting 150
 j main
 run:
+lbn cond MEMH SLOT3 Setting Maximum
+bnez cond ready
 lbn target MEMH SLOT0 Setting Maximum
 beqz target idle
 l cond mach On

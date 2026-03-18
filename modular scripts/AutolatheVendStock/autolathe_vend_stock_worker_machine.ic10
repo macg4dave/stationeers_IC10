@@ -17,6 +17,7 @@ alias cond r9
 alias act r10
 alias ready r11
 alias curr_on r12
+alias curr_open r13
 alias last_exp r14
 define MEMH HASH("StructureLogicMemory")
 define CTOK HASH("cmd_token")
@@ -40,8 +41,7 @@ bne cmd 1 main
 lbn recipe MEMH SLOT0 Setting Maximum
 beqz recipe invalid_req
 l batch stack Setting
-slt cond 0 batch
-beqz cond invalid_req
+ble batch 0 invalid_req
 s stack On 1
 s stack Mode 0
 l curr_exp mach ExportCount
@@ -55,21 +55,29 @@ sbn MEMH SLOT4 Setting 1
 s db Setting 110
 j main
 invalid_req:
-move active 0
-sbn MEMH SLOT3 Setting 0
-sbn MEMH SLOT4 Setting 0
 s db Setting 142
-j main
+j stop_idle
 no_cmd:
 beqz active idle
 lbn ready MEMH SLOT3 Setting Maximum
 bnez ready check_done
+l curr_on mach On
+beqz curr_on wait_prep
+l act mach Activate
+bnez act wait_prep
+l curr_open mach Open
+bnez curr_open wait_prep
+l curr_on mach RecipeHash
+lbn ready MEMH SLOT0 Setting Maximum
+beq curr_on ready check_done
+sbn MEMH SLOT3 Setting 1
+ j check_done
+wait_prep:
 s db Setting 120
 j main
 check_done:
 l curr_on stack ExportCount
-slt cond curr_on stack_goal
-beqz cond done
+bge curr_on stack_goal done
 l curr_exp mach ExportCount
 slt cond curr_exp target_exp
 beqz cond wait_stack
@@ -105,18 +113,16 @@ done_state:
 s db Setting 140
 j main
 idle:
-sbn MEMH SLOT4 Setting 0
 s db Setting 100
-j main
+j clear_run
 no_machine:
-move active 0
-sbn MEMH SLOT3 Setting 0
-sbn MEMH SLOT4 Setting 0
 s db Setting 144
-j main
+j stop_idle
 no_stack:
+s db Setting 145
+stop_idle:
 move active 0
+clear_run:
 sbn MEMH SLOT3 Setting 0
 sbn MEMH SLOT4 Setting 0
-s db Setting 145
 j main

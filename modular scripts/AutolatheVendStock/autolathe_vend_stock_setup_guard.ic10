@@ -72,9 +72,9 @@ beqz cond init_2
 sbn MEMH SLOT1 Setting 0
 init_2:
 lbn cond MEMH SLOT2 Setting Maximum
-beqz cond mark
+beqz cond init_3
 sbn MEMH SLOT2 Setting 0
-mark2:
+init_3:
 lbn cond MEMH SLOT3 Setting Maximum
 beqz cond init_4
 sbn MEMH SLOT3 Setting 0
