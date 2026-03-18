@@ -310,8 +310,8 @@
       "item": {
         "wikiTitle": "Cable_Coil",
         "displayName": "Cable Coil",
-        "itemName": "ItemCableCoilHeavy",
-        "itemHash": 2060134443
+        "itemName": "ItemCableCoil",
+        "itemHash": -466050668
       },
       "tier": "Tier One",
       "time": 5,
