@@ -12,7 +12,6 @@ alias item r4
 alias found r5
 alias token r6
 alias cond r7
-alias mach r8
 alias house r9
 
 define MEMH HASH("StructureLogicMemory")
@@ -20,7 +19,7 @@ define CTOK HASH("cmd_token")
 define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
 define SLOT1 HASH("slot1")
-define MACH HASH("machine_worker")
+define SLOT4 HASH("slot4")
 
 auto:
 l house db PrefabHash
@@ -89,10 +88,7 @@ slt cond slot 102
 bnez cond publish
 move slot 2
 bnez found next_hash
-lbn mach house MACH Setting Maximum
-sgt cond mach 109
-slt item mach 140
-and cond cond item
+lbn cond MEMH SLOT4 Setting Maximum
 bnez cond missing
 lbn token MEMH CTOK Setting Maximum
 add token token 1

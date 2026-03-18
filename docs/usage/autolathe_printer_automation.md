@@ -51,6 +51,16 @@ Practical use:
 - use `Contents` with floor thresholds for common base materials such as iron/copper/silicon
 - use `Required` to detect recipe-specific alloy or rarer material demand
 
+Important hash rule:
+
+- `Required[...]` is keyed by **reagent hash**, not ingot/item hash
+- if you want to request an ingot from a vending machine, first read `Required[reagent]`, then map that reagent to the ingot item hash you want to request
+- example verified during `AutolatheVendStock` debugging:
+  - `Stellite` reagent hash = `-500544800`
+  - `Ingot (Stellite)` item hash = `-1897868623`
+  - `Required[-1897868623]` is wrong and can leave a sorter/feed request stuck active
+  - `Required[-500544800]` is the correct missing-material check
+
 ### Vending Machine
 
 Useful fields/patterns:
@@ -114,6 +124,11 @@ Another useful single-machine pattern:
 - local sorter accepts only that ingot hash and rejects everything else
 - once printer `ImportCount` increments, clear the pending request and re-evaluate needs
 
+Refinement from live debugging:
+
+- clearing on every `ImportCount` increment is fine for base-material top-up loops, but recipe-specific alloy requests should stay active only while `Required[alloy_reagent] > 0`
+- this avoids stale requests that keep pulsing the feeder/sorter after the machine already has enough alloy for the active recipe
+
 ## Request-channel conventions
 
 If you use Logic Memories as request channels, define the meaning of each value up front.
@@ -163,3 +178,5 @@ Useful intermediate step before a full supply chain:
 - If you rely on machine purge/empty behavior via `Open`, test it in-game for that exact machine type before shipping the script.
 - If you use memory channels for requests, document who owns each channel and who is allowed to clear it.
 - A nice debug pattern is publishing the currently requested ingot hash to `db Setting`; that gives an immediate "what is it waiting for?" readout in-game.
+- For Autolathe logistics, keep **reagent hashes** and **ingot item hashes** as separate concepts in the docs and code.
+- The Stationeers wiki `Reagents` page is the quickest source of truth for reagent hashes when a rare/alloy request is misbehaving.

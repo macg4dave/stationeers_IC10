@@ -10,11 +10,15 @@ alias stock r2
 alias mach r3
 alias log r4
 alias feed r5
+alias prep r6
 
+define MEMH HASH("StructureLogicMemory")
 define STOCK HASH("stock_worker")
 define MACH HASH("machine_worker")
+define PREP HASH("machine_prep_worker")
 define LOG HASH("logistics_worker")
 define FEED HASH("logistics_feeder_worker")
+define SLOT4 HASH("slot4")
 
 init:
 l house db PrefabHash
@@ -26,6 +30,8 @@ lbn cond house STOCK PrefabHash Maximum
 bne cond house no_stock
 lbn cond house MACH PrefabHash Maximum
 bne cond house no_mach
+lbn cond house PREP PrefabHash Maximum
+bne cond house no_prep
 lbn cond house LOG PrefabHash Maximum
 bne cond house no_log
 lbn cond house FEED PrefabHash Maximum
@@ -38,6 +44,10 @@ lbn mach house MACH On Maximum
 bnez mach mach_on
 sbn house MACH On 1
 mach_on:
+lbn prep house PREP On Maximum
+bnez prep prep_on
+sbn house PREP On 1
+prep_on:
 lbn log house LOG On Maximum
 bnez log read_mach
 sbn house LOG On 1
@@ -46,10 +56,7 @@ lbn feed house FEED On Maximum
 bnez feed read_state
 sbn house FEED On 1
 read_state:
-lbn mach house MACH Setting Maximum
-sgt cond mach 109
-slt stock mach 140
-and cond cond stock
+lbn cond MEMH SLOT4 Setting Maximum
 bnez cond busy
 lbn log house LOG Setting Maximum
 bne log 200 restocking
@@ -69,6 +76,9 @@ s db Setting 43
 j main
 no_mach:
 s db Setting 44
+j main
+no_prep:
+s db Setting 47
 j main
 no_log:
 s db Setting 45

@@ -14,8 +14,11 @@ define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
 define SLOT1 HASH("slot1")
 define SLOT2 HASH("slot2")
+define SLOT3 HASH("slot3")
+define SLOT4 HASH("slot4")
 define STOCK HASH("stock_worker")
 define WORK HASH("machine_worker")
+define PREP HASH("machine_prep_worker")
 define LOG HASH("logistics_worker")
 define FEED HASH("logistics_feeder_worker")
 
@@ -37,9 +40,15 @@ lbn cond MEMH SLOT1 PrefabHash Maximum
 bne cond MEMH err_slots
 lbn cond MEMH SLOT2 PrefabHash Maximum
 bne cond MEMH err_slots
+lbn cond MEMH SLOT3 PrefabHash Maximum
+bne cond MEMH err_slots
+lbn cond MEMH SLOT4 PrefabHash Maximum
+bne cond MEMH err_slots
 lbn cond house STOCK PrefabHash Maximum
 bne cond house err_house
 lbn cond house WORK PrefabHash Maximum
+bne cond house err_house
+lbn cond house PREP PrefabHash Maximum
 bne cond house err_house
 lbn cond house LOG PrefabHash Maximum
 bne cond house err_house
@@ -65,6 +74,14 @@ init_2:
 lbn cond MEMH SLOT2 Setting Maximum
 beqz cond mark
 sbn MEMH SLOT2 Setting 0
+mark2:
+lbn cond MEMH SLOT3 Setting Maximum
+beqz cond init_4
+sbn MEMH SLOT3 Setting 0
+init_4:
+lbn cond MEMH SLOT4 Setting Maximum
+beqz cond mark
+sbn MEMH SLOT4 Setting 0
 mark:
 move inited 1
 ok:

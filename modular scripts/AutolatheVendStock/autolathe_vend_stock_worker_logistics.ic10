@@ -17,19 +17,15 @@ define REAGENT_COPPER -1172078909
 define REAGENT_GOLD -409226641
 define REAGENT_SILICON -1195893171
 define REAGENT_STEEL 1331613335
-define REAGENT_LEAD -2002530571
-define REAGENT_NICKEL 556601662
-define REAGENT_SILVER 687283565
 define REAGENT_SOLDER -1206542381
+define REAGENT_STELLITE -500544800
 define INGOT_IRON -1301215609
 define INGOT_COPPER -404336834
 define INGOT_GOLD 226410516
 define INGOT_SILICON -290196476
 define INGOT_STEEL -654790771
-define INGOT_LEAD 2134647745
-define INGOT_NICKEL -1406385572
-define INGOT_SILVER -929742000
 define INGOT_SOLDER -82508479
+define INGOT_STELLITE -1897868623
 auto:
 move need CLEAR_REQ
 move oldimp 0
@@ -70,28 +66,24 @@ slt tmp tmp LOW_REAGENT
 seq level need CLEAR_REQ
 and tmp tmp level
 select need tmp INGOT_STEEL need
-lr tmp mach Contents REAGENT_LEAD
-slt tmp tmp LOW_REAGENT
-seq level need CLEAR_REQ
-and tmp tmp level
-select need tmp INGOT_LEAD need
-lr tmp mach Contents REAGENT_NICKEL
-slt tmp tmp LOW_REAGENT
-seq level need CLEAR_REQ
-and tmp tmp level
-select need tmp INGOT_NICKEL need
-lr tmp mach Contents REAGENT_SILVER
-slt tmp tmp LOW_REAGENT
-seq level need CLEAR_REQ
-and tmp tmp level
-select need tmp INGOT_SILVER need
 lr tmp mach Contents REAGENT_SOLDER
 slt tmp tmp LOW_REAGENT
 seq level need CLEAR_REQ
 and tmp tmp level
 select need tmp INGOT_SOLDER need
+lr tmp mach Required REAGENT_STELLITE
+sgt tmp tmp 0
+and tmp tmp level
+select need tmp INGOT_STELLITE need
 j publish
 track_need:
+seq tmp need INGOT_STELLITE
+beqz tmp common_need
+lr tmp mach Required REAGENT_STELLITE
+bgtz tmp publish
+move need CLEAR_REQ
+j publish
+common_need:
 move level REAGENT_SOLDER
 seq tmp need INGOT_IRON
 select level tmp REAGENT_IRON level
@@ -103,12 +95,6 @@ seq tmp need INGOT_SILICON
 select level tmp REAGENT_SILICON level
 seq tmp need INGOT_STEEL
 select level tmp REAGENT_STEEL level
-seq tmp need INGOT_LEAD
-select level tmp REAGENT_LEAD level
-seq tmp need INGOT_NICKEL
-select level tmp REAGENT_NICKEL level
-seq tmp need INGOT_SILVER
-select level tmp REAGENT_SILVER level
 lr level mach Contents level
 slt tmp level 200
 bnez tmp publish

@@ -1,0 +1,79 @@
+alias mach d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias cond r0
+alias target r1
+alias state r2
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+define SLOT3 HASH("slot3")
+define SLOT4 HASH("slot4")
+init:
+s db Setting 150
+main:
+yield
+bdns d0 no_machine
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH no_slot0
+lbn cond MEMH SLOT3 PrefabHash Maximum
+bne cond MEMH no_slot3
+lbn cond MEMH SLOT4 PrefabHash Maximum
+bne cond MEMH no_slot4
+lbn state MEMH SLOT4 Setting Maximum
+bnez state run
+sbn MEMH SLOT3 Setting 0
+s db Setting 150
+j main
+run:
+lbn target MEMH SLOT0 Setting Maximum
+beqz target idle
+l cond mach On
+bnez cond chk_act
+s mach On 1
+sbn MEMH SLOT3 Setting 0
+s db Setting 151
+j main
+chk_act:
+l cond mach Activate
+beqz cond chk_open
+s mach Activate 0
+sbn MEMH SLOT3 Setting 0
+s db Setting 152
+j main
+chk_open:
+l cond mach Open
+beqz cond chk_recipe
+s mach Open 0
+sbn MEMH SLOT3 Setting 0
+s db Setting 153
+j main
+chk_recipe:
+l cond mach RecipeHash
+beq cond target ready
+s mach RecipeHash target
+sbn MEMH SLOT3 Setting 0
+s db Setting 154
+j main
+ready:
+sbn MEMH SLOT3 Setting 1
+s db Setting 155
+j main
+idle:
+sbn MEMH SLOT3 Setting 0
+s db Setting 150
+j main
+no_machine:
+s db Setting 156
+j main
+no_slot0:
+s db Setting 157
+j main
+no_slot3:
+s db Setting 158
+j main
+no_slot4:
+s db Setting 159
+j main

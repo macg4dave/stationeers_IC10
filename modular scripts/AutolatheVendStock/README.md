@@ -24,6 +24,7 @@ fully automatic feature:
 
 - `autolathe_vend_stock_master.ic10` - ensures workers stay enabled and publishes simple summary status
 - `autolathe_vend_stock_worker_stock.ic10` - scans the finished-goods vending machine and requests missing products
+- `autolathe_vend_stock_worker_machine_prep.ic10` - owns Autolathe setup / recipe selection and publishes readiness
 - `autolathe_vend_stock_worker_machine.ic10` - runs the Autolathe for the requested recipe/count
 - `autolathe_vend_stock_worker_logistics.ic10` - watches Autolathe reagent levels and publishes the current ingot request
 - `autolathe_vend_stock_worker_logistics_feeder.ic10` - routes the requested ingot through the sorter and keeps the ingot vending machine pulsing
@@ -41,6 +42,11 @@ fully automatic feature:
 - `d0` = finished-goods vending machine (`vend stock` role)
 - `db` = stock worker status / current missing product hash
 
+### Machine prep worker
+
+- `d0` = Autolathe
+- `db` = prep status / current preparation step
+
 ### Machine worker
 
 - `d0` = Autolathe
@@ -54,7 +60,7 @@ fully automatic feature:
 
 ### Logistics feeder worker
 
-- `d0` = Sorter
+- `d0` = Sorter (`feed_sort` pin label)
 - `d1` = ingot-supply vending machine (`vend ingot` role)
 - `db` = feeder status / current ingot request being routed
 
@@ -78,6 +84,7 @@ Set these exact names (case-sensitive):
 - IC Housing: `master`
 - IC Housing: `stock_worker`
 - IC Housing: `machine_worker`
+- IC Housing: `machine_prep_worker`
 - IC Housing: `logistics_worker`
 - IC Housing: `logistics_feeder_worker`
 - IC Housing: `setup_guard`
@@ -86,6 +93,8 @@ Set these exact names (case-sensitive):
 - Logic Memory: `slot0`
 - Logic Memory: `slot1`
 - Logic Memory: `slot2`
+- Logic Memory: `slot3`
+- Logic Memory: `slot4`
 
 Internal prefab tokens used by the name-based scripts:
 
@@ -98,6 +107,8 @@ Internal prefab tokens used by the name-based scripts:
 - `slot0` - current recipe hash request
 - `slot1` - current batch count request
 - `slot2` - current raw ingot request hash for `logistics_feeder_worker`
+- `slot3` - machine-prep readiness (`0` = configuring, `1` = recipe ready to run)
+- `slot4` - machine run-active flag (`0` = idle, `1` = a stock request is currently being prepared or built)
 
 Command codes:
 
@@ -113,6 +124,13 @@ Intended workflow:
 4. the ingot-supply vending machine (`vend ingot`) does **not** decide what to build; it only keeps the
    Autolathe's reagents topped up so the machine worker can continue building
 
+Machine control is intentionally split in two:
+
+- `machine_prep_worker` makes sure the Autolathe is on, not purging, not latched active, and set to the requested recipe
+- `machine_worker` waits for `slot3 = 1` before pulsing production and watching the downstream stacker
+- `slot4` is the explicit ownership flag that tells the rest of the module a machine run is in progress
+- this avoids having to minify the preparation logic until it becomes opaque or lossy just to stay under IC10 paste limits
+
 The stock worker currently tracks the **23 Autolathe recipes with usable item hashes** in the
 local catalog and tries to keep **one occupied vending stack** for each of them.
 
@@ -120,10 +138,24 @@ The split logistics path expects the ingot-supply vending machine to hold the Au
 The request worker uses a simple hysteresis refill rule:
 
 - if a tracked reagent drops below `50`, it becomes the active refill request
+- if the active recipe is missing a recipe-specific alloy reagent, that alloy becomes the active refill request
 - the request worker publishes that raw ingot hash to `slot2`
 - the feeder worker reads `slot2`, keeps pulsing vending requests for that ingot, and routes sorter output `1` to the Autolathe
 - the request worker keeps that request active until the Autolathe reaches `200`
 - then it clears that request and scans for the next low reagent
+
+Current special-case support:
+
+- `INGOT_STELLITE` is requested from the ingot vending machine only while the active Autolathe recipe reports missing `Stellite` reagent
+- this prevents the feeder/sorter path from getting stuck on a stale Stellite request after the Autolathe has already received enough alloy for the current build
+
+Debugging lesson learned:
+
+- Autolathe `Required[...]` reads use **reagent hashes**, not ingot item hashes
+- for Stellite this means:
+  - `Required[-500544800]` checks for missing `Stellite` reagent
+  - `-1897868623` is only the `Ingot (Stellite)` item hash used for vending/sorter requests
+- if those are mixed up, `slot2` can stay active incorrectly and the feeder/sorter can look blocked even though the real bug is the missing-material test
 
 When one tracked item is missing from the finished-goods vending machine:
 
@@ -153,8 +185,22 @@ Current limitation:
 - `3` = stock worker is chasing a missing product or logistics is still restocking
 - `43` = missing `stock_worker`
 - `44` = missing `machine_worker`
+- `47` = missing `machine_prep_worker`
 - `45` = missing `logistics_worker`
 - `46` = missing `logistics_feeder_worker`
+
+### Machine prep worker (`150-199` local prep status)
+
+- `150` = idle / no active run to prepare
+- `151` = powering Autolathe on
+- `152` = clearing stale `Activate`
+- `153` = closing `Open` / purge
+- `154` = writing `RecipeHash`
+- `155` = Autolathe ready (`slot3 = 1`)
+- `156` = missing Autolathe on `d0`
+- `157` = missing `slot0`
+- `158` = missing `slot3`
+- `159` = missing `slot4`
 
 ### Machine worker (`100-199`)
 
@@ -197,7 +243,7 @@ Current limitation:
 - `92` = missing `cmd_type`
 - `93` = missing worker housing
 - `97` = missing Autolathe on `d0`
-- `98` = missing `slot0` / `slot1` / `slot2`
+- `98` = missing `slot0` / `slot1` / `slot2` / `slot3` / `slot4`
 
 ## Limits
 
@@ -214,3 +260,4 @@ Current limitation:
 - If logistics worker shows a large non-status value, that is the ingot hash it is waiting for.
 - If logistics feeder worker shows a large non-status value, that is the ingot hash it is currently trying to route into the Autolathe.
 - If the vending machine fills with partial stacks, manually consolidate or clear stock; vending machines do not merge stacks internally.
+- If `slot2` or `logistics_worker` stays on an alloy ingot unexpectedly, verify the code is checking `Required[alloy reagent hash]` rather than `Required[alloy ingot item hash]`.

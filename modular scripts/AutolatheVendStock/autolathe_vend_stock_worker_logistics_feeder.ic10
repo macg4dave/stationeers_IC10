@@ -1,4 +1,4 @@
-alias sort d0
+alias feed_sort d0
 alias vend d1
 alias n2 d2
 alias n3 d3
@@ -20,22 +20,30 @@ bdns d0 no_sort
 bdns d1 no_vend
 lbn cond MEMH SLOT2 PrefabHash Maximum
 bne cond MEMH no_req
-s sort On 1
+s feed_sort On 1
 s vend On 1
-l cond sort Mode
+l cond feed_sort Mode
 beq cond SORT_MODE_LOGIC read_need
-s sort Mode SORT_MODE_LOGIC
+s feed_sort Mode SORT_MODE_LOGIC
 read_need:
 lbn need MEMH SLOT2 Setting Maximum
 beqz need idle
-ls cond sort 0 Occupied
+ls cond feed_sort 0 Occupied
 beqz cond vend_req
-ls cond sort 0 OccupantHash
+ls cond feed_sort 0 OccupantHash
 seq cond cond need
-s sort Output cond
+s feed_sort Output cond
+j hold
 vend_req:
+ls cond feed_sort 1 Occupied
+bnez cond hold
+ls cond feed_sort 2 Occupied
+bnez cond hold
 s db Setting need
 s vend RequestHash need
+j main
+hold:
+s db Setting need
 j main
 idle:
 s db Setting 300

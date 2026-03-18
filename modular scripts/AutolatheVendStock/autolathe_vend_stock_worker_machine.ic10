@@ -15,20 +15,19 @@ alias curr_exp r7
 alias active r8
 alias cond r9
 alias act r10
+alias ready r11
 alias curr_on r12
-alias curr_open r13
 alias last_exp r14
-
 define MEMH HASH("StructureLogicMemory")
 define CTOK HASH("cmd_token")
 define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
-
+define SLOT3 HASH("slot3")
+define SLOT4 HASH("slot4")
 init:
 s db Setting 100
 move active 0
 move prev 0
-
 main:
 yield
 bdns d0 no_machine
@@ -37,9 +36,7 @@ lbn token MEMH CTOK Setting Maximum
 beq token prev no_cmd
 move prev token
 lbn cmd MEMH CTYPE Setting Maximum
-beq cmd 1 cmd_start
-j main
-cmd_start:
+bne cmd 1 main
 lbn recipe MEMH SLOT0 Setting Maximum
 beqz recipe invalid_req
 l batch stack Setting
@@ -48,35 +45,25 @@ beqz cond invalid_req
 s stack On 1
 s stack Mode 0
 l curr_exp mach ExportCount
-move target_exp curr_exp
-add target_exp target_exp batch
+add target_exp curr_exp batch
 l stack_goal stack ExportCount
 add stack_goal stack_goal 1
 move last_exp curr_exp
 move active 1
+sbn MEMH SLOT3 Setting 0
+sbn MEMH SLOT4 Setting 1
 s db Setting 110
 j main
 invalid_req:
 move active 0
+sbn MEMH SLOT3 Setting 0
+sbn MEMH SLOT4 Setting 0
 s db Setting 142
 j main
 no_cmd:
 beqz active idle
-l curr_on mach RecipeHash
-beq curr_on recipe check_on
-s mach RecipeHash recipe
-s db Setting 120
-j main
-check_on:
-l curr_on mach On
-bnez curr_on check_open
-s mach On 1
-s db Setting 120
-j main
-check_open:
-l curr_open mach Open
-beqz curr_open check_done
-s mach Open 0
+lbn ready MEMH SLOT3 Setting Maximum
+bnez ready check_done
 s db Setting 120
 j main
 check_done:
@@ -109,6 +96,8 @@ s db Setting 123
 j main
 done:
 move active 0
+sbn MEMH SLOT3 Setting 0
+sbn MEMH SLOT4 Setting 0
 l act mach Activate
 beqz act done_state
 s mach Activate 0
@@ -116,13 +105,18 @@ done_state:
 s db Setting 140
 j main
 idle:
+sbn MEMH SLOT4 Setting 0
 s db Setting 100
 j main
 no_machine:
 move active 0
+sbn MEMH SLOT3 Setting 0
+sbn MEMH SLOT4 Setting 0
 s db Setting 144
 j main
 no_stack:
 move active 0
+sbn MEMH SLOT3 Setting 0
+sbn MEMH SLOT4 Setting 0
 s db Setting 145
 j main
