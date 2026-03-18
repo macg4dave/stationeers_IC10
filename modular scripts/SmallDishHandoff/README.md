@@ -65,8 +65,10 @@ Flow:
 
 - `200` = idle; no queued target
 - `210` = target claimed / filter being applied
+- `211` = filter locked; dish still moving / settling
 - `220` = waiting for lock or watts gate
-- `221` = filtered search sweep in progress
+- `221` = filtered search sweep in progress; no current contact
+- `222` = filtered target mismatch; reacquiring handed-off contact
 - `230` = `Activate` pulse sent
 - `240` = target cleared / handoff slot reopened
 - `290` = medium dish reports `Error = 1`
@@ -80,6 +82,7 @@ Flow:
 - The handoff slot no longer stores `SignalID` directly; this avoids float precision loss in Logic Memory.
 - The contact worker copies the scanning dish's current `Horizontal` / `Vertical` when it claims a target.
 - After claiming a target, the contact worker performs its own filtered coarse sweep until it actually sees that handed-off `SignalID`.
+- The contact worker re-arms `Activate` to `0` before each new fire attempt so each handoff gets a fresh pulse.
 - The contact worker writes `TargetPadIndex = PAD_INDEX` (default `0`) so a contacted ship is requested to land on that pad.
 - If the contact dish never reaches the target watts requirement, it will keep waiting at status `220`.
 
@@ -95,12 +98,13 @@ In `small_dish_handoff_worker_contact.ic10`:
 
 - If either worker shows `190` or `290`, fix the dish's in-game error state first.
 - If the contact worker stays at `200`, check that the scanning worker can see contacts and that `handoff_slot` is wired to `d1` on both chips.
+- If the contact worker stays at `211`, the dish is still slewing after the handoff; if it never leaves, inspect dish movement / obstruction / power.
 - If the contact worker stays at `221`, verify `d2` on the contact worker is wired to the same scanning dish.
+- If the contact worker stays at `222`, the filter is set but the handoff target is not reacquiring cleanly; re-check `d2` and whether the scanning dish is handing off the intended contact.
 - If the contact worker stays at `220`, increase contact dish watts or wait for better alignment.
 - If the handoff slot gets stuck at `-1`, reset the Logic Memory `Setting` to `0` and let both workers reacquire.
 
 ## Migration note
 
-The old filenames (`small_dish_handoff_worker_small.ic10` and
-`small_dish_handoff_worker_medium.ic10`) are left in the folder for now.
-Use the new `scanning` / `contact` files going forward.
+Use `small_dish_handoff_worker_scanning.ic10` and
+`small_dish_handoff_worker_contact.ic10` for current setups.

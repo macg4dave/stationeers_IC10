@@ -40,8 +40,6 @@ Set these exact names (case-sensitive):
 - Paste scripts:
   - `modular scripts/SmallDishHandoff/small_dish_handoff_worker_scanning.ic10`
   - `modular scripts/SmallDishHandoff/small_dish_handoff_worker_contact.ic10`
-  - `modular scripts/SmallDishHandoff/small_dish_handoff_worker_small.ic10` (legacy filename; use `scanning` for new setups)
-  - `modular scripts/SmallDishHandoff/small_dish_handoff_worker_medium.ic10` (legacy filename; use `contact` for new setups)
 - Apply required names from **Name contract**.
 - Wire both chips exactly as shown in **Wiring map**.
 - Power the network and let the small dish start sweeping.
@@ -76,10 +74,12 @@ Quick interpretation:
 - `handoff_slot = -1` means the contact worker owns a target right now
 - any positive value in `handoff_slot` is just a handoff token, not the actual `SignalID`
 - `scanning_worker = 110` proves the scanning dish published a target
+- `contact_worker = 211` means the filter is locked and the contact dish is still moving/settling
 - `contact_worker = 221` means the contact dish is sweeping for the handed-off target; re-check `d2` if it never leaves this state
+- `contact_worker = 222` means the dish has a non-matching contact while trying to reacquire the handoff target
 - `contact_worker = 220` means the contact dish sees the target but is still waiting for lock or enough watts
 
 ## Migration note
 
-The old `small` / `medium` filenames are still present in the folder for now.
-Use the new `scanning` / `contact` files going forward.
+Use `small_dish_handoff_worker_scanning.ic10` and
+`small_dish_handoff_worker_contact.ic10` for current setups.

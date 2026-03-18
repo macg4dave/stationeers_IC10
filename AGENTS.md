@@ -42,6 +42,7 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - Validate paste limits for shipped IC10 (**128 lines**, **90 chars/line**, including comments/blanks):
   - `python tools/ic10_size_check.py scripts/ --ext .ic10`
   - `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`
+- If a correct IC10 fix does not fit comfortably within paste limits, it is acceptable to minify or compress the IC10 code (including merging labels/branches and shortening comments) as long as behavior stays correct and the final script remains paste-ready.
 - Validate modular setup docs stay in sync with scripts:
   - `python tools/setup_contract_check.py`
 - Update catalog from wiki when I/O names or modes are unclear:

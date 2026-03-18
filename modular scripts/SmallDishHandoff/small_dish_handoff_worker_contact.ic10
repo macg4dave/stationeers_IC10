@@ -1,6 +1,3 @@
-# small_dish_handoff_worker_contact
-# d0 = Contact Medium Dish
-# d1 = handoff Logic Memory, d2 = Scanning Medium Dish, db = status
 alias dish d0
 alias mem d1
 alias scout d2
@@ -26,6 +23,7 @@ bdns scout boot
 move target SLOT_EMPTY
 move fired 0
 s dish On 1
+s dish Activate 0
 s dish Setting WATTS
 s dish TargetPadIndex PAD_INDEX
 s dish BestContactFilter NO_CONTACT
@@ -44,7 +42,7 @@ l tmp mem Setting
 beq tmp SLOT_EMPTY idle
 beq tmp SLOT_BUSY reset_busy
 l target scout SignalID
-beq target NO_CONTACT clear_slot
+beq target NO_CONTACT reset_busy
 move fired 0
 s mem Setting SLOT_BUSY
 s dish TargetPadIndex PAD_INDEX
@@ -54,27 +52,30 @@ l tmp scout Vertical
 s dish Vertical tmp
 s db Setting 210
 j main
-clear_slot:
-s mem Setting SLOT_EMPTY
-s db Setting 200
-j main
 reset_busy:
 s mem Setting SLOT_EMPTY
-s db Setting 200
-j main
 idle:
 s db Setting 200
 j main
 track:
+l tmp dish TargetPadIndex
+beq tmp PAD_INDEX pad_ok
 s dish TargetPadIndex PAD_INDEX
+pad_ok:
+l tmp dish BestContactFilter
+beq tmp target filter_ok
 s dish BestContactFilter target
+filter_ok:
 l tmp dish Idle
-beqz tmp main
+beqz tmp settle
 l tmp dish SignalID
 beq tmp target aim_ok
 beq tmp NO_CONTACT search
-s db Setting 221
+s db Setting 222
 j search
+settle:
+s db Setting 211
+j main
 aim_ok:
 l need dish MinimumWattsToContact
 beq need NO_CONTACT fire
@@ -82,6 +83,11 @@ l hit dish WattsReachingContact
 blt hit need wait_watts
 fire:
 beq fired 1 active
+l tmp dish Activate
+beqz tmp fire_now
+s dish Activate 0
+j main
+fire_now:
 s dish Activate 1
 move fired 1
 s db Setting 230
@@ -96,6 +102,7 @@ lost:
 move target SLOT_EMPTY
 move fired 0
 s mem Setting SLOT_EMPTY
+s dish Activate 0
 s dish BestContactFilter NO_CONTACT
 s db Setting 240
 j main
