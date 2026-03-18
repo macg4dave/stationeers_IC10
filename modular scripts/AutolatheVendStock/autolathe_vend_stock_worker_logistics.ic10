@@ -8,9 +8,10 @@ alias need r0
 alias tmp r1
 alias oldimp r2
 alias level r3
+define MEMH HASH("StructureLogicMemory")
+define SLOT2 HASH("slot2")
 define CLEAR_REQ -1
 define LOW_REAGENT 50
-define TARGET_REAGENT 200
 define REAGENT_IRON -666742878
 define REAGENT_COPPER -1172078909
 define REAGENT_GOLD -409226641
@@ -46,30 +47,48 @@ bne need CLEAR_REQ track_need
 scan_need:
 lr tmp mach Contents REAGENT_IRON
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_IRON need
 lr tmp mach Contents REAGENT_COPPER
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_COPPER need
-lr tmp mach Contents REAGENT_GOLD
-slt tmp tmp LOW_REAGENT
-select need tmp INGOT_GOLD need
 lr tmp mach Contents REAGENT_SILICON
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_SILICON need
+lr tmp mach Contents REAGENT_GOLD
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_GOLD need
 lr tmp mach Contents REAGENT_STEEL
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_STEEL need
 lr tmp mach Contents REAGENT_LEAD
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_LEAD need
 lr tmp mach Contents REAGENT_NICKEL
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_NICKEL need
 lr tmp mach Contents REAGENT_SILVER
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_SILVER need
 lr tmp mach Contents REAGENT_SOLDER
 slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
 select need tmp INGOT_SOLDER need
 j publish
 track_need:
@@ -91,16 +110,18 @@ select level tmp REAGENT_NICKEL level
 seq tmp need INGOT_SILVER
 select level tmp REAGENT_SILVER level
 lr level mach Contents level
-slt tmp level TARGET_REAGENT
+slt tmp level 200
 bnez tmp publish
 move need CLEAR_REQ
 j scan_need
 publish:
-s db Setting need
-beq need CLEAR_REQ idle
-j main
-idle:
+bne need CLEAR_REQ active
 s db Setting 200
+sbn MEMH SLOT2 Setting 0
+j main
+active:
+s db Setting need
+sbn MEMH SLOT2 Setting need
 j main
 no_mach:
 s db Setting 243

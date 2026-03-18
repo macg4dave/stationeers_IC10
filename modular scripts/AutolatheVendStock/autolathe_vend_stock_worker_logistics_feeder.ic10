@@ -5,30 +5,29 @@ alias n3 d3
 alias n4 d4
 alias n5 d5
 alias cond r0
-alias house r1
 alias need r2
 
 define SORT_MODE_LOGIC 2
-define LOG HASH("logistics_worker")
+define MEMH HASH("StructureLogicMemory")
+define SLOT2 HASH("slot2")
 
 init:
-l house db PrefabHash
 s db Setting 300
 
 main:
 yield
 bdns d0 no_sort
 bdns d1 no_vend
-lbn cond house LOG PrefabHash Maximum
-bne cond house no_log
+lbn cond MEMH SLOT2 PrefabHash Maximum
+bne cond MEMH no_req
 s sort On 1
 s vend On 1
 l cond sort Mode
 beq cond SORT_MODE_LOGIC read_need
 s sort Mode SORT_MODE_LOGIC
 read_need:
-lbn need house LOG Setting Maximum
-beq need 200 idle
+lbn need MEMH SLOT2 Setting Maximum
+beqz need idle
 ls cond sort 0 Occupied
 beqz cond vend_req
 ls cond sort 0 OccupantHash
@@ -47,6 +46,6 @@ j main
 no_vend:
 s db Setting 341
 j main
-no_log:
-s db Setting 343
+no_req:
+s db Setting 342
 j main

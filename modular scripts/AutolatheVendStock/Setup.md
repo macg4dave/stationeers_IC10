@@ -11,11 +11,12 @@ Use this page to set up a simple fully automatic **Autolathe -> Vending Machine*
   - AutolatheVendStock Logistics Worker
   - AutolatheVendStock Logistics Feeder Worker
   - AutolatheVendStock Setup Guard
-- 4x Logic Memory
+- 5x Logic Memory
   - `cmd_token`
   - `cmd_type`
   - `slot0`
   - `slot1`
+  - `slot2`
 - 1x Autolathe
 - 1x Stacker
 - 1x Vending Machine
@@ -38,6 +39,7 @@ Set these exact names (case-sensitive):
 - Logic Memory: `cmd_type`
 - Logic Memory: `slot0`
 - Logic Memory: `slot1`
+- Logic Memory: `slot2`
 
 Internal prefab tokens used by the name-based scripts:
 
@@ -84,6 +86,7 @@ Sorter lane note:
 ## Setup steps
 
 - Put all six chips, the four Logic Memories, the Autolathe, the Stacker, both vending machines, and the sorter on one data network.
+- Put all six chips, the five Logic Memories, the Autolathe, the Stacker, both vending machines, and the sorter on one data network.
 - Paste scripts:
   - `modular scripts/AutolatheVendStock/autolathe_vend_stock_master.ic10`
   - `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_stock.ic10`
@@ -93,6 +96,7 @@ Sorter lane note:
   - `modular scripts/AutolatheVendStock/autolathe_vend_stock_setup_guard.ic10`
 - Apply required names from **Name contract**.
 - Wire the stock worker, machine worker, logistics worker, and setup guard exactly as shown in **Wiring map**.
+- Leave `slot2` on the shared data network; it carries the current raw ingot request from `logistics_worker` to `logistics_feeder_worker`.
 - Connect the ingot-supply vending machine export through the sorter into the Autolathe input path.
 - Make sure the sorter lane to the Autolathe is the `Output = 1` lane.
 - Set the downstream Stacker `Setting` to the batch size you want for each product restock run.
@@ -128,6 +132,7 @@ When debugging, capture these values in one screenshot/note:
 - `logistics_feeder_worker` (`db Setting`)
 - `setup_guard` (`db Setting`)
 - `cmd_token`, `cmd_type`, `slot0`, `slot1`
+- `slot2`
 - downstream Stacker: `Setting`, `ImportCount`, `ExportCount`, `Mode`, `On`
 
 Quick interpretation:

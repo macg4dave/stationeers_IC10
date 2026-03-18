@@ -54,6 +54,11 @@ Set these exact names (case-sensitive):
 5. Power devices and wait a few ticks.
 6. Run [Control A], then [Control B].
 
+## Pin label convention
+
+- For modular IC10 scripts, unused device pins should be aliased as `n0..n5`.
+- This keeps the in-game IC housing labels current after script updates, even when a pin is no longer used.
+
 ## Controls
 
 - [Control A]: [What it does for players].

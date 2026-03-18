@@ -4,6 +4,8 @@ alias input d0
 alias worker_a d1
 alias worker_b d2
 alias cmd_slot d3
+alias n4 d4
+alias n5 d5
 alias mode r0
 alias pressed r1
 alias prev r2

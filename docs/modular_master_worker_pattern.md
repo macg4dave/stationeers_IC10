@@ -68,6 +68,22 @@ Example (master):
 
 If a script has no inter-chip links, use normal per-feature mapping.
 
+### Unused pin naming rule (required)
+
+For modular IC10 scripts, any unused device pin should still receive a short alias so the
+in-game IC housing pin labels stay current after script updates:
+
+- `d0` -> `n0`
+- `d1` -> `n1`
+- `d2` -> `n2`
+- `d3` -> `n3`
+- `d4` -> `n4`
+- `d5` -> `n5`
+
+Use the meaningful short alias for used pins, and reserve `n0..n5` only for unused pins.
+This convention is specifically for end-user setup clarity; it is worth the line cost in
+modular scripts because those projects evolve more often and pin roles change more often.
+
 ## Status code protocol (required)
 
 Each chip should publish numeric status to its own `db Setting`.
@@ -132,10 +148,11 @@ Include all of the following:
 
 1. device mapping per chip (`d0..d5`, `db`)
 2. explicit confirmation that inter-chip links start at `d0` and descend
-3. shared memory contract (who writes/reads each slot)
-4. button/control flow timeline
-5. status code tables per chip
-6. recovery steps (what to reset if stuck)
+3. note unused pins explicitly and match them to the `n0..n5` in-game alias convention when relevant
+4. shared memory contract (who writes/reads each slot)
+5. button/control flow timeline
+6. status code tables per chip
+7. recovery steps (what to reset if stuck)
 
 ## AI prompt template for modular requests
 

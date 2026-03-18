@@ -3,6 +3,9 @@
 alias dev d0
 alias cmd_slot d1
 alias data_slot d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
 alias token r0
 alias prev_token r1
 alias cond r2

@@ -24,6 +24,8 @@ Each modular feature lives in:
 
 - Wiring standard: if chips are wired to other chips/channels, assign those
   links first at `d0`, `d1`, `d2`... then map buttons/feature devices.
+- For modular scripts, alias unused device pins as `n0..n5` so the in-game housing labels
+  stop showing stale old pin roles after script updates.
 - End-user setup guide: `docs/usage/modular_wiring_setup.md`.
 - SatCom example setup guide: `modular scripts/SatCom/Setup.md`.
 - Keep every chip paste-ready: 128 lines / 90 chars per line.

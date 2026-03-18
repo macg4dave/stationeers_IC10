@@ -36,6 +36,7 @@ Start with `README.md`, then `scripts/README.md` and `modular scripts/README.md`
 - For modular `Setup.md`, use `modular scripts/_template/Setup.md` and keep only player actions (build list, setup steps, wiring map, controls).
 - Master handles orchestration/input edges; workers stay single-purpose and publish status via each chip's `db Setting`.
 - Prefer Logic Memory token/data channels; wiring order is inter-chip links from `d0` downward, then user inputs, then feature devices.
+- For modular IC10 scripts, any unused device pin should be explicitly aliased as its short placeholder name: `d0 -> n0`, `d1 -> n1`, ... `d5 -> n5`. This keeps the in-game pin labels up to date for end users after script changes.
 
 ## Critical workflows and guardrails
 

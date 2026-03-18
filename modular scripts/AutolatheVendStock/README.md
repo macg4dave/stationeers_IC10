@@ -85,6 +85,7 @@ Set these exact names (case-sensitive):
 - Logic Memory: `cmd_type`
 - Logic Memory: `slot0`
 - Logic Memory: `slot1`
+- Logic Memory: `slot2`
 
 Internal prefab tokens used by the name-based scripts:
 
@@ -96,6 +97,7 @@ Internal prefab tokens used by the name-based scripts:
 - `cmd_type` - command code
 - `slot0` - current recipe hash request
 - `slot1` - current batch count request
+- `slot2` - current raw ingot request hash for `logistics_feeder_worker`
 
 Command codes:
 
@@ -118,7 +120,8 @@ The split logistics path expects the ingot-supply vending machine to hold the Au
 The request worker uses a simple hysteresis refill rule:
 
 - if a tracked reagent drops below `50`, it becomes the active refill request
-- the feeder worker keeps pulsing vending requests for that ingot and routes sorter output `1` to the Autolathe
+- the request worker publishes that raw ingot hash to `slot2`
+- the feeder worker reads `slot2`, keeps pulsing vending requests for that ingot, and routes sorter output `1` to the Autolathe
 - the request worker keeps that request active until the Autolathe reaches `200`
 - then it clears that request and scans for the next low reagent
 
@@ -177,7 +180,7 @@ Current limitation:
 - `300` = idle / no ingot request active
 - `340` = missing Sorter on `d0`
 - `341` = missing ingot vending machine on `d1`
-- `343` = missing `logistics_worker`
+- `342` = missing `slot2`
 - any other value = current ingot hash being routed from the ingot vending machine
 
 ### Stock worker (`500-599`)
@@ -194,7 +197,7 @@ Current limitation:
 - `92` = missing `cmd_type`
 - `93` = missing worker housing
 - `97` = missing Autolathe on `d0`
-- `98` = missing `slot0` / `slot1`
+- `98` = missing `slot0` / `slot1` / `slot2`
 
 ## Limits
 

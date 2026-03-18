@@ -13,6 +13,7 @@ define CTOK HASH("cmd_token")
 define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
 define SLOT1 HASH("slot1")
+define SLOT2 HASH("slot2")
 define STOCK HASH("stock_worker")
 define WORK HASH("machine_worker")
 define LOG HASH("logistics_worker")
@@ -33,6 +34,8 @@ bne cond MEMH err_type
 lbn cond MEMH SLOT0 PrefabHash Maximum
 bne cond MEMH err_slots
 lbn cond MEMH SLOT1 PrefabHash Maximum
+bne cond MEMH err_slots
+lbn cond MEMH SLOT2 PrefabHash Maximum
 bne cond MEMH err_slots
 lbn cond house STOCK PrefabHash Maximum
 bne cond house err_house
@@ -56,8 +59,12 @@ beqz cond init_1
 sbn MEMH SLOT0 Setting 0
 init_1:
 lbn cond MEMH SLOT1 Setting Maximum
-beqz cond mark
+beqz cond init_2
 sbn MEMH SLOT1 Setting 0
+init_2:
+lbn cond MEMH SLOT2 Setting Maximum
+beqz cond mark
+sbn MEMH SLOT2 Setting 0
 mark:
 move inited 1
 ok:
