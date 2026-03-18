@@ -1,0 +1,48 @@
+alias sort d0
+alias vend d1
+alias cond r0
+alias house r1
+alias need r2
+
+define SORT_MODE_LOGIC 2
+define LOG HASH("logistics_worker")
+
+init:
+l house db PrefabHash
+s db Setting 300
+
+main:
+yield
+bdns d0 no_sort
+bdns d1 no_vend
+lbn cond house LOG PrefabHash Maximum
+bne cond house no_log
+s sort On 1
+s vend On 1
+l cond sort Mode
+beq cond SORT_MODE_LOGIC read_need
+s sort Mode SORT_MODE_LOGIC
+read_need:
+lbn need house LOG Setting Maximum
+beq need 200 idle
+ls cond sort 0 Occupied
+beqz cond vend_req
+ls cond sort 0 OccupantHash
+seq cond cond need
+s sort Output cond
+vend_req:
+s db Setting need
+s vend RequestHash need
+j main
+idle:
+s db Setting 300
+j main
+no_sort:
+s db Setting 340
+j main
+no_vend:
+s db Setting 341
+j main
+no_log:
+s db Setting 343
+j main

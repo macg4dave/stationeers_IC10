@@ -4,7 +4,7 @@ A simplified modular **single-Autolathe vending stocker**.
 
 Goal: keep one finished-goods **Vending Machine** stocked with one occupied stack of each
 currently hash-backed Autolathe recipe item, using one **Autolathe**, one ingot-supply
-**Vending Machine**, and one **Sorter**.
+**Vending Machine**, one downstream **Stacker**, and one **Sorter**.
 
 Player setup guide: `modular scripts/AutolatheVendStock/Setup.md`.
 
@@ -25,7 +25,8 @@ fully automatic feature:
 - `autolathe_vend_stock_master.ic10` - ensures workers stay enabled and publishes simple summary status
 - `autolathe_vend_stock_worker_stock.ic10` - scans the finished-goods vending machine and requests missing products
 - `autolathe_vend_stock_worker_machine.ic10` - runs the Autolathe for the requested recipe/count
-- `autolathe_vend_stock_worker_logistics.ic10` - keeps Autolathe reagents topped up from an ingot vending machine
+- `autolathe_vend_stock_worker_logistics.ic10` - watches Autolathe reagent levels and publishes the current ingot request
+- `autolathe_vend_stock_worker_logistics_feeder.ic10` - routes the requested ingot through the sorter and keeps the ingot vending machine pulsing
 - `autolathe_vend_stock_setup_guard.ic10` - validates named shared memories / workers and initializes memory state once
 
 ## Device mapping per chip
@@ -43,14 +44,27 @@ fully automatic feature:
 ### Machine worker
 
 - `d0` = Autolathe
+- `d1` = downstream Stacker used as the local batch counter / release gate
 - `db` = machine worker status
 
 ### Logistics worker
 
-- `d0` = Sorter
-- `d1` = ingot-supply vending machine (`vend ingot` role)
 - `d2` = Autolathe
 - `db` = logistics status / current ingot request
+
+### Logistics feeder worker
+
+- `d0` = Sorter
+- `d1` = ingot-supply vending machine (`vend ingot` role)
+- `db` = feeder status / current ingot request being routed
+
+Sorter lane note:
+
+- requested ingots are routed to sorter `Output = 1`
+- rejects / other items go to sorter `Output = 0`
+- when facing the sorter outputs with the power switch on your right:
+  - `Output = 0` exits **right**
+  - `Output = 1` exits **left**
 
 ### Setup guard
 
@@ -65,6 +79,7 @@ Set these exact names (case-sensitive):
 - IC Housing: `stock_worker`
 - IC Housing: `machine_worker`
 - IC Housing: `logistics_worker`
+- IC Housing: `logistics_feeder_worker`
 - IC Housing: `setup_guard`
 - Logic Memory: `cmd_token`
 - Logic Memory: `cmd_type`
@@ -99,11 +114,12 @@ Intended workflow:
 The stock worker currently tracks the **23 Autolathe recipes with usable item hashes** in the
 local catalog and tries to keep **one occupied vending stack** for each of them.
 
-The logistics worker expects the ingot-supply vending machine to hold the Autolathe's feed ingots
-and uses a simple hysteresis refill rule:
+The split logistics path expects the ingot-supply vending machine to hold the Autolathe's feed ingots.
+The request worker uses a simple hysteresis refill rule:
 
 - if a tracked reagent drops below `50`, it becomes the active refill request
-- the worker keeps pulsing vending requests for that ingot until the Autolathe reaches `200`
+- the feeder worker keeps pulsing vending requests for that ingot and routes sorter output `1` to the Autolathe
+- the request worker keeps that request active until the Autolathe reaches `200`
 - then it clears that request and scans for the next low reagent
 
 When one tracked item is missing from the finished-goods vending machine:
@@ -111,13 +127,15 @@ When one tracked item is missing from the finished-goods vending machine:
 1. stock worker writes the product hash to `slot0`
 2. stock worker writes `1` to `slot1`
 3. stock worker emits command `1`
-4. machine worker builds one item
-5. finished goods should be routed into the vending machine
-6. stock worker advances to the next tracked product only after it sees that stack exist
+4. machine worker builds until its downstream Stacker exports one batch
+5. the Stacker `Setting` controls the batch size for that product run
+6. finished goods should be routed from the Stacker into the vending machine
+7. stock worker advances to the next tracked product only after it sees that stack exist
 
 Current limitation:
 
 - the current stock worker treats "stock met" as **one occupied vending stack exists** for that item
+- the machine worker uses the downstream Stacker `Setting` as its local batch size for each request
 - it does **not yet** maintain an exact configurable quantity target per item
 - that exact-count behavior is a sensible next upgrade, but the ingot top-up path is intentionally kept
   separate so you do not need a full recipe/build-list system just to keep the Autolathe fed
@@ -133,6 +151,7 @@ Current limitation:
 - `43` = missing `stock_worker`
 - `44` = missing `machine_worker`
 - `45` = missing `logistics_worker`
+- `46` = missing `logistics_feeder_worker`
 
 ### Machine worker (`100-199`)
 
@@ -141,17 +160,25 @@ Current limitation:
 - `120` = configuring Autolathe
 - `121` = start pulse written
 - `122` = waiting for more exports
+- `123` = batch built, waiting for Stacker release
 - `140` = batch complete
 - `142` = invalid request
 - `144` = missing Autolathe on `d0`
+- `145` = missing Stacker on `d1`
 
 ### Logistics worker (`200-299`)
 
 - `200` = idle / no ingot request active
-- `240` = missing Sorter on `d0`
-- `241` = missing ingot vending machine on `d1`
 - `243` = missing Autolathe on `d2`
 - any other value = current ingot hash being requested toward the `200` target
+
+### Logistics feeder worker (`300-399`)
+
+- `300` = idle / no ingot request active
+- `340` = missing Sorter on `d0`
+- `341` = missing ingot vending machine on `d1`
+- `343` = missing `logistics_worker`
+- any other value = current ingot hash being routed from the ingot vending machine
 
 ### Stock worker (`500-599`)
 
@@ -173,12 +200,14 @@ Current limitation:
 
 - The current local recipe catalog only exposes **23 usable item hashes** for Autolathe products.
 - This feature therefore cannot yet stock every wiki-listed Autolathe recipe automatically.
-- It currently targets **one occupied vending stack**, not a guaranteed full max-size stack or exact count.
+- It currently targets **one occupied vending stack**, with the per-run batch size coming from the downstream Stacker `Setting`.
 
 ## Recovery steps
 
 - If setup guard is not `1`, fix names and local `d0` wiring first.
 - If stock worker shows a large non-status value, that is the product hash currently being restocked.
 - If machine worker stays at `122`, the Autolathe usually needs more materials or power.
+- If machine worker stays at `123`, the Stacker is usually still holding the batch or the output path is blocked.
 - If logistics worker shows a large non-status value, that is the ingot hash it is waiting for.
+- If logistics feeder worker shows a large non-status value, that is the ingot hash it is currently trying to route into the Autolathe.
 - If the vending machine fills with partial stacks, manually consolidate or clear stock; vending machines do not merge stacks internally.

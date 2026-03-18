@@ -1,12 +1,9 @@
-alias sort d0
-alias vend d1
 alias mach d2
 alias need r0
 alias tmp r1
 alias oldimp r2
 alias level r3
 define CLEAR_REQ -1
-define SORT_MODE_LOGIC 2
 define LOW_REAGENT 50
 define TARGET_REAGENT 200
 define REAGENT_IRON -666742878
@@ -33,29 +30,13 @@ move oldimp 0
 s db Setting 200
 main:
 yield
-bdns d0 no_sort
-bdns d1 no_vend
 bdns d2 no_mach
-l tmp sort Mode
-beq tmp SORT_MODE_LOGIC sort_on
-s sort Mode SORT_MODE_LOGIC
-sort_on:
-l tmp sort On
-bnez tmp route
-s sort On 1
-route:
-ls tmp sort 0 Occupied
-beqz tmp check_arrive
-ls tmp sort 0 OccupantHash
-seq tmp tmp need
-s sort Output tmp
 check_arrive:
 l tmp mach ImportCount
 ble tmp oldimp check_need
 move oldimp tmp
+move need CLEAR_REQ
 check_need:
-l tmp mach Open
-bnez tmp publish
 bne need CLEAR_REQ track_need
 scan_need:
 lr tmp mach Contents REAGENT_IRON
@@ -112,16 +93,9 @@ j scan_need
 publish:
 s db Setting need
 beq need CLEAR_REQ idle
-s vend RequestHash need
 j main
 idle:
 s db Setting 200
-j main
-no_sort:
-s db Setting 240
-j main
-no_vend:
-s db Setting 241
 j main
 no_mach:
 s db Setting 243

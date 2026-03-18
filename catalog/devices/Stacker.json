@@ -2,8 +2,8 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Stacker",
     "wikiTitle": "Stacker",
-    "retrievedAt": "2026-03-15T17:52:25+00:00",
-    "notes": "Identity cleared manually because the Stacker wiki page also documents Unloader variants and raw import can capture the wrong prefab."
+    "retrievedAt": "2026-03-18T01:37:53+00:00",
+    "notes": "Identity omitted because the matching wiki Structurebox contains multiple prefab variants."
   },
   "identity": {
     "itemName": null,

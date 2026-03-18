@@ -3,10 +3,12 @@ alias house r1
 alias stock r2
 alias mach r3
 alias log r4
+alias feed r5
 
 define STOCK HASH("stock_worker")
 define MACH HASH("machine_worker")
 define LOG HASH("logistics_worker")
+define FEED HASH("logistics_feeder_worker")
 
 init:
 l house db PrefabHash
@@ -20,6 +22,8 @@ lbn cond house MACH PrefabHash Maximum
 bne cond house no_mach
 lbn cond house LOG PrefabHash Maximum
 bne cond house no_log
+lbn cond house FEED PrefabHash Maximum
+bne cond house no_feed
 lbn stock house STOCK On Maximum
 bnez stock stock_on
 sbn house STOCK On 1
@@ -32,6 +36,10 @@ lbn log house LOG On Maximum
 bnez log read_mach
 sbn house LOG On 1
 read_mach:
+lbn feed house FEED On Maximum
+bnez feed read_state
+sbn house FEED On 1
+read_state:
 lbn mach house MACH Setting Maximum
 sgt cond mach 109
 slt stock mach 140
@@ -58,4 +66,7 @@ s db Setting 44
 j main
 no_log:
 s db Setting 45
+j main
+no_feed:
+s db Setting 46
 j main

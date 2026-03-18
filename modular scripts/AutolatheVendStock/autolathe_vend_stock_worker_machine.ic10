@@ -1,16 +1,16 @@
 alias mach d0
+alias stack d1
 alias token r0
 alias prev r1
 alias cmd r2
 alias recipe r3
 alias batch r4
-alias start_exp r5
+alias stack_goal r5
 alias target_exp r6
 alias curr_exp r7
 alias active r8
 alias cond r9
 alias act r10
-alias curr_recipe r11
 alias curr_on r12
 alias curr_open r13
 alias last_exp r14
@@ -19,7 +19,6 @@ define MEMH HASH("StructureLogicMemory")
 define CTOK HASH("cmd_token")
 define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
-define SLOT1 HASH("slot1")
 
 init:
 s db Setting 100
@@ -29,6 +28,7 @@ move prev 0
 main:
 yield
 bdns d0 no_machine
+bdns d1 no_stack
 lbn token MEMH CTOK Setting Maximum
 beq token prev no_cmd
 move prev token
@@ -38,13 +38,17 @@ j main
 cmd_start:
 lbn recipe MEMH SLOT0 Setting Maximum
 beqz recipe invalid_req
-lbn batch MEMH SLOT1 Setting Maximum
+l batch stack Setting
 slt cond 0 batch
 beqz cond invalid_req
-l start_exp mach ExportCount
-move target_exp start_exp
+s stack On 1
+s stack Mode 0
+l curr_exp mach ExportCount
+move target_exp curr_exp
 add target_exp target_exp batch
-move last_exp start_exp
+l stack_goal stack ExportCount
+add stack_goal stack_goal 1
+move last_exp curr_exp
 move active 1
 s db Setting 110
 j main
@@ -54,8 +58,8 @@ s db Setting 142
 j main
 no_cmd:
 beqz active idle
-l curr_recipe mach RecipeHash
-beq curr_recipe recipe check_on
+l curr_on mach RecipeHash
+beq curr_on recipe check_on
 s mach RecipeHash recipe
 s db Setting 120
 j main
@@ -72,9 +76,12 @@ s mach Open 0
 s db Setting 120
 j main
 check_done:
+l curr_on stack ExportCount
+slt cond curr_on stack_goal
+beqz cond done
 l curr_exp mach ExportCount
 slt cond curr_exp target_exp
-beqz cond done
+beqz cond wait_stack
 sne cond curr_exp last_exp
 beqz cond maybe_pulse
 move last_exp curr_exp
@@ -88,6 +95,13 @@ s db Setting 121
 j main
 waiting:
 s db Setting 122
+j main
+wait_stack:
+l act mach Activate
+beqz act wait_stack_state
+s mach Activate 0
+wait_stack_state:
+s db Setting 123
 j main
 done:
 move active 0
@@ -103,4 +117,8 @@ j main
 no_machine:
 move active 0
 s db Setting 144
+j main
+no_stack:
+move active 0
+s db Setting 145
 j main

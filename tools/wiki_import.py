@@ -96,7 +96,7 @@ def _parse_wiki_url(url: str) -> tuple[str, str, Optional[str]]:
 
 
 def _normalize_type(type_str: str) -> str:
-    t = type_str.strip().lower()
+    t = type_str.strip().lower().rstrip("?").strip()
     # wiki sometimes uses bool/boolean or integer/int
     t = {
         "bool": "boolean",
@@ -583,7 +583,7 @@ def _extract_structure_identity_from_edit_source(
     edit_html: str,
     *,
     structure_name: str,
-) -> tuple[Optional[str], Optional[int]]:
+) -> tuple[bool, Optional[str], Optional[int]]:
     """Extract prefab identity from the matching Structurebox in raw wiki source."""
 
     blocks = re.findall(r"\{\{Structurebox.*?\}\}", edit_html, re.IGNORECASE | re.DOTALL)
@@ -595,25 +595,28 @@ def _extract_structure_identity_from_edit_source(
             continue
 
         prefab_name_match = re.search(
-            r"\|\s*prefab_name\s*=\s*([A-Za-z0-9_]+)",
+            r"\|\s*prefab_name\s*=\s*([^|}{\n]+)",
             block,
             re.IGNORECASE,
         )
         prefab_hash_match = re.search(
-            r"\|\s*prefab_hash\s*=\s*([0-9-]+)",
+            r"\|\s*prefab_hash\s*=\s*([^|}{\n]+)",
             block,
             re.IGNORECASE,
         )
 
-        prefab_name = prefab_name_match.group(1) if prefab_name_match else None
+        prefab_name_raw = prefab_name_match.group(1).strip() if prefab_name_match else ""
+        prefab_hash_raw = prefab_hash_match.group(1).strip() if prefab_hash_match else ""
+
+        prefab_name = prefab_name_raw if re.fullmatch(r"[A-Za-z0-9_]+", prefab_name_raw) else None
         try:
-            prefab_hash = int(prefab_hash_match.group(1)) if prefab_hash_match else None
+            prefab_hash = int(prefab_hash_raw) if re.fullmatch(r"[0-9-]+", prefab_hash_raw) else None
         except ValueError:
             prefab_hash = None
 
-        return prefab_name, prefab_hash
+        return True, prefab_name, prefab_hash
 
-    return None, None
+    return False, None, None
 
 
 def upsert_index(entry: dict) -> None:
@@ -718,6 +721,8 @@ def main(argv: List[str]) -> int:
             if output_table:
                 outs.extend(_parse_io_table(output_table))
 
+    source_notes: Optional[str] = None
+
     if section_start_pos is not None:
         # For multi-device pages (e.g., Sensors), we can usually derive the Prefab Name.
         # Example: "Gas_Sensor" section corresponds to prefab "StructureGasSensor".
@@ -737,29 +742,37 @@ def main(argv: List[str]) -> int:
     else:
         item_name, item_hash = _extract_identity(html)
 
-        if item_name is None or item_name.lower() == "x":
-            if not edit_html:
-                try:
-                    edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
-                except Exception:
-                    edit_html = ""
+        if not edit_html:
+            try:
+                edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
+            except Exception:
+                edit_html = ""
 
-            if edit_html:
-                structure_item_name, structure_item_hash = _extract_structure_identity_from_edit_source(
-                    edit_html,
-                    structure_name=wiki_title.replace("_", " "),
-                )
-                if structure_item_name is not None or structure_item_hash is not None:
-                    item_name, item_hash = structure_item_name, structure_item_hash
+        if edit_html:
+            matched_structure, structure_item_name, structure_item_hash = _extract_structure_identity_from_edit_source(
+                edit_html,
+                structure_name=wiki_title.replace("_", " "),
+            )
+            if matched_structure:
+                item_name, item_hash = structure_item_name, structure_item_hash
+                if item_name is None and item_hash is None:
+                    source_notes = (
+                        "Identity omitted because the matching wiki Structurebox "
+                        "contains multiple prefab variants."
+                    )
 
     retrieved_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
+    source = {
+        "wikiUrl": url,
+        "wikiTitle": wiki_title,
+        "retrievedAt": retrieved_at,
+    }
+    if source_notes:
+        source["notes"] = source_notes
+
     device = DeviceCatalogEntry(
-        source={
-            "wikiUrl": url,
-            "wikiTitle": wiki_title,
-            "retrievedAt": retrieved_at,
-        },
+        source=source,
         identity={
             "itemName": item_name,
             "itemHash": item_hash,

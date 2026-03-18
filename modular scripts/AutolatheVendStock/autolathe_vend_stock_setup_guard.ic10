@@ -11,6 +11,7 @@ define SLOT1 HASH("slot1")
 define STOCK HASH("stock_worker")
 define WORK HASH("machine_worker")
 define LOG HASH("logistics_worker")
+define FEED HASH("logistics_feeder_worker")
 
 init:
 l house db PrefabHash
@@ -33,6 +34,8 @@ bne cond house err_house
 lbn cond house WORK PrefabHash Maximum
 bne cond house err_house
 lbn cond house LOG PrefabHash Maximum
+bne cond house err_house
+lbn cond house FEED PrefabHash Maximum
 bne cond house err_house
 bnez inited ok
 lbn cond MEMH CTYPE Setting Maximum
