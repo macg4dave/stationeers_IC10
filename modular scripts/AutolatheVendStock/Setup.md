@@ -43,6 +43,8 @@ Internal prefab tokens used by the name-based scripts:
 
 - `StructureLogicMemory`
 
+Unused device pins are intentionally labelled in-game as `n0..n5` so stale old pin names are easier to spot after script updates.
+
 ## Wiring map
 
 ### autolathe_vend_stock_master.ic10
@@ -81,7 +83,6 @@ Sorter lane note:
 
 ## Setup steps
 
-- Put all five chips, the four Logic Memories, the Autolathe, the Stacker, both vending machines, and the sorter on one data network.
 - Put all six chips, the four Logic Memories, the Autolathe, the Stacker, both vending machines, and the sorter on one data network.
 - Paste scripts:
   - `modular scripts/AutolatheVendStock/autolathe_vend_stock_master.ic10`

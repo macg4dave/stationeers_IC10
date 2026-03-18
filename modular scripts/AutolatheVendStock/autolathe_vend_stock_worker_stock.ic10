@@ -1,4 +1,9 @@
 alias vend d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
 alias idx r0
 alias slot r1
 alias hash r2

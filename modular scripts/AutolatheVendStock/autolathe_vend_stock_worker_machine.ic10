@@ -1,5 +1,9 @@
 alias mach d0
 alias stack d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
 alias token r0
 alias prev r1
 alias cmd r2

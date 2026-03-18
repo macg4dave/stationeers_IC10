@@ -1,3 +1,9 @@
+alias n0 d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
 alias cond r0
 alias house r1
 alias stock r2
