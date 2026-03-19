@@ -1,0 +1,56 @@
+# hardsuit_helmet_temp_pressure_open
+# Category: Suit Controller
+# Status: Functional
+#
+# Purpose: Open a Hardsuit Helmet when the outside air is warm and pressurized enough,
+# and close it again if outside temperature or pressure fall out of spec.
+#
+# Device registers:
+#   db = Hardsuit interface from a Hardsuit IC10 chip
+#   d0 = Hardsuit Helmet interface from a Hardsuit IC10 chip
+#
+# Notes:
+# - Paste this into an IC10 chip installed in the Hardsuit processor slot.
+# - Suit external Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# - Suit external Pressure is in kPa.
+# - Opens when tempC >= 4 and Pressure >= 80.
+# - Closes again whenever tempC < 4 or Pressure < 80.
+
+alias suit db
+alias helmet d0
+
+alias tempC r0
+alias pressure r1
+alias desired_open r2
+alias cond r4
+
+define KELVIN_TO_C 273.15
+define TEMP_OPEN_AT_OR_ABOVE_C 4
+define PRESSURE_OPEN_AT_OR_ABOVE_KPA 80
+
+wait_devices:
+	yield
+	bdns db wait_devices
+	bdns d0 wait_devices
+
+main:
+	bdns db wait_devices
+	bdns d0 wait_devices
+	l tempC suit TemperatureExternal
+	l pressure suit PressureExternal
+	sub tempC tempC KELVIN_TO_C
+
+	move desired_open 0
+
+	slt cond tempC TEMP_OPEN_AT_OR_ABOVE_C
+	bnez cond check_write
+	slt cond pressure PRESSURE_OPEN_AT_OR_ABOVE_KPA
+	bnez cond check_write
+	move desired_open 1
+
+check_write:
+	s helmet Lock 0
+	s helmet Open desired_open
+
+	sleep 1
+	j main
