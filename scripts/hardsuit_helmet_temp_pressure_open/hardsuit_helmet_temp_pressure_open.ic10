@@ -13,8 +13,8 @@
 # - Paste this into an IC10 chip installed in the Hardsuit processor slot.
 # - Suit external Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
 # - Suit external Pressure is in kPa.
-# - Opens when tempC >= 4 and Pressure >= 80.
-# - Closes again whenever tempC < 4 or Pressure < 80.
+# - Opens only while 4 <= tempC <= 45 and 80 <= Pressure <= 150.
+# - Closes again whenever tempC or Pressure fall outside that safe range.
 
 alias suit db
 alias helmet d0
@@ -26,7 +26,9 @@ alias cond r4
 
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_AT_OR_ABOVE_C 4
+define TEMP_OPEN_AT_OR_BELOW_C 45
 define PRESSURE_OPEN_AT_OR_ABOVE_KPA 80
+define PRESSURE_OPEN_AT_OR_BELOW_KPA 150
 
 wait_devices:
 	yield
@@ -44,7 +46,11 @@ main:
 
 	slt cond tempC TEMP_OPEN_AT_OR_ABOVE_C
 	bnez cond check_write
+	sgt cond tempC TEMP_OPEN_AT_OR_BELOW_C
+	bnez cond check_write
 	slt cond pressure PRESSURE_OPEN_AT_OR_ABOVE_KPA
+	bnez cond check_write
+	sgt cond pressure PRESSURE_OPEN_AT_OR_BELOW_KPA
 	bnez cond check_write
 	move desired_open 1
 

@@ -4,8 +4,8 @@
 
 Automatically open the **Hardsuit Helmet** visor when the **outside atmosphere around the suit** is both:
 
-- at least **4°C**
-- at least **80 kPa**
+- between **4°C** and **45°C**
+- between **80 kPa** and **150 kPa**
 
 If either condition is not met, the script closes the helmet.
 
@@ -35,7 +35,8 @@ You do **not** manually wire `db` or `d0`; the suit provides them automatically.
 
 The visor will:
 
-- **open** when external `Temperature >= 4°C` and external `Pressure >= 80 kPa`
+- **open** only when external `Temperature` is between `4°C` and `45°C`
+- **open** only when external `Pressure` is between `80 kPa` and `150 kPa`
 - **close** otherwise
 - **close again** if it was open and either reading later drops below the threshold
 
@@ -44,7 +45,9 @@ The visor will:
 Edit the constants at the top of `hardsuit_helmet_temp_pressure_open.ic10`:
 
 - `TEMP_OPEN_AT_OR_ABOVE_C` — minimum external temperature in **°C** required to open
+- `TEMP_OPEN_AT_OR_BELOW_C` — maximum external temperature in **°C** allowed to stay open
 - `PRESSURE_OPEN_AT_OR_ABOVE_KPA` — minimum external pressure in **kPa** required to open
+- `PRESSURE_OPEN_AT_OR_BELOW_KPA` — maximum external pressure in **kPa** allowed to stay open
 
 ## Notes
 
@@ -52,7 +55,7 @@ Edit the constants at the top of `hardsuit_helmet_temp_pressure_open.ic10`:
   $C = K - 273.15$
 - Hardsuit `PressureExternal` is compared as **kPa**.
 - The script reevaluates temperature and pressure every cycle, so it will reopen or re-close
-  the helmet as conditions move above or below the thresholds.
+  the helmet as conditions move inside or outside the safe range.
 - The script writes `Lock = 0` and then updates `Open` every cycle.
 - If the helmet is missing or detached, the script waits until `d0` is available again.
 
