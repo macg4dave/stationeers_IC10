@@ -50,6 +50,12 @@
       "itemHash": -1252983604
     },
     {
+      "wikiTitle": "Hardsuit",
+      "file": "devices/Hardsuit.json",
+      "itemName": "ItemHardSuit",
+      "itemHash": -1758310454
+    },
+    {
       "wikiTitle": "Kit_(Gas_Fuel_Generator)",
       "file": "devices/Kit_(Gas_Fuel_Generator).json",
       "itemName": "ItemKitGasGenerator",

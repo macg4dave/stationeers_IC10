@@ -156,6 +156,9 @@ Debugging lesson learned:
   - `Required[-500544800]` checks for missing `Stellite` reagent
   - `-1897868623` is only the `Ingot (Stellite)` item hash used for vending/sorter requests
 - if those are mixed up, `slot2` can stay active incorrectly and the feeder/sorter can look blocked even though the real bug is the missing-material test
+- the refreshed `catalog/recipes/Autolathe/recipes.json` currently reports `Cable Coil` as
+  `ItemCableCoilHeavy` with item hash `2060134443`
+- if the stock worker keeps the older cable hash, it will keep requesting cable and never advance
 
 When one tracked item is missing from the finished-goods vending machine:
 

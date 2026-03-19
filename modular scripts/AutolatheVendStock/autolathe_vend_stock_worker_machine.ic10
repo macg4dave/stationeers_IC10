@@ -4,8 +4,6 @@ alias n2 d2
 alias n3 d3
 alias n4 d4
 alias n5 d5
-alias token r0
-alias prev r1
 alias cmd r2
 alias recipe r3
 alias batch r4
@@ -20,7 +18,6 @@ alias curr_on r12
 alias curr_open r13
 alias last_exp r14
 define MEMH HASH("StructureLogicMemory")
-define CTOK HASH("cmd_token")
 define CTYPE HASH("cmd_type")
 define SLOT0 HASH("slot0")
 define SLOT3 HASH("slot3")
@@ -28,20 +25,20 @@ define SLOT4 HASH("slot4")
 init:
 s db Setting 100
 move active 0
-move prev 0
 main:
 yield
 bdns d0 no_machine
 bdns d1 no_stack
-lbn token MEMH CTOK Setting Maximum
-beq token prev no_cmd
-move prev token
 lbn cmd MEMH CTYPE Setting Maximum
-bne cmd 1 main
+seq cond cmd 1
+beqz cond no_cmd
+bnez active no_cmd
+sbn MEMH CTYPE Setting 0
 lbn recipe MEMH SLOT0 Setting Maximum
 beqz recipe invalid_req
 l batch stack Setting
-ble batch 0 invalid_req
+sgt cond batch 0
+beqz cond invalid_req
 s stack On 1
 s stack Mode 0
 l curr_exp mach ExportCount
@@ -71,13 +68,14 @@ l curr_on mach RecipeHash
 lbn ready MEMH SLOT0 Setting Maximum
 beq curr_on ready check_done
 sbn MEMH SLOT3 Setting 1
- j check_done
+j check_done
 wait_prep:
 s db Setting 120
 j main
 check_done:
 l curr_on stack ExportCount
-bge curr_on stack_goal done
+slt cond curr_on stack_goal
+beqz cond done
 l curr_exp mach ExportCount
 slt cond curr_exp target_exp
 beqz cond wait_stack

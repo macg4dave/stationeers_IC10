@@ -6,7 +6,7 @@ alias n4 d4
 alias n5 d5
 alias idx r0
 alias slot r1
-alias hash r2
+alias want r2
 alias occ r3
 alias item r4
 alias found r5
@@ -31,55 +31,55 @@ s db Setting 500
 main:
 yield
 bdns d0 no_vend
-move hash 1225836666
+move want 1225836666
 seq cond idx 1
-select hash cond -487378546 hash
+select want cond -487378546 want
 seq cond idx 2
-select hash cond 1588896491 hash
+select want cond 1588896491 want
 seq cond idx 3
-select hash cond -2038663432 hash
+select want cond -2038663432 want
 seq cond idx 4
-select hash cond -1470820996 hash
+select want cond -1470820996 want
 seq cond idx 5
-select hash cond -466050668 hash
+select want cond 2060134443 want
 seq cond idx 6
-select hash cond 1947944864 hash
+select want cond 1947944864 want
 seq cond idx 7
-select hash cond 1781051034 hash
+select want cond 1781051034 want
 seq cond idx 8
-select hash cond -1755116240 hash
+select want cond -1755116240 want
 seq cond idx 9
-select hash cond -1394008073 hash
+select want cond -1394008073 want
 seq cond idx 10
-select hash cond 969522478 hash
+select want cond 969522478 want
 seq cond idx 11
-select hash cond -1753893214 hash
+select want cond -1753893214 want
 seq cond idx 12
-select hash cond 168615924 hash
+select want cond 168615924 want
 seq cond idx 13
-select hash cond 882301399 hash
+select want cond 882301399 want
 seq cond idx 14
-select hash cond 529996327 hash
+select want cond 529996327 want
 seq cond idx 15
-select hash cond 750118160 hash
+select want cond 750118160 want
 seq cond idx 16
-select hash cond -1976947556 hash
+select want cond -1976947556 want
 seq cond idx 17
-select hash cond 1025254665 hash
+select want cond 1025254665 want
 seq cond idx 18
-select hash cond 323957548 hash
+select want cond 323957548 want
 seq cond idx 19
-select hash cond 231903234 hash
+select want cond 231903234 want
 seq cond idx 20
-select hash cond -551612946 hash
+select want cond -551612946 want
 seq cond idx 21
-select hash cond -524289310 hash
+select want cond -524289310 want
 seq cond idx 22
-select hash cond 1800622698 hash
+select want cond 1800622698 want
 ls occ vend slot Occupied
 beqz occ next_slot
 ls item vend slot OccupantHash
-sne cond item hash
+sne cond item want
 bnez cond next_slot
 move found 1
 next_slot:
@@ -92,12 +92,12 @@ lbn cond MEMH SLOT4 Setting Maximum
 bnez cond missing
 lbn token MEMH CTOK Setting Maximum
 add token token 1
-sbn MEMH SLOT0 Setting hash
+sbn MEMH SLOT0 Setting want
 sbn MEMH SLOT1 Setting 1
 sbn MEMH CTYPE Setting 1
 sbn MEMH CTOK Setting token
 missing:
-s db Setting hash
+s db Setting want
 j main
 next_hash:
 move found 0

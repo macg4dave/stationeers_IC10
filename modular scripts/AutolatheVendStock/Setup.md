@@ -158,3 +158,5 @@ Quick interpretation:
 - if logistics_feeder_worker shows a large non-status value, that is the ingot hash currently being routed to the Autolathe
 - if `slot2`, `logistics_worker`, and `logistics_feeder_worker` all stay pinned to the same alloy ingot hash, check the logistics script for a reagent-vs-item-hash mix-up in `Required[...]`
 - verified example: `Stellite` uses reagent hash `-500544800`, while `Ingot (Stellite)` uses item hash `-1897868623`
+- if `stock_worker` stays pinned on cable, verify the script is using the current cable item hash
+  `2060134443` (`ItemCableCoilHeavy`) from `catalog/recipes/Autolathe/recipes.json`

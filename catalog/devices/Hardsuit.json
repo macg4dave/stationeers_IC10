@@ -1,0 +1,327 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Hardsuit",
+    "wikiTitle": "Hardsuit",
+    "retrievedAt": "2026-03-19T16:47:33+00:00"
+  },
+  "identity": {
+    "itemName": "ItemHardSuit",
+    "itemHash": -1758310454
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "Volume",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PressureSetting",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureSetting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Filtration",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "AirRelease",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "SoundAlert",
+        "type": "integer",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Unpowered"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Temperature",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PressureExternal",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "TotalMoles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Volume",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PressureSetting",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureSetting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "TemperatureExternal",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Filtration",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "AirRelease",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PositionX",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PositionY",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PositionZ",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityMagnitude",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityRelativeX",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityRelativeY",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityRelativeZ",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "SoundAlert",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteam",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ForwardX",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ForwardY",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ForwardZ",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Orientation",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityX",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityY",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "VelocityZ",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "EntityState",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutedWater",
+        "type": "float",
+        "description": ""
+      }
+    ]
+  }
+}
