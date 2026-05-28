@@ -1,0 +1,40 @@
+alias stk d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias kind r0
+alias cond r1
+alias val r2
+define AUTOSTD HASH("autostd")
+define FIXED 10
+init:
+s db Setting 300
+main:
+yield
+bdns d0 no_stk
+l kind stk PrefabHash
+l cond stk On
+bnez cond chk_mode
+sbn kind AUTOSTD On 1
+s db Setting 301
+j main
+chk_mode:
+l cond stk Mode
+beqz cond chk_set
+sbn kind AUTOSTD Mode 0
+s db Setting 302
+j main
+chk_set:
+l val stk Setting
+beq val FIXED healthy
+sbn kind AUTOSTD Setting FIXED
+s db Setting 303
+j main
+healthy:
+s db Setting 310
+j main
+no_stk:
+s db Setting 344
+j main

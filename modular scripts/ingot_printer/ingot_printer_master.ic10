@@ -1,5 +1,5 @@
 alias stk d0
-alias n1 d1
+alias vend d1
 alias n2 d2
 alias n3 d3
 alias n4 d4
@@ -9,17 +9,24 @@ alias cur r1
 alias prev r2
 alias cond r3
 alias val r4
+alias total r5
+alias slot r6
+alias item r7
+alias drain r8
 define MEMH HASH("StructureLogicMemory")
 define SLOT0 HASH("slot0")
 define SELECTW HASH("selector_worker")
+define TARGET 100
 init:
 l house db PrefabHash
 move cur 0
 move prev 0
+move drain 0
 s db Setting 0
 main:
 yield
 bdns d0 no_stk
+bdns d1 no_vend
 lbn cond MEMH SLOT0 PrefabHash Maximum
 bne cond MEMH no_slot
 lbn cond house SELECTW PrefabHash Maximum
@@ -33,29 +40,76 @@ beqz cond chk_set
 s stk Mode 0
 chk_set:
 l cond stk Setting
-beq cond 1000 chk_batch
-s stk Setting 1000
+beq cond TARGET chk_active
+s stk Setting TARGET
+chk_active:
+beqz cur chk_batch
+move slot 2
+move total 0
+sum_vend:
+ls cond vend slot Occupied
+beqz cond sum_next
+ls item vend slot OccupantHash
+bne item cur sum_next
+ls item vend slot Quantity
+add total total item
+sum_next:
+add slot slot 1
+slt cond slot 102
+bnez cond sum_vend
+move val 0
+ls cond stk 2 Occupied
+beqz cond have_run
+ls item stk 2 OccupantHash
+bne item cur have_run
+ls val stk 2 Quantity
+have_run:
+beqz drain chk_target
+bgtz val keep_draining
+slt cond total TARGET
+bnez cond wait_vend
+move drain 0
+j choose
+chk_target:
+add item total val
+slt cond item TARGET
+bnez cond chk_batch
+beqz val choose
+move drain 1
+keep_draining:
+sbn MEMH SLOT0 Setting 0
+s stk Activate 1
+j main
+wait_vend:
+sbn MEMH SLOT0 Setting 0
+s db Setting cur
+j main
 chk_batch:
-l val stk ExportCount
+l total stk ExportCount
 beqz cur choose
-bgt val prev choose
+bgt total prev choose
 s db Setting cur
 j main
 choose:
-move prev val
+move prev total
 lbn cur house SELECTW Setting Maximum
 bltz cur active
 bgt cur 699 active
+move drain 0
 sbn MEMH SLOT0 Setting 0
 none:
 s db Setting 200
 j main
 active:
+move drain 0
 sbn MEMH SLOT0 Setting cur
 s db Setting cur
 j main
 no_stk:
 s db Setting 242
+j main
+no_vend:
+s db Setting 243
 j main
 no_slot:
 s db Setting 248

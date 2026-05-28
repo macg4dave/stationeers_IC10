@@ -15,6 +15,7 @@ alias cond r7
 alias val r8
 define MEMH HASH("StructureLogicMemory")
 define SLOT0 HASH("slot0")
+define TARGET 100
 init:
 s db Setting 600
 main:
@@ -75,7 +76,7 @@ step:
 add slot slot 1
 slt cond slot 102
 bnez cond scan
-slt cond total 1000
+slt cond total TARGET
 beqz cond advance
 move pick target
 seq val target cur
