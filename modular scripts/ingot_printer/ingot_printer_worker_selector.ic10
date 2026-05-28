@@ -13,8 +13,10 @@ alias keep r5
 alias cur r6
 alias cond r7
 alias val r8
+alias ban r9
 define MEMH HASH("StructureLogicMemory")
 define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
 define TARGET 100
 init:
 s db Setting 600
@@ -22,8 +24,11 @@ main:
 yield
 bdns d0 no_vend
 lbn cond MEMH SLOT0 PrefabHash Maximum
-bne cond MEMH no_slot
+bne cond MEMH no_s0
+lbn cond MEMH SLOT1 PrefabHash Maximum
+bne cond MEMH no_s1
 lbn cur MEMH SLOT0 Setting Maximum
+lbn ban MEMH SLOT1 Setting Maximum
 move idx 0
 move pick 0
 move keep 0
@@ -78,9 +83,10 @@ slt cond slot 102
 bnez cond scan
 slt cond total TARGET
 beqz cond advance
+beq target ban advance
 move pick target
-seq val target cur
-select keep val target keep
+bne target cur advance
+move keep target
 advance:
 add idx idx 1
 slt cond idx 17
@@ -91,6 +97,9 @@ j main
 no_vend:
 s db Setting 640
 j main
-no_slot:
+no_s0:
 s db Setting 648
+j main
+no_s1:
+s db Setting 649
 j main

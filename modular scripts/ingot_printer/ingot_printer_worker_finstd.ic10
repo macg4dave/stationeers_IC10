@@ -1,0 +1,112 @@
+alias stk d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias house r0
+alias cur r1
+alias ban r2
+alias next r3
+alias cond r4
+alias item r5
+alias qty r6
+
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+define SLOT1 HASH("slot1")
+define SELECTW HASH("selector_worker")
+define TARGET 100
+define FINSET 1000
+
+init:
+l house db PrefabHash
+s db Setting 400
+
+main:
+yield
+bdns d0 no_stk
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH no_s0
+lbn cond MEMH SLOT1 PrefabHash Maximum
+bne cond MEMH no_s1
+lbn cond house SELECTW PrefabHash Maximum
+bne cond house no_sel
+l cond stk On
+bnez cond chk_mode
+s stk On 1
+s db Setting 401
+j main
+chk_mode:
+l cond stk Mode
+beqz cond chk_set
+s stk Mode 0
+s db Setting 402
+j main
+chk_set:
+l cond stk Setting
+beq cond FINSET scan
+s stk Setting FINSET
+s db Setting 403
+j main
+scan:
+lbn cur MEMH SLOT0 Setting Maximum
+lbn ban MEMH SLOT1 Setting Maximum
+lbn next house SELECTW Setting Maximum
+move qty 0
+ls cond stk 2 Occupied
+beqz cond no_item
+ls item stk 2 OccupantHash
+ls qty stk 2 Quantity
+slt cond TARGET qty
+beqz cond clr_ban
+beq ban item chk_next
+sbn MEMH SLOT1 Setting item
+chk_next:
+bltz next next_ok
+slt cond next 600
+bnez cond next_ok
+slt cond 699 next
+bnez cond next_ok
+beqz cur idle
+sbn MEMH SLOT0 Setting 0
+j idle
+next_ok:
+beqz next no_next
+beq next item no_next
+sbn MEMH SLOT0 Setting next
+s db Setting next
+j main
+no_next:
+beqz cur idle
+sbn MEMH SLOT0 Setting 0
+j idle
+clr_ban:
+beq ban item clr_slot
+j steady
+clr_slot:
+sbn MEMH SLOT1 Setting 0
+steady:
+beqz cur idle
+s db Setting cur
+j main
+idle:
+s db Setting 410
+j main
+no_item:
+beqz ban idle
+sbn MEMH SLOT1 Setting 0
+j idle
+
+no_stk:
+s db Setting 442
+j main
+no_s0:
+s db Setting 448
+j main
+no_s1:
+s db Setting 449
+j main
+no_sel:
+s db Setting 450
+j main
