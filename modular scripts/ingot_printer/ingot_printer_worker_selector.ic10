@@ -1,0 +1,95 @@
+alias vend d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias slot r0
+alias total r1
+alias idx r2
+alias target r3
+alias pick r4
+alias keep r5
+alias cur r6
+alias cond r7
+alias val r8
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+init:
+s db Setting 600
+main:
+yield
+bdns d0 no_vend
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH no_slot
+lbn cur MEMH SLOT0 Setting Maximum
+move idx 0
+move pick 0
+move keep 0
+next_target:
+move target 0
+seq cond idx 0
+select target cond -290196476 target
+seq cond idx 1
+select target cond -1301215609 target
+seq cond idx 2
+select target cond 226410516 target
+seq cond idx 3
+select target cond -404336834 target
+seq cond idx 4
+select target cond -929742000 target
+seq cond idx 5
+select target cond 2134647745 target
+seq cond idx 6
+select target cond -1406385572 target
+seq cond idx 7
+select target cond -654790771 target
+seq cond idx 8
+select target cond 502280180 target
+seq cond idx 9
+select target cond -297990285 target
+seq cond idx 10
+select target cond 1058547521 target
+seq cond idx 11
+select target cond -82508479 target
+seq cond idx 12
+select target cond 412924554 target
+seq cond idx 13
+select target cond 1579842814 target
+seq cond idx 14
+select target cond -787796599 target
+seq cond idx 15
+select target cond 156348098 target
+seq cond idx 16
+select target cond -1897868623 target
+move slot 2
+move total 0
+scan:
+ls cond vend slot Occupied
+beqz cond step
+ls val vend slot OccupantHash
+bne val target step
+ls val vend slot Quantity
+add total total val
+step:
+add slot slot 1
+slt cond slot 102
+bnez cond scan
+slt cond total 1000
+beqz cond advance
+move pick target
+seq val target cur
+select keep val target keep
+advance:
+add idx idx 1
+slt cond idx 17
+bnez cond next_target
+select pick keep keep pick
+s db Setting pick
+j main
+no_vend:
+s db Setting 640
+j main
+no_slot:
+s db Setting 648
+j main

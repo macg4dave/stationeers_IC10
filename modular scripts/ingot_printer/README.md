@@ -8,10 +8,22 @@ below `1000`, and command **all connected named Autolathes** to print the select
 
 Player setup guide: `modular scripts/ingot_printer/Setup.md`.
 
+Active runtime files in this module:
+
+- `ingot_printer_master.ic10`
+- `ingot_printer_worker_print.ic10`
+- `ingot_printer_worker_selector.ic10`
+
+Deprecated helper files that are **not used** by the current compact module flow:
+
+- `ingot_printer_worker_keep.ic10`
+- `ingot_printer_worker_pick_base.ic10`
+- `ingot_printer_worker_pick_alloy.ic10`
+
 ## Requirements
 
 - **Free Ingots** mod (or another mod/config that adds the same Autolathe ingot recipes)
-- 19x IC Housing + IC Chip
+- 3x IC Housing + IC Chip
 - 1x Logic Memory
 - 1x Vending Machine
 - 1x Stacker
@@ -49,32 +61,17 @@ Currently tracked ingots with verified hashes in this repo:
 - `d0` = one representative Autolathe that is also named `printer`
 - `db` = status / current active target hash
 
+### `ingot_printer_worker_selector.ic10`
+
+- `d0` = finished-goods Vending Machine
+- `db` = active target hash to keep/print, else `0`
+
 ### Stock workers
 
 Each stock worker is wired the same way:
 
 - `d0` = finished-goods Vending Machine
 - `db` = `0` when stocked, or the ingot hash when that ingot total is below `1000`
-
-Files:
-
-- `ingot_printer_worker_stock_iron.ic10`
-- `ingot_printer_worker_stock_silicon.ic10`
-- `ingot_printer_worker_stock_gold.ic10`
-- `ingot_printer_worker_stock_copper.ic10`
-- `ingot_printer_worker_stock_silver.ic10`
-- `ingot_printer_worker_stock_lead.ic10`
-- `ingot_printer_worker_stock_nickel.ic10`
-- `ingot_printer_worker_stock_steel.ic10`
-- `ingot_printer_worker_stock_electrum.ic10`
-- `ingot_printer_worker_stock_invar.ic10`
-- `ingot_printer_worker_stock_constantan.ic10`
-- `ingot_printer_worker_stock_solder.ic10`
-- `ingot_printer_worker_stock_astroloy.ic10`
-- `ingot_printer_worker_stock_hastelloy.ic10`
-- `ingot_printer_worker_stock_inconel.ic10`
-- `ingot_printer_worker_stock_waspaloy.ic10`
-- `ingot_printer_worker_stock_stellite.ic10`
 
 Unused pins are explicitly labelled `n1..n5` / `n2..n5` so the in-game housing labels stay clean after updates.
 
@@ -84,23 +81,7 @@ Set these exact names (case-sensitive):
 
 - IC Housing: `master`
 - IC Housing: `printer_worker`
-- IC Housing: `stock_silicon`
-- IC Housing: `stock_iron`
-- IC Housing: `stock_gold`
-- IC Housing: `stock_copper`
-- IC Housing: `stock_silver`
-- IC Housing: `stock_lead`
-- IC Housing: `stock_nickel`
-- IC Housing: `stock_steel`
-- IC Housing: `stock_electrum`
-- IC Housing: `stock_invar`
-- IC Housing: `stock_constantan`
-- IC Housing: `stock_solder`
-- IC Housing: `stock_astroloy`
-- IC Housing: `stock_hastelloy`
-- IC Housing: `stock_inconel`
-- IC Housing: `stock_waspaloy`
-- IC Housing: `stock_stellite`
+- IC Housing: `selector_worker`
 - Logic Memory: `slot0`
 - Autolathe: `printer` (apply this exact name to **every** Autolathe the module should control)
 
@@ -109,10 +90,10 @@ Set these exact names (case-sensitive):
 Master behavior:
 
 1. forces the end-of-line Stacker to `Setting = 1000`, `Mode = Automatic`, `On = 1`
-2. reads the 17 stock-worker statuses
-3. chooses the **last low ingot found in tracked order** as the next print target
+2. validates `selector_worker` and `slot0`
+3. asks `selector_worker` for the current ingot-to-keep or next ingot-to-print after a batch edge
 4. writes that active target hash to `slot0`
-5. changes target only when there is no current target yet or when the Stacker exports one `1000`-item batch
+5. changes target only when there is no current target yet, or after a Stacker batch edge when the current ingot is no longer reported low
 
 Worker behavior:
 
@@ -120,6 +101,19 @@ Worker behavior:
 2. batch-controls all Autolathes named `printer`
 3. forces `On = 1`, `Open = 0`, `RecipeHash = slot0`, and `Activate = 1`
 4. idles all named printers when `slot0 = 0`
+
+Gap-avoidance behavior:
+
+- the master does **not** switch away from the active ingot just because some other ingot is also low
+- after a Stacker batch edge, it asks `selector_worker` to prefer the current ingot if that ingot is still below target stock
+- if the current ingot is still low, it stays locked on that recipe instead of hopping to the next one early
+
+Selector-worker behavior:
+
+- `selector_worker` scans the Vending Machine directly instead of depending on one IC per ingot
+- it rescans each supported ingot, sums quantities exactly, and finds the highest-priority low ingot
+- if the currently active target from `slot0` is still low, it republishes that same target instead of switching early
+- otherwise it returns the best next low ingot according to the tracked-order priority
 
 Priority behavior:
 
@@ -150,9 +144,10 @@ Priority behavior:
 
 - `0` = boot
 - `200` = scanning / no active target yet
-- any tracked ingot hash = current active target being printed
-- `242` = missing Stacker on `d1`
+- any tracked ingot hash = current active target being printed / held until its stock worker clears
+- `242` = missing Stacker on `d0`
 - `248` = missing `slot0`
+- `249` = missing `selector_worker`
 
 ### Print worker (`100-199` and active target hashes)
 
@@ -166,6 +161,14 @@ Priority behavior:
 - `144` = missing representative Autolathe on `d0`
 - `148` = missing `slot0`
 
+### Selector worker (`600-699` and target hashes)
+
+- `600` = boot
+- `0` = no low ingot found
+- any tracked ingot hash = active ingot to keep or next ingot to print
+- `640` = missing Vending Machine on `d0`
+- `648` = missing `slot0`
+
 ### Stock workers (`0`, target hash, or `540`)
 
 - `0` = that ingot is stocked to at least `1000`
@@ -177,5 +180,7 @@ Priority behavior:
 - This module lives under `modular scripts/` so it can act as a more realistic test bed for opt-in mod support.
 - It uses one directly wired representative Autolathe only to discover device type and local state; all real production commands are sent to every exact-name `printer` Autolathe on the data network.
 - The finished-goods Vending Machine is scanned exactly by summing slot quantities, not just checking for item presence.
+- The compact build keeps the chip count low by using one selector worker instead of one stock worker per ingot.
+- `ingot_printer_worker_keep.ic10`, `ingot_printer_worker_pick_base.ic10`, and `ingot_printer_worker_pick_alloy.ic10` are legacy placeholders from an older multi-worker design and are not part of the current setup.
 - The module now tracks all 17 Free Ingots outputs currently described by the profile metadata.
 - The missing mod ingot hashes were derived consistently as signed CRC32 of the prefab/item name, which matches the already verified Stationeers ingot hashes in this repo.
