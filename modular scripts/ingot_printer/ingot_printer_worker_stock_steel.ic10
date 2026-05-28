@@ -1,0 +1,43 @@
+alias vend d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias slot r0
+alias total r1
+alias cond r2
+alias val r3
+
+define TARGET_HASH -654790771
+define MIN_STOCK 1000
+
+init:
+s db Setting 0
+
+main:
+yield
+bdns d0 no_vend
+move slot 2
+move total 0
+scan:
+ls cond vend slot Occupied
+beqz cond next
+ls val vend slot OccupantHash
+bne val TARGET_HASH next
+ls val vend slot Quantity
+add total total val
+next:
+add slot slot 1
+slt cond slot 102
+bnez cond scan
+slt cond total MIN_STOCK
+beqz cond stocked
+s db Setting TARGET_HASH
+j main
+stocked:
+s db Setting 0
+j main
+no_vend:
+s db Setting 540
+j main

@@ -1,0 +1,120 @@
+# profile: free_ingots
+alias n0 d0
+alias n1 d1
+alias mach d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias need r0
+alias tmp r1
+alias oldimp r2
+alias level r3
+define MEMH HASH("StructureLogicMemory")
+define SLOT2 HASH("slot2")
+define CLEAR_REQ -1
+define LOW_REAGENT 50
+define TARGET_REAGENT 200
+define REAGENT_IRON -666742878
+define REAGENT_COPPER -1172078909
+define REAGENT_SILICON -1195893171
+define REAGENT_GOLD -409226641
+define REAGENT_STEEL 1331613335
+define REAGENT_SOLDER -1206542381
+define REAGENT_STELLITE -500544800
+define INGOT_IRON -1301215609
+define INGOT_COPPER -404336834
+define INGOT_SILICON -290196476
+define INGOT_GOLD 226410516
+define INGOT_STEEL -654790771
+define INGOT_SOLDER -82508479
+define INGOT_STELLITE -1897868623
+auto:
+move need CLEAR_REQ
+move oldimp 0
+s db Setting 200
+main:
+yield
+bdns d2 no_mach
+check_arrive:
+l tmp mach ImportCount
+ble tmp oldimp check_need
+move oldimp tmp
+move need CLEAR_REQ
+check_need:
+bne need CLEAR_REQ track_need
+scan_need:
+lr tmp mach Contents REAGENT_IRON
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_IRON need
+lr tmp mach Contents REAGENT_COPPER
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_COPPER need
+lr tmp mach Contents REAGENT_SILICON
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_SILICON need
+lr tmp mach Contents REAGENT_GOLD
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_GOLD need
+lr tmp mach Contents REAGENT_STEEL
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_STEEL need
+lr tmp mach Contents REAGENT_SOLDER
+slt tmp tmp LOW_REAGENT
+seq level need CLEAR_REQ
+and tmp tmp level
+select need tmp INGOT_SOLDER need
+lr tmp mach Required REAGENT_STELLITE
+sgt tmp tmp 0
+and tmp tmp level
+select need tmp INGOT_STELLITE need
+j publish
+track_need:
+seq tmp need INGOT_STELLITE
+bnez tmp track_required_0
+j common_need
+track_required_0:
+lr tmp mach Required REAGENT_STELLITE
+bgtz tmp publish
+move need CLEAR_REQ
+j publish
+common_need:
+move level REAGENT_SOLDER
+seq tmp need INGOT_IRON
+select level tmp REAGENT_IRON level
+seq tmp need INGOT_COPPER
+select level tmp REAGENT_COPPER level
+seq tmp need INGOT_SILICON
+select level tmp REAGENT_SILICON level
+seq tmp need INGOT_GOLD
+select level tmp REAGENT_GOLD level
+seq tmp need INGOT_STEEL
+select level tmp REAGENT_STEEL level
+seq tmp need INGOT_SOLDER
+select level tmp REAGENT_SOLDER level
+lr level mach Contents level
+slt tmp level TARGET_REAGENT
+bnez tmp publish
+move need CLEAR_REQ
+j scan_need
+publish:
+bne need CLEAR_REQ active
+s db Setting 200
+sbn MEMH SLOT2 Setting 0
+j main
+active:
+s db Setting need
+sbn MEMH SLOT2 Setting need
+j main
+no_mach:
+s db Setting 243
+j main

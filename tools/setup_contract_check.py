@@ -53,6 +53,10 @@ def _is_deprecated_ic10(script_path: Path) -> bool:
     return "deprecated placeholder" in head
 
 
+def _is_variant_ic10(script_path: Path) -> bool:
+    return "." in script_path.stem
+
+
 def _collect_feature_requirements(feature_dir: Path) -> tuple[set[str], set[str], list[str]]:
     hash_names: set[str] = set()
     channels: set[str] = set()
@@ -60,6 +64,8 @@ def _collect_feature_requirements(feature_dir: Path) -> tuple[set[str], set[str]
 
     for script in sorted(feature_dir.glob("*.ic10")):
         if _is_deprecated_ic10(script):
+            continue
+        if _is_variant_ic10(script):
             continue
         script_files.append(script.name)
         text = _read_text(script)

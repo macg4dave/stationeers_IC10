@@ -178,6 +178,23 @@ python tools/wiki_recipe_import.py https://stationeers-wiki.com/Autolathe/Recipe
   - `catalog/recipes/<Producer>/recipes.json`
   - `catalog/recipes/index.json`
 
+### Emit opt-in Autolathe profile variants
+
+- Script: `tools/autolathe_profile_emit.py`
+- Example:
+
+```bash
+python tools/autolathe_profile_emit.py free_ingots
+```
+
+- Output:
+  - `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_stock.<profile>.ic10`
+  - `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_logistics.<profile>.ic10`
+
+- Profile data lives in:
+  - `catalog/recipes/Autolathe/profiles/index.json`
+  - `catalog/recipes/Autolathe/profiles/<profile>.json`
+
 ### Check modular Setup.md contract consistency
 
 - Script: `tools/setup_contract_check.py`

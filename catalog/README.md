@@ -20,6 +20,10 @@ Example source page:
   - Index of producer-specific recipe catalogs.
 - `catalog/recipes/<Producer>/recipes.json`
   - One JSON file per recipe-producing device page (starting with fabricators such as `Autolathe`).
+- `catalog/recipes/<Producer>/profiles/index.json`
+  - Optional opt-in profile index for script-specific recipe/build variants (example: mod support).
+- `catalog/recipes/<Producer>/profiles/<profile>.json`
+  - Optional repo-curated profile describing generated IC10 variants for a specific script family.
 
 ## Schema (v1)
 
@@ -81,6 +85,47 @@ Recipe catalogs are kept separate from device IO catalogs so existing consumers 
 - Recipe entries may also include a manually curated `stackSize` integer for the output item.
   Use `1` as the safe default when the in-game stack limit has not been verified yet.
   If the wiki page does not expose a stack value, existing manual `stackSize` values are preserved on re-import.
+
+## Recipe profile schema (v1)
+
+Profiles are **not** imported from the wiki. They are repo-curated overlays used when a
+specific script/module wants an explicit opt-in variant such as
+"use the Free Ingots mod".
+
+- `catalog/recipes/<Producer>/profiles/index.json`
+  - `version`: number
+  - `producer`: producer/device title, such as `Autolathe`
+  - `profiles`: array of
+    - `id`: short stable profile id, such as `vanilla` or `free_ingots`
+    - `label`: player-facing label
+    - `file`: relative path to the profile JSON
+
+- `catalog/recipes/<Producer>/profiles/<profile>.json`
+  - `version`: number
+  - `id`: profile id
+  - `label`: player-facing label
+  - `producer`: producer/device title
+  - `baseProfile`: string | null
+  - `supportedScripts`: array of workspace-relative script/module paths that opt into this profile
+  - `notes`: array of short strings for setup/docs guidance
+  - `recipeOverrides`: optional array reserved for future mod-specific recipe deltas
+  - `build`
+    - `stockWorker`
+      - `trackedItems`: array of `{ wikiTitle, displayName, itemHash }`
+    - `logisticsWorker`
+      - `lowReagent`: integer threshold used for refill requests
+      - `targetReagent`: integer top-up target used for active refill tracking
+      - `baseContentsTargets`: array of
+        `{ reagentDefine, reagentName, reagentHash, ingotDefine, ingotName, ingotHash }`
+      - `recipeRequiredTargets`: array of
+        `{ reagentDefine, reagentName, reagentHash, ingotDefine, ingotName, ingotHash }`
+
+### Profile design notes
+
+- Keep vanilla wiki-import data in `recipes.json`; do **not** mix modded data into the wiki import output.
+- Use profiles only when a script/module explicitly documents support for that profile.
+- Treat reagent hashes and ingot item hashes as separate concepts in profile data.
+- Generated IC10 variants should stay paste-ready and should be emitted from these profile files rather than hand-edited in multiple places.
 
 ### Type normalization
 

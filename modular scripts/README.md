@@ -13,6 +13,7 @@ Each modular feature lives in:
 
 ## Included projects
 
+- `ingot_printer/` — Queue-driven multi-Autolathe ingot printer for Free Ingots mod support.
 - `AutolatheBatch/` — Simple modular Autolathe batch-runner test rig (master + worker + setup guard).
 - `AutolatheVendStock/` — Simplified fully automatic single-Autolathe vending stocker (no buttons).
 - `PrinterHall/` — Shared-bus multi-Autolathe hall controller with selector, logistics, overflow, and idle workers.

@@ -1,3 +1,4 @@
+# profile: free_ingots
 alias vend d0
 alias n1 d1
 alias n2 d2
@@ -76,6 +77,20 @@ seq cond idx 21
 select want cond -524289310 want
 seq cond idx 22
 select want cond 1800622698 want
+seq cond idx 23
+select want cond -290196476 want
+seq cond idx 24
+select want cond -1301215609 want
+seq cond idx 25
+select want cond 226410516 want
+seq cond idx 26
+select want cond -404336834 want
+seq cond idx 27
+select want cond -654790771 want
+seq cond idx 28
+select want cond -82508479 want
+seq cond idx 29
+select want cond -1897868623 want
 ls occ vend slot Occupied
 beqz occ next_slot
 ls item vend slot OccupantHash
@@ -102,7 +117,7 @@ j main
 next_hash:
 move found 0
 add idx idx 1
-slt cond idx 23
+slt cond idx 30
 bnez cond publish
 move idx 0
 publish:

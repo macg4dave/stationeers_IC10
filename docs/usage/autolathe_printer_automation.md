@@ -158,6 +158,36 @@ This can live in:
 Hard-coded tables are efficient but opaque, so if you go that route, keep the setup docs
 and status table in sync.
 
+## Recommended mod-support pattern
+
+For this repo, the cleanest way to add producer mod support is:
+
+- keep `catalog/recipes/<Producer>/recipes.json` as the **vanilla wiki-import base**
+- add explicit opt-in overlays under `catalog/recipes/<Producer>/profiles/`
+- generate paste-ready IC10 worker variants only for scripts/modules that document support for that profile
+
+That keeps mod support explicit and script-scoped instead of making every script pretend it
+understands every mod pack in existence.
+
+Practical example for Autolathe:
+
+- vanilla default files stay unchanged
+- optional profile files such as `free_ingots.json` define the tracked outputs and logistics mapping
+- generated variants such as
+  `autolathe_vend_stock_worker_stock.free_ingots.ic10` and
+  `autolathe_vend_stock_worker_logistics.free_ingots.ic10`
+  are only used when the module README/setup explicitly says so
+- if a mod source file provides only prefab names/time/energy (example: `catalog/mods/Freeingots/autolathe.xml`),
+  that is still enough to document new outputs and to add any items whose hashes are already known elsewhere in the repo
+- keep unresolved mod outputs in profile metadata instead of guessing item hashes
+
+Why this works well here:
+
+- wiki re-imports stay reproducible
+- mod data is not lost on the next importer run
+- IC10 stays paste-ready by shipping explicit variants instead of runtime auto-detect logic
+- reagent-hash vs ingot-item-hash mapping stays documented in one place
+
 ## Good fits for this repo
 
 Useful follow-up work here would be:

@@ -163,6 +163,223 @@ def _check_recipe_material(
         errors.append(f"{where}.quantity must be a number")
 
 
+def _check_profile_target(where: str, target: Any, errors: list[str]) -> None:
+    if not isinstance(target, dict):
+        errors.append(f"{where} must be an object")
+        return
+    for key in (
+        "reagentDefine",
+        "reagentName",
+        "ingotDefine",
+        "ingotName",
+    ):
+        if key not in target:
+            errors.append(f"{where} missing '{key}'")
+        elif not isinstance(target[key], str):
+            errors.append(f"{where}.{key} must be a string")
+    for key in ("reagentHash", "ingotHash"):
+        if key not in target:
+            errors.append(f"{where} missing '{key}'")
+        elif not _is_int_like(target[key]):
+            errors.append(f"{where}.{key} must be an integer")
+
+
+def _check_recipe_profile_schema(
+    profile_path: Path,
+    expected_producer: str,
+    expected_id: str,
+    *,
+    errors: list[str],
+    warnings: list[str],
+) -> None:
+    data, err = _load_json(profile_path)
+    if err:
+        errors.append(f"{profile_path}: {err}")
+        return
+    if not isinstance(data, dict):
+        errors.append(f"{profile_path}: top-level must be an object")
+        return
+
+    version = data.get("version")
+    if not _is_int_like(version):
+        errors.append(f"{profile_path}: version must be an integer")
+
+    profile_id = data.get("id")
+    if not isinstance(profile_id, str):
+        errors.append(f"{profile_path}: id must be a string")
+    elif profile_id != expected_id:
+        errors.append(f"{profile_path}: id '{profile_id}' != index id '{expected_id}'")
+
+    label = data.get("label")
+    if not isinstance(label, str):
+        errors.append(f"{profile_path}: label must be a string")
+
+    producer = data.get("producer")
+    if not isinstance(producer, str):
+        errors.append(f"{profile_path}: producer must be a string")
+    elif producer != expected_producer:
+        errors.append(
+            f"{profile_path}: producer '{producer}' != expected '{expected_producer}'"
+        )
+
+    base_profile = data.get("baseProfile")
+    if base_profile is not None and not isinstance(base_profile, str):
+        errors.append(f"{profile_path}: baseProfile must be string|null when present")
+
+    supported_scripts = data.get("supportedScripts")
+    if not isinstance(supported_scripts, list):
+        errors.append(f"{profile_path}: supportedScripts must be an array")
+    else:
+        for i, value in enumerate(supported_scripts):
+            if not isinstance(value, str):
+                errors.append(f"{profile_path}: supportedScripts[{i}] must be a string")
+
+    notes = data.get("notes")
+    if not isinstance(notes, list):
+        errors.append(f"{profile_path}: notes must be an array")
+    else:
+        for i, value in enumerate(notes):
+            if not isinstance(value, str):
+                errors.append(f"{profile_path}: notes[{i}] must be a string")
+
+    if "recipeOverrides" in data:
+        overrides = data["recipeOverrides"]
+        if not isinstance(overrides, list):
+            errors.append(f"{profile_path}: recipeOverrides must be an array when present")
+
+    build = data.get("build")
+    if not isinstance(build, dict):
+        errors.append(f"{profile_path}: build must be an object")
+        return
+
+    stock = build.get("stockWorker")
+    if not isinstance(stock, dict):
+        errors.append(f"{profile_path}: build.stockWorker must be an object")
+    else:
+        tracked_items = stock.get("trackedItems")
+        if not isinstance(tracked_items, list):
+            errors.append(f"{profile_path}: build.stockWorker.trackedItems must be an array")
+        elif not tracked_items:
+            warnings.append(f"{profile_path}: build.stockWorker.trackedItems is empty")
+        else:
+            for i, item in enumerate(tracked_items):
+                where = f"{profile_path}: build.stockWorker.trackedItems[{i}]"
+                if not isinstance(item, dict):
+                    errors.append(f"{where} must be an object")
+                    continue
+                for key in ("wikiTitle", "displayName"):
+                    if key not in item:
+                        errors.append(f"{where} missing '{key}'")
+                    elif not isinstance(item[key], str):
+                        errors.append(f"{where}.{key} must be a string")
+                if "itemHash" not in item:
+                    errors.append(f"{where} missing 'itemHash'")
+                elif not _is_int_like(item["itemHash"]):
+                    errors.append(f"{where}.itemHash must be an integer")
+
+    logistics = build.get("logisticsWorker")
+    if not isinstance(logistics, dict):
+        errors.append(f"{profile_path}: build.logisticsWorker must be an object")
+    else:
+        for key in ("lowReagent", "targetReagent"):
+            if key not in logistics:
+                errors.append(f"{profile_path}: build.logisticsWorker missing '{key}'")
+            elif not _is_int_like(logistics[key]):
+                errors.append(f"{profile_path}: build.logisticsWorker.{key} must be an integer")
+        for key in ("baseContentsTargets", "recipeRequiredTargets"):
+            targets = logistics.get(key)
+            if not isinstance(targets, list):
+                errors.append(f"{profile_path}: build.logisticsWorker.{key} must be an array")
+                continue
+            for i, target in enumerate(targets):
+                _check_profile_target(
+                    f"{profile_path}: build.logisticsWorker.{key}[{i}]",
+                    target,
+                    errors,
+                )
+
+
+def _check_recipe_profile_index(
+    profiles_index_path: Path,
+    expected_producer: str,
+    *,
+    errors: list[str],
+    warnings: list[str],
+) -> set[str]:
+    referenced: set[str] = set()
+    data, err = _load_json(profiles_index_path)
+    rel_index = profiles_index_path.relative_to(ROOT / "catalog").as_posix()
+    referenced.add(rel_index)
+    if err:
+        errors.append(f"{profiles_index_path}: {err}")
+        return referenced
+    if not isinstance(data, dict):
+        errors.append(f"{profiles_index_path}: top-level must be an object")
+        return referenced
+
+    version = data.get("version")
+    if not _is_int_like(version):
+        errors.append(f"{profiles_index_path}: version must be an integer")
+
+    producer = data.get("producer")
+    if not isinstance(producer, str):
+        errors.append(f"{profiles_index_path}: producer must be a string")
+    elif producer != expected_producer:
+        errors.append(
+            f"{profiles_index_path}: producer '{producer}' != expected '{expected_producer}'"
+        )
+
+    profiles = data.get("profiles")
+    if not isinstance(profiles, list):
+        errors.append(f"{profiles_index_path}: profiles must be an array")
+        return referenced
+
+    seen_ids: set[str] = set()
+    seen_files: set[str] = set()
+    for i, entry in enumerate(profiles):
+        where = f"{profiles_index_path}: profiles[{i}]"
+        if not isinstance(entry, dict):
+            errors.append(f"{where} must be an object")
+            continue
+        profile_id = entry.get("id")
+        label = entry.get("label")
+        rel_file = entry.get("file")
+        if not isinstance(profile_id, str) or not profile_id.strip():
+            errors.append(f"{where}.id must be a non-empty string")
+            continue
+        if not isinstance(label, str) or not label.strip():
+            errors.append(f"{where}.label must be a non-empty string")
+        if not isinstance(rel_file, str) or not rel_file.strip():
+            errors.append(f"{where}.file must be a non-empty string")
+            continue
+        rel_file = rel_file.replace("\\", "/")
+        expected_prefix = f"recipes/{expected_producer}/profiles/"
+        if not rel_file.startswith(expected_prefix):
+            errors.append(f"{where}.file must be under {expected_prefix}: {rel_file}")
+        if profile_id in seen_ids:
+            errors.append(f"{where}.id duplicated: {profile_id}")
+        seen_ids.add(profile_id)
+        if rel_file in seen_files:
+            errors.append(f"{where}.file duplicated: {rel_file}")
+        seen_files.add(rel_file)
+        referenced.add(rel_file)
+
+        profile_path = ROOT / "catalog" / rel_file
+        if not profile_path.exists():
+            errors.append(f"{where}: missing file: {profile_path}")
+            continue
+
+        _check_recipe_profile_schema(
+            profile_path,
+            expected_producer,
+            profile_id,
+            errors=errors,
+            warnings=warnings,
+        )
+
+    return referenced
+
+
 def _check_recipe_catalog_schema(
     recipe_path: Path,
     expected_wiki_title: str | None,
@@ -459,6 +676,28 @@ def main() -> int:
                             errors=errors,
                             warnings=warnings,
                         )
+
+                        if wiki_title:
+                            profiles_dir = recipe_path.parent / "profiles"
+                            profiles_index_path = profiles_dir / "index.json"
+                            if profiles_dir.exists() or profiles_index_path.exists():
+                                if not profiles_index_path.exists():
+                                    errors.append(
+                                        f"{recipe_path.parent}: profiles dir exists but profiles/index.json is missing"
+                                    )
+                                elif not profiles_dir.exists():
+                                    errors.append(
+                                        f"{recipe_path.parent}: profiles/index.json exists but profiles dir is missing"
+                                    )
+                                else:
+                                    referenced_recipe_files.update(
+                                        _check_recipe_profile_index(
+                                            profiles_index_path,
+                                            wiki_title,
+                                            errors=errors,
+                                            warnings=warnings,
+                                        )
+                                    )
 
                     for p in sorted(recipes_dir.rglob("*.json")):
                         rel = p.relative_to(catalog_dir).as_posix()

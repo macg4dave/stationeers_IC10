@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "id": "vanilla",
+  "label": "Vanilla",
+  "producer": "Autolathe",
+  "baseProfile": null,
+  "supportedScripts": [
+    "modular scripts/AutolatheVendStock"
+  ],
+  "notes": [
+    "Default profile for AutolatheVendStock.",
+    "Matches the current tracked output list and logistics mapping in the shipped vanilla worker files."
+  ],
+  "recipeOverrides": [],
+  "build": {
+    "stockWorker": {
+      "trackedItems": [
+        {
+          "wikiTitle": "Iron_Frames",
+          "displayName": "Iron Frames",
+          "itemHash": 1225836666
+        },
+        {
+          "wikiTitle": "Iron_Sheets",
+          "displayName": "Iron Sheets",
+          "itemHash": -487378546
+        },
+        {
+          "wikiTitle": "Glass_Sheets",
+          "displayName": "Glass Sheets",
+          "itemHash": 1588896491
+        },
+        {
+          "wikiTitle": "Stellite_Glass_Sheets",
+          "displayName": "Stellite Glass Sheets",
+          "itemHash": -2038663432
+        },
+        {
+          "wikiTitle": "Kit_(Composite_Cladding)",
+          "displayName": "Kit (Composite Cladding)",
+          "itemHash": -1470820996
+        },
+        {
+          "wikiTitle": "Cable_Coil",
+          "displayName": "Cable Coil",
+          "itemHash": -466050668
+        },
+        {
+          "wikiTitle": "Kit_(Furnace)",
+          "displayName": "Kit (Furnace)",
+          "itemHash": 1947944864
+        },
+        {
+          "wikiTitle": "Kit_(Rocket_Manufactory)",
+          "displayName": "Kit (Rocket Manufactory)",
+          "itemHash": 1781051034
+        },
+        {
+          "wikiTitle": "Kit_(Blast_Door)",
+          "displayName": "Kit (Blast Door)",
+          "itemHash": -1755116240
+        },
+        {
+          "wikiTitle": "Kit_(Chairs)",
+          "displayName": "Kit (Chairs)",
+          "itemHash": -1394008073
+        },
+        {
+          "wikiTitle": "Kit_(Sorter)",
+          "displayName": "Kit (Sorter)",
+          "itemHash": 969522478
+        },
+        {
+          "wikiTitle": "Kit_(Autolathe)",
+          "displayName": "Kit (Autolathe)",
+          "itemHash": -1753893214
+        },
+        {
+          "wikiTitle": "Kit_(Door)",
+          "displayName": "Kit (Door)",
+          "itemHash": 168615924
+        },
+        {
+          "wikiTitle": "Kit_(Locker)",
+          "displayName": "Kit (Locker)",
+          "itemHash": 882301399
+        },
+        {
+          "wikiTitle": "Kit_(Sign)",
+          "displayName": "Kit (Sign)",
+          "itemHash": 529996327
+        },
+        {
+          "wikiTitle": "Kit_(Stacker)",
+          "displayName": "Kit (Stacker)",
+          "itemHash": 750118160
+        },
+        {
+          "wikiTitle": "Cardboard_Box",
+          "displayName": "Cardboard Box",
+          "itemHash": -1976947556
+        },
+        {
+          "wikiTitle": "Basic_Chutes",
+          "displayName": "Kit_(Chutes)",
+          "itemHash": 1025254665
+        },
+        {
+          "wikiTitle": "Kit_(SDB_Hopper)",
+          "displayName": "Kit (SDB Hopper)",
+          "itemHash": 323957548
+        },
+        {
+          "wikiTitle": "Kit_(Combustion_Centrifuge)",
+          "displayName": "Kit (Combustion Centrifuge)",
+          "itemHash": 231903234
+        },
+        {
+          "wikiTitle": "Kit_(Crate_Mount)",
+          "displayName": "Kit (Crate Mount)",
+          "itemHash": -551612946
+        },
+        {
+          "wikiTitle": "Egg_Carton",
+          "displayName": "Egg Carton",
+          "itemHash": -524289310
+        },
+        {
+          "wikiTitle": "Coffee_Mug",
+          "displayName": "Coffee Mug",
+          "itemHash": 1800622698
+        }
+      ]
+    },
+    "logisticsWorker": {
+      "lowReagent": 50,
+      "targetReagent": 200,
+      "baseContentsTargets": [
+        {
+          "reagentDefine": "REAGENT_IRON",
+          "reagentName": "Iron",
+          "reagentHash": -666742878,
+          "ingotDefine": "INGOT_IRON",
+          "ingotName": "Ingot (Iron)",
+          "ingotHash": -1301215609
+        },
+        {
+          "reagentDefine": "REAGENT_COPPER",
+          "reagentName": "Copper",
+          "reagentHash": -1172078909,
+          "ingotDefine": "INGOT_COPPER",
+          "ingotName": "Ingot (Copper)",
+          "ingotHash": -404336834
+        },
+        {
+          "reagentDefine": "REAGENT_SILICON",
+          "reagentName": "Silicon",
+          "reagentHash": -1195893171,
+          "ingotDefine": "INGOT_SILICON",
+          "ingotName": "Ingot (Silicon)",
+          "ingotHash": -290196476
+        },
+        {
+          "reagentDefine": "REAGENT_GOLD",
+          "reagentName": "Gold",
+          "reagentHash": -409226641,
+          "ingotDefine": "INGOT_GOLD",
+          "ingotName": "Ingot (Gold)",
+          "ingotHash": 226410516
+        },
+        {
+          "reagentDefine": "REAGENT_STEEL",
+          "reagentName": "Steel",
+          "reagentHash": 1331613335,
+          "ingotDefine": "INGOT_STEEL",
+          "ingotName": "Ingot (Steel)",
+          "ingotHash": -654790771
+        },
+        {
+          "reagentDefine": "REAGENT_SOLDER",
+          "reagentName": "Solder",
+          "reagentHash": -1206542381,
+          "ingotDefine": "INGOT_SOLDER",
+          "ingotName": "Ingot (Solder)",
+          "ingotHash": -82508479
+        }
+      ],
+      "recipeRequiredTargets": [
+        {
+          "reagentDefine": "REAGENT_STELLITE",
+          "reagentName": "Stellite",
+          "reagentHash": -500544800,
+          "ingotDefine": "INGOT_STELLITE",
+          "ingotName": "Ingot (Stellite)",
+          "ingotHash": -1897868623
+        }
+      ]
+    }
+  }
+}

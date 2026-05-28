@@ -41,7 +41,7 @@ bne target SLOT_EMPTY track
 l tmp mem Setting
 beq tmp SLOT_EMPTY idle
 beq tmp SLOT_BUSY reset_busy
-l target scout SignalID
+l target scout BestContactFilter
 beq target NO_CONTACT reset_busy
 move fired 0
 s mem Setting SLOT_BUSY

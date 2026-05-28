@@ -1,0 +1,124 @@
+alias stk d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias house r0
+alias cur r1
+alias prev r2
+alias cond r3
+alias val r4
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+define SILICONW HASH("stock_silicon")
+define IRONW HASH("stock_iron")
+define GOLDW HASH("stock_gold")
+define COPPERW HASH("stock_copper")
+define SILVERW HASH("stock_silver")
+define LEADW HASH("stock_lead")
+define NICKELW HASH("stock_nickel")
+define STEELW HASH("stock_steel")
+define ELECTRUMW HASH("stock_electrum")
+define INVARW HASH("stock_invar")
+define CONSTANTANW HASH("stock_constantan")
+define SOLDERW HASH("stock_solder")
+define ASTROLOYW HASH("stock_astroloy")
+define HASTELLOYW HASH("stock_hastelloy")
+define INCONELW HASH("stock_inconel")
+define WASPALOYW HASH("stock_waspaloy")
+define STELLITEW HASH("stock_stellite")
+init:
+l house db PrefabHash
+move cur 0
+move prev 0
+s db Setting 0
+main:
+yield
+bdns d0 no_stk
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH no_slot
+l cond stk On
+bnez cond chk_mode
+s stk On 1
+chk_mode:
+l cond stk Mode
+beqz cond chk_set
+s stk Mode 0
+chk_set:
+l cond stk Setting
+beq cond 1000 chk_batch
+s stk Setting 1000
+chk_batch:
+l val stk ExportCount
+beqz cur choose
+bgt val prev choose
+s db Setting cur
+j main
+choose:
+move prev val
+move cur 0
+lbn val house SILICONW Setting Maximum
+seq cond val -290196476
+select cur cond val cur
+lbn val house IRONW Setting Maximum
+seq cond val -1301215609
+select cur cond val cur
+lbn val house GOLDW Setting Maximum
+seq cond val 226410516
+select cur cond val cur
+lbn val house COPPERW Setting Maximum
+seq cond val -404336834
+select cur cond val cur
+lbn val house SILVERW Setting Maximum
+seq cond val -929742000
+select cur cond val cur
+lbn val house LEADW Setting Maximum
+seq cond val 2134647745
+select cur cond val cur
+lbn val house NICKELW Setting Maximum
+seq cond val -1406385572
+select cur cond val cur
+lbn val house STEELW Setting Maximum
+seq cond val -654790771
+select cur cond val cur
+lbn val house ELECTRUMW Setting Maximum
+seq cond val 502280180
+select cur cond val cur
+lbn val house INVARW Setting Maximum
+seq cond val -297990285
+select cur cond val cur
+lbn val house CONSTANTANW Setting Maximum
+seq cond val 1058547521
+select cur cond val cur
+lbn val house SOLDERW Setting Maximum
+seq cond val -82508479
+select cur cond val cur
+lbn val house ASTROLOYW Setting Maximum
+seq cond val 412924554
+select cur cond val cur
+lbn val house HASTELLOYW Setting Maximum
+seq cond val 1579842814
+select cur cond val cur
+lbn val house INCONELW Setting Maximum
+seq cond val -787796599
+select cur cond val cur
+lbn val house WASPALOYW Setting Maximum
+seq cond val 156348098
+select cur cond val cur
+lbn val house STELLITEW Setting Maximum
+seq cond val -1897868623
+select cur cond val cur
+sbn MEMH SLOT0 Setting cur
+bnez cur active
+s db Setting 200
+j main
+active:
+s db Setting cur
+j main
+no_stk:
+s db Setting 242
+j main
+no_slot:
+s db Setting 248
+j main

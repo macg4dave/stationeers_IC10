@@ -115,6 +115,39 @@ Sorter lane note:
 - Wait until `setup_guard` shows `1`.
 - Leave the system running; it will start filling missing stock automatically.
 
+### Optional profile variants
+
+Default setup uses the vanilla worker files listed above.
+
+If you are using the **Free Ingots** mod, keep the same names/wiring and replace only these two pasted files:
+
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_stock.free_ingots.ic10`
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_logistics.free_ingots.ic10`
+
+Leave these files unchanged for the Free Ingots profile:
+
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_master.ic10`
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_machine_prep.ic10`
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_machine.ic10`
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_logistics_feeder.ic10`
+- `modular scripts/AutolatheVendStock/autolathe_vend_stock_setup_guard.ic10`
+
+Current Free Ingots coverage from `catalog/mods/Freeingots/autolathe.xml`:
+
+- the module now tracks these mod-added ingot outputs in the finished-goods vending machine:
+  - `Ingot (Silicon)`
+  - `Ingot (Iron)`
+  - `Ingot (Gold)`
+  - `Ingot (Copper)`
+  - `Ingot (Steel)`
+  - `Ingot (Solder)`
+  - `Ingot (Stellite)`
+- the mod XML also lists `Ingot (Silver)`, `Ingot (Lead)`, `Ingot (Nickel)`,
+  `Ingot (Electrum)`, `Ingot (Invar)`, `Ingot (Constantan)`, `Ingot (Astroloy)`,
+  `Ingot (Hastelloy)`, `Ingot (Inconel)`, and `Ingot (Waspaloy)`
+- those remaining ingots are recorded in the profile JSON, but they are not emitted into the stock worker until an authoritative item-hash source is available
+- the Free Ingots logistics worker intentionally remains the same as vanilla because the XML recipes declare no material inputs
+
 ## Controls
 
 There are no buttons or dials in normal use.
@@ -158,5 +191,6 @@ Quick interpretation:
 - if logistics_feeder_worker shows a large non-status value, that is the ingot hash currently being routed to the Autolathe
 - if `slot2`, `logistics_worker`, and `logistics_feeder_worker` all stay pinned to the same alloy ingot hash, check the logistics script for a reagent-vs-item-hash mix-up in `Required[...]`
 - verified example: `Stellite` uses reagent hash `-500544800`, while `Ingot (Stellite)` uses item hash `-1897868623`
-- if `stock_worker` stays pinned on cable, verify the script is using the current cable item hash
-  `2060134443` (`ItemCableCoilHeavy`) from `catalog/recipes/Autolathe/recipes.json`
+- if `stock_worker` stays pinned on cable, verify the script is using the normal cable item hash
+  `-466050668` (`ItemCableCoil`) rather than the heavy cable hash `2060134443`
+- if you are using a documented mod profile, confirm you pasted the matching suffixed worker files rather than the default vanilla pair

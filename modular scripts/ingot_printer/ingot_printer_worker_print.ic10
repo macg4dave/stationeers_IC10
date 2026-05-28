@@ -1,0 +1,70 @@
+alias mach d0
+alias n1 d1
+alias n2 d2
+alias n3 d3
+alias n4 d4
+alias n5 d5
+alias kind r0
+alias cond r1
+alias target r2
+
+define MEMH HASH("StructureLogicMemory")
+define SLOT0 HASH("slot0")
+define PRINTER HASH("printer")
+
+init:
+s db Setting 100
+
+main:
+yield
+bdns d0 no_mach
+l kind mach PrefabHash
+lbn cond MEMH SLOT0 PrefabHash Maximum
+bne cond MEMH no_slot
+lbn target MEMH SLOT0 Setting Maximum
+beqz target idle
+l cond mach On
+bnez cond chk_open
+sbn kind PRINTER On 1
+s db Setting 101
+j main
+chk_open:
+l cond mach Open
+beqz cond chk_recipe
+sbn kind PRINTER Open 0
+s db Setting 102
+j main
+chk_recipe:
+l cond mach RecipeHash
+beq cond target chk_act
+l cond mach Activate
+beqz cond set_recipe
+sbn kind PRINTER Activate 0
+s db Setting 103
+j main
+set_recipe:
+sbn kind PRINTER RecipeHash target
+s db Setting 104
+j main
+chk_act:
+l cond mach Activate
+bnez cond healthy
+sbn kind PRINTER Activate 1
+s db Setting 105
+j main
+healthy:
+s db Setting target
+j main
+idle:
+l cond mach Activate
+beqz cond idle_ok
+sbn kind PRINTER Activate 0
+idle_ok:
+s db Setting 100
+j main
+no_mach:
+s db Setting 144
+j main
+no_slot:
+s db Setting 148
+j main

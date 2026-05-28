@@ -8,6 +8,30 @@ currently hash-backed Autolathe recipe item, using one **Autolathe**, one ingot-
 
 Player setup guide: `modular scripts/AutolatheVendStock/Setup.md`.
 
+## Optional profiles
+
+This module now supports **explicit opt-in profiles** rather than hidden runtime mod detection.
+
+- default shipped worker files are the **vanilla** profile
+- optional mod profiles only apply when this module README/Setup explicitly documents them
+- profile source data lives under `catalog/recipes/Autolathe/profiles/`
+- profile worker variants are emitted by `tools/autolathe_profile_emit.py`
+
+Currently documented optional profile:
+
+- `free_ingots` / **Free Ingots**
+  - use:
+    - `autolathe_vend_stock_worker_stock.free_ingots.ic10`
+    - `autolathe_vend_stock_worker_logistics.free_ingots.ic10`
+  - keep the other worker files unchanged
+  - source mod file: `catalog/mods/Freeingots/autolathe.xml`
+  - the XML adds 17 zero-input ingot recipes (`Time = 1`, `Energy = 50`)
+  - the Free Ingots stock worker currently tracks the 7 ingots whose item hashes are already known in this repo:
+    `Ingot (Silicon)`, `Ingot (Iron)`, `Ingot (Gold)`, `Ingot (Copper)`,
+    `Ingot (Steel)`, `Ingot (Solder)`, `Ingot (Stellite)`
+  - the remaining 10 mod-added ingots are recorded in the profile JSON but are not emitted into the stock worker yet because this repo does not currently have an authoritative item-hash source for them
+  - the logistics worker intentionally stays aligned with vanilla because the mod XML recipes do not declare any material inputs
+
 ## Why this exists
 
 This merges the useful parts of `PrinterHall` and `AutolatheBatch` into one smaller,
@@ -156,9 +180,10 @@ Debugging lesson learned:
   - `Required[-500544800]` checks for missing `Stellite` reagent
   - `-1897868623` is only the `Ingot (Stellite)` item hash used for vending/sorter requests
 - if those are mixed up, `slot2` can stay active incorrectly and the feeder/sorter can look blocked even though the real bug is the missing-material test
-- the refreshed `catalog/recipes/Autolathe/recipes.json` currently reports `Cable Coil` as
-  `ItemCableCoilHeavy` with item hash `2060134443`
-- if the stock worker keeps the older cable hash, it will keep requesting cable and never advance
+- `Cable Coil` for the Autolathe stock list should use the normal coil item hash
+  `-466050668` (`ItemCableCoil`)
+- if the stock worker uses the heavy cable hash `2060134443`, it will keep requesting cable
+  and never advance because the finished-goods vending machine is stocking the normal coil
 
 When one tracked item is missing from the finished-goods vending machine:
 
@@ -253,6 +278,7 @@ Current limitation:
 - The current local recipe catalog only exposes **23 usable item hashes** for Autolathe products.
 - This feature therefore cannot yet stock every wiki-listed Autolathe recipe automatically.
 - It currently targets **one occupied vending stack**, with the per-run batch size coming from the downstream Stacker `Setting`.
+- Mod/profile support is **opt-in per module**. If a profile is not documented here, treat it as unsupported for this module.
 
 ## Recovery steps
 

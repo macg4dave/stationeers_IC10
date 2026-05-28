@@ -1,0 +1,181 @@
+# ingot_printer (modular)
+
+LIFO-priority **multi-Autolathe ingot printer** for testing and using Free Ingots mod support.
+
+Goal: watch a finished-goods **Vending Machine**, detect any supported ingot whose total stock is
+below `1000`, and command **all connected named Autolathes** to print the selected ingot using a
+**last-low-found, first-printed** priority rule.
+
+Player setup guide: `modular scripts/ingot_printer/Setup.md`.
+
+## Requirements
+
+- **Free Ingots** mod (or another mod/config that adds the same Autolathe ingot recipes)
+- 19x IC Housing + IC Chip
+- 1x Logic Memory
+- 1x Vending Machine
+- 1x Stacker
+- 1..N Autolathes
+
+Currently tracked ingots with verified hashes in this repo:
+
+- `Ingot (Silicon)` = `-290196476`
+- `Ingot (Iron)` = `-1301215609`
+- `Ingot (Gold)` = `226410516`
+- `Ingot (Copper)` = `-404336834`
+- `Ingot (Silver)` = `-929742000`
+- `Ingot (Lead)` = `2134647745`
+- `Ingot (Nickel)` = `-1406385572`
+- `Ingot (Steel)` = `-654790771`
+- `Ingot (Electrum)` = `502280180`
+- `Ingot (Invar)` = `-297990285`
+- `Ingot (Constantan)` = `1058547521`
+- `Ingot (Solder)` = `-82508479`
+- `Ingot (Astroloy)` = `412924554`
+- `Ingot (Hastelloy)` = `1579842814`
+- `Ingot (Inconel)` = `-787796599`
+- `Ingot (Waspaloy)` = `156348098`
+- `Ingot (Stellite)` = `-1897868623`
+
+## Device mapping
+
+### `ingot_printer_master.ic10`
+
+- `d0` = end-of-line Stacker
+- `db` = status
+
+### `ingot_printer_worker_print.ic10`
+
+- `d0` = one representative Autolathe that is also named `printer`
+- `db` = status / current active target hash
+
+### Stock workers
+
+Each stock worker is wired the same way:
+
+- `d0` = finished-goods Vending Machine
+- `db` = `0` when stocked, or the ingot hash when that ingot total is below `1000`
+
+Files:
+
+- `ingot_printer_worker_stock_iron.ic10`
+- `ingot_printer_worker_stock_silicon.ic10`
+- `ingot_printer_worker_stock_gold.ic10`
+- `ingot_printer_worker_stock_copper.ic10`
+- `ingot_printer_worker_stock_silver.ic10`
+- `ingot_printer_worker_stock_lead.ic10`
+- `ingot_printer_worker_stock_nickel.ic10`
+- `ingot_printer_worker_stock_steel.ic10`
+- `ingot_printer_worker_stock_electrum.ic10`
+- `ingot_printer_worker_stock_invar.ic10`
+- `ingot_printer_worker_stock_constantan.ic10`
+- `ingot_printer_worker_stock_solder.ic10`
+- `ingot_printer_worker_stock_astroloy.ic10`
+- `ingot_printer_worker_stock_hastelloy.ic10`
+- `ingot_printer_worker_stock_inconel.ic10`
+- `ingot_printer_worker_stock_waspaloy.ic10`
+- `ingot_printer_worker_stock_stellite.ic10`
+
+Unused pins are explicitly labelled `n1..n5` / `n2..n5` so the in-game housing labels stay clean after updates.
+
+## Name contract
+
+Set these exact names (case-sensitive):
+
+- IC Housing: `master`
+- IC Housing: `printer_worker`
+- IC Housing: `stock_silicon`
+- IC Housing: `stock_iron`
+- IC Housing: `stock_gold`
+- IC Housing: `stock_copper`
+- IC Housing: `stock_silver`
+- IC Housing: `stock_lead`
+- IC Housing: `stock_nickel`
+- IC Housing: `stock_steel`
+- IC Housing: `stock_electrum`
+- IC Housing: `stock_invar`
+- IC Housing: `stock_constantan`
+- IC Housing: `stock_solder`
+- IC Housing: `stock_astroloy`
+- IC Housing: `stock_hastelloy`
+- IC Housing: `stock_inconel`
+- IC Housing: `stock_waspaloy`
+- IC Housing: `stock_stellite`
+- Logic Memory: `slot0`
+- Autolathe: `printer` (apply this exact name to **every** Autolathe the module should control)
+
+## Behavior
+
+Master behavior:
+
+1. forces the end-of-line Stacker to `Setting = 1000`, `Mode = Automatic`, `On = 1`
+2. reads the 17 stock-worker statuses
+3. chooses the **last low ingot found in tracked order** as the next print target
+4. writes that active target hash to `slot0`
+5. changes target only when there is no current target yet or when the Stacker exports one `1000`-item batch
+
+Worker behavior:
+
+1. reads the active target from `slot0`
+2. batch-controls all Autolathes named `printer`
+3. forces `On = 1`, `Open = 0`, `RecipeHash = slot0`, and `Activate = 1`
+4. idles all named printers when `slot0 = 0`
+
+Priority behavior:
+
+- behavior is intentionally **LIFO-like**: the later a low ingot appears in the tracked-order list, the sooner it will be selected when several ingots are low at once
+- later entries in the tracked-order list below therefore get higher print priority
+- tracked-order list:
+  1. `Ingot (Silicon)`
+  2. `Ingot (Iron)`
+  3. `Ingot (Gold)`
+  4. `Ingot (Copper)`
+  5. `Ingot (Silver)`
+  6. `Ingot (Lead)`
+  7. `Ingot (Nickel)`
+  8. `Ingot (Steel)`
+  9. `Ingot (Electrum)`
+  10. `Ingot (Invar)`
+  11. `Ingot (Constantan)`
+  12. `Ingot (Solder)`
+  13. `Ingot (Astroloy)`
+  14. `Ingot (Hastelloy)`
+  15. `Ingot (Inconel)`
+  16. `Ingot (Waspaloy)`
+  17. `Ingot (Stellite)`
+
+## Status protocol (`db Setting`)
+
+### Master (`200-299` and active target hashes)
+
+- `0` = boot
+- `200` = scanning / no active target yet
+- any tracked ingot hash = current active target being printed
+- `242` = missing Stacker on `d1`
+- `248` = missing `slot0`
+
+### Print worker (`100-199` and active target hashes)
+
+- `100` = idle / no active target
+- `101` = turning all named printers on
+- `102` = closing `Open` on all named printers
+- `103` = clearing stale `Activate` before changing recipe
+- `104` = writing target `RecipeHash` to all named printers
+- `105` = setting `Activate = 1` on all named printers
+- any tracked ingot hash = all named printers are being driven toward that target
+- `144` = missing representative Autolathe on `d0`
+- `148` = missing `slot0`
+
+### Stock workers (`0`, target hash, or `540`)
+
+- `0` = that ingot is stocked to at least `1000`
+- target ingot hash = that ingot is currently below `1000`
+- `540` = missing Vending Machine on `d0`
+
+## Notes
+
+- This module lives under `modular scripts/` so it can act as a more realistic test bed for opt-in mod support.
+- It uses one directly wired representative Autolathe only to discover device type and local state; all real production commands are sent to every exact-name `printer` Autolathe on the data network.
+- The finished-goods Vending Machine is scanned exactly by summing slot quantities, not just checking for item presence.
+- The module now tracks all 17 Free Ingots outputs currently described by the profile metadata.
+- The missing mod ingot hashes were derived consistently as signed CRC32 of the prefab/item name, which matches the already verified Stationeers ingot hashes in this repo.

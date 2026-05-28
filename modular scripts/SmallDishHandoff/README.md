@@ -80,7 +80,10 @@ Flow:
 - The scanning worker uses a coarse scan (`30°` horizontal, `15°` vertical rows) to stay fast and cheap.
 - The contact worker keeps the handoff slot busy while it owns a target, so the scanning worker will not overwrite the queue mid-track.
 - The handoff slot no longer stores `SignalID` directly; this avoids float precision loss in Logic Memory.
+- When the handoff slot reopens, the scanning worker drops any stale lock on the last handed-off `SignalID` and resumes sweeping for a new contact.
+- While the handoff slot is non-empty, the scanning worker keeps its last published filter lock instead of trusting transient live `SignalID` drops.
 - The contact worker copies the scanning dish's current `Horizontal` / `Vertical` when it claims a target.
+- The contact worker claims the scanning dish's current `BestContactFilter`, not its momentary live `SignalID`, to make handoff robust against brief signal flicker.
 - After claiming a target, the contact worker performs its own filtered coarse sweep until it actually sees that handed-off `SignalID`.
 - The contact worker re-arms `Activate` to `0` before each new fire attempt so each handoff gets a fresh pulse.
 - The contact worker writes `TargetPadIndex = PAD_INDEX` (default `0`) so a contacted ship is requested to land on that pad.

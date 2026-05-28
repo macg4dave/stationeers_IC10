@@ -37,12 +37,13 @@ bnez tmp err
 l tmp dish Idle
 beqz tmp main
 l slot mem Setting
+l sid dish BestContactFilter
+bne slot SLOT_EMPTY hold
 l sid dish SignalID
 l sig dish SignalStrength
 beq sid NO_CONTACT sweep
 beq sig NO_CONTACT sweep
-bne slot SLOT_EMPTY hold
-beq sid last hold
+beq sid last sweep
 add tok tok 1
 s mem Setting tok
 move last sid
@@ -51,7 +52,10 @@ s db Setting 110
 j main
 hold:
 s db Setting 120
-s dish BestContactFilter sid
+beq sid NO_CONTACT hold_last
+move last sid
+hold_last:
+s dish BestContactFilter last
 j main
 sweep:
 s db Setting 100

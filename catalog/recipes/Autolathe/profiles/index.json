@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "producer": "Autolathe",
+  "profiles": [
+    {
+      "id": "free_ingots",
+      "label": "Free Ingots",
+      "file": "recipes/Autolathe/profiles/free_ingots.json"
+    },
+    {
+      "id": "vanilla",
+      "label": "Vanilla",
+      "file": "recipes/Autolathe/profiles/vanilla.json"
+    }
+  ]
+}
