@@ -54,10 +54,12 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `large_satellite_dish_cycle_contacts/` — Collects unique contacts, then button-cycles lock target in discovery order.
 - `large_satellite_dish_led_readout/` — Mirrors dish `Horizontal`, `Vertical`, `SizeX`, and `SizeZ` to 4 LED Displays.
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
+- `pipe_heater_below_20c/` — Reads a Pipe Analyzer and turns a Pipe Heater on below 20°C.
 - `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
 - `pipe_pressure_active_vent/` — Reads a Pipe Analyzer pressure and batch-drives named Active Vents to fill the pipe to a target MPa.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
+- `room_heater_below_20c/` — Reads a Gas Sensor and turns a Wall Heater on below 20°C.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
 - `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Volatiles are present until Oxygen ratio is >= 33% of Volatiles ratio.
 - `large_battery_mean_gas_generator/` — Turns a Gas Fuel Generator on when mean Ratio of all Large Station Batteries on the data network is below 30%.
@@ -75,6 +77,7 @@ Additional scripts in this repo:
 - `no_volatiles_valve/`
 - `no_volatiles_no_steam_valve/`
 - `pipe_temp_valve/`
+- `pipe_heater_below_20c/`
 - `pipe_half_full_active_vent/`
 - `purge_valve/`
 - `room_cooler_steamless_vent/`

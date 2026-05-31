@@ -1,0 +1,58 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Pipe_Heater",
+    "wikiTitle": "Pipe_Heater",
+    "retrievedAt": "2026-05-30T18:50:00+00:00",
+    "notes": "Imported from a user-saved local HTML copy in temp/ because the live wiki is behind a Cloudflare challenge from this environment."
+  },
+  "identity": {
+    "itemName": "ItemPipeHeater",
+    "itemHash": -1751627006
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Item hash"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "In Watts"
+      }
+    ]
+  }
+}

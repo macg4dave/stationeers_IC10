@@ -35,8 +35,10 @@ When a script uses `lb/sb/lbn/sbn` and appears to "not find" devices:
 - `logic_switch_lever.md` — Logic Switch (Lever) required settings.
 - `phase_change_device.md` — placeholder device required settings.
 - `pipe_analyzer.md` — Pipe Analyzer required settings.
+- `pipe_heater.md` — Pipe Heater required settings.
 - `pipe_digital_valve.md` — Pipe Digital Valve required settings.
 - `satcom.md` — SatCom modular setup checklist (required devices + wiring).
 - `sorter.md` — Sorter mode/orientation checks for IC10-controlled routing.
 - `solar_panels.md` — Solar panels required settings.
 - `wall_cooler.md` — Wall Cooler required settings.
+- `wall_heater.md` — Wall Heater required settings.

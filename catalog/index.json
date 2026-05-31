@@ -194,6 +194,12 @@
       "itemHash": -1532448832
     },
     {
+      "wikiTitle": "Pipe_Heater",
+      "file": "devices/Pipe_Heater.json",
+      "itemName": "ItemPipeHeater",
+      "itemHash": -1751627006
+    },
+    {
       "wikiTitle": "Pipe_Volume_Pump",
       "file": "devices/Pipe_Volume_Pump.json",
       "itemName": "ItemPipeVolumePump",
@@ -250,6 +256,12 @@
     {
       "wikiTitle": "Wall_Cooler",
       "file": "devices/Wall_Cooler.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Wall_Heater",
+      "file": "devices/Wall_Heater.json",
       "itemName": null,
       "itemHash": null
     }

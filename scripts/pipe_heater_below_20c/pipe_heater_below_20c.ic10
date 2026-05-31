@@ -1,0 +1,61 @@
+# pipe_heater_below_20c
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - If Pipe Analyzer temperature < 20C: turn ON a Pipe Heater.
+# - Otherwise turn the Pipe Heater OFF.
+#
+# Device registers:
+#   d0 = Pipe Analyzer
+#   d1 = Pipe Heater
+#
+# Notes:
+# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# - If the Pipe Analyzer reports Error, the heater is forced OFF.
+
+alias pipe_read d0
+alias heater d1
+
+alias tempC r0
+alias cond r1
+alias desired_heater_on r2
+alias current_heater_on r3
+alias analyzer_error r4
+
+define KELVIN_TO_C 273.15
+define HEAT_ON_BELOW_C 20
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+main:
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+l analyzer_error pipe_read Error
+bnez analyzer_error force_off
+
+l tempC pipe_read Temperature
+sub tempC tempC KELVIN_TO_C
+
+# Heater ON when tempC < HEAT_ON_BELOW_C
+slt cond tempC HEAT_ON_BELOW_C
+select desired_heater_on cond 1 0
+j apply
+
+force_off:
+move desired_heater_on 0
+
+apply:
+# avoid redundant writes (and network spam): only set when it changes
+l current_heater_on heater On
+sne cond desired_heater_on current_heater_on
+beqz cond done
+s heater On desired_heater_on
+done:
+
+yield
+j main
