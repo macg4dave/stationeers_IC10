@@ -1,0 +1,111 @@
+# pipe_furnace_valve_below_20c
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - Read a Pipe Analyzer temperature.
+# - If temperature is below 20C, turn ON an Adv Furnace and Pipe Digital Valve.
+# - If temperature is above 20C, turn them OFF.
+# - At exactly 20C, keep current state.
+#
+# Device registers:
+#   d0 = Pipe Analyzer
+#   d1 = Pipe Digital Valve
+#   d2 = Advanced Furnace
+#
+# Notes:
+# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# - The script clears Lock on the valve/furnace if needed.
+
+alias pipe_read d0
+alias pipe_valve d1
+alias furnace d2
+
+alias tempC r0
+alias cond r1
+alias desired_valve_on r2
+alias current_valve_on r3
+alias desired_furnace_on r4
+alias current_furnace_on r5
+alias current_lock r6
+alias current_activate r7
+alias desired_activate r8
+alias sensor_hash r9
+
+define KELVIN_TO_C 273.15
+define TEMP_ON_BELOW_C 20
+
+# Pipe Analyzer prefab hash from catalog/devices/Pipe_Analyzer.json
+define PIPE_ANALYZER_HASH 435685051
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+
+main:
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+l sensor_hash pipe_read PrefabHash
+bne sensor_hash PIPE_ANALYZER_HASH wait_devices
+
+l tempC pipe_read Temperature
+sub tempC tempC KELVIN_TO_C
+
+l current_valve_on pipe_valve On
+l current_furnace_on furnace On
+l current_activate furnace Activate
+move desired_valve_on current_valve_on
+move desired_furnace_on current_furnace_on
+move desired_activate current_activate
+
+# below threshold -> valve/furnace ON
+slt cond tempC TEMP_ON_BELOW_C
+select desired_valve_on cond 1 desired_valve_on
+select desired_furnace_on cond 1 desired_furnace_on
+select desired_activate cond 1 desired_activate
+
+# above threshold -> valve/furnace OFF
+slt cond TEMP_ON_BELOW_C tempC
+select desired_valve_on cond 0 desired_valve_on
+select desired_furnace_on cond 0 desired_furnace_on
+select desired_activate cond 0 desired_activate
+
+l current_lock pipe_valve Lock
+beqz current_lock valve_ready
+s pipe_valve Lock 0
+valve_ready:
+
+l current_lock furnace Lock
+beqz current_lock maybe_stop_activate
+s furnace Lock 0
+
+maybe_stop_activate:
+seq cond desired_activate 0
+beqz cond write_states
+sne cond desired_activate current_activate
+beqz cond write_states
+s furnace Activate 0
+
+write_states:
+sne cond desired_valve_on current_valve_on
+beqz cond valve_done
+s pipe_valve On desired_valve_on
+valve_done:
+
+sne cond desired_furnace_on current_furnace_on
+beqz cond furnace_on_done
+s furnace On desired_furnace_on
+furnace_on_done:
+
+seq cond desired_activate 1
+beqz cond done
+sne cond desired_activate current_activate
+beqz cond done
+s furnace Activate 1
+
+done:
+yield
+j main

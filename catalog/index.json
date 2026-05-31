@@ -50,6 +50,12 @@
       "itemHash": -1252983604
     },
     {
+      "wikiTitle": "Glass_Door",
+      "file": "devices/Glass_Door.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Hardsuit",
       "file": "devices/Hardsuit.json",
       "itemName": "ItemHardSuit",
