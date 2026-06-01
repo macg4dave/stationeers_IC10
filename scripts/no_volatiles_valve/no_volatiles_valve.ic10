@@ -1,4 +1,4 @@
-# Close a Pipe Digital Valve when NO Volatiles are present
+# Close a Pipe Digital Valve when NO Methane is present
 # d0 = Pipe Analyzer
 # d1 = Pipe Digital Valve
 
@@ -22,13 +22,13 @@ bdns d1 wait
 loop:
 yield
 
-l vol pa RatioVolatiles
+l vol pa RatioMethane
 
 # vol_hi = 1 if vol > EPS, else 0
 sgt vol_hi vol EPS
 
-# Close valve when volatiles are not present
-# (On = 1 only when volatiles are present)
+# Close valve when methane is not present
+# (On = 1 only when methane is present)
 l current_on valve On
 sne cond vol_hi current_on
 beqz cond skip_write

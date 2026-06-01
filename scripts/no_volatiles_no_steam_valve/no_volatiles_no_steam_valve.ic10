@@ -1,4 +1,4 @@
-# Open a Pipe Digital Valve when NO Volatiles and NO Steam are present
+# Open a Pipe Digital Valve when NO Methane and NO Steam are present
 # d0 = Pipe Analyzer
 # d1 = Pipe Digital Valve
 
@@ -32,7 +32,7 @@ bdns d1 wait
 loop:
 yield
 
-l vol pa RatioVolatiles
+l vol pa RatioMethane
 l stm pa RatioSteam
 l pres pa Pressure
 

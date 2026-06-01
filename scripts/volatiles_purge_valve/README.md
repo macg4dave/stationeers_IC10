@@ -1,8 +1,8 @@
 # volatiles_purge_valve
 
-**Purpose:** If Volatiles are present in a pipe, run a **Pipe Digital Valve** until **Oxygen ratio is >= 33% of Volatiles ratio**.
+**Purpose:** If Methane is present in a pipe, run a **Pipe Digital Valve** until **Oxygen ratio is >= 33% of Methane ratio**.
 
-This is useful as a simple “purge volatiles” controller when your valve gates a path used to remove/route volatile-heavy gas.
+This is useful as a simple methane-purge controller when your valve gates a path used to remove or route methane-heavy gas.
 
 ## Devices
 
@@ -20,19 +20,19 @@ Required:
 
 Each loop the script reads:
 
-- `RatioVolatiles` from the Pipe Analyzer
+- `RatioMethane` from the Pipe Analyzer
 - `RatioOxygen` from the Pipe Analyzer
 
 Rules:
 
-- If `RatioVolatiles` is not present (<= `EPS`), valve is **OFF**.
-- If `RatioVolatiles` is present and `RatioOxygen < (0.33 * RatioVolatiles)`, valve is **ON**.
-- Otherwise (i.e., `RatioOxygen >= 0.33 * RatioVolatiles`), valve is **OFF**.
+- If `RatioMethane` is not present (<= `EPS`), valve is **OFF**.
+- If `RatioMethane` is present and `RatioOxygen < (0.33 * RatioMethane)`, valve is **ON**.
+- Otherwise (i.e., `RatioOxygen >= 0.33 * RatioMethane`), valve is **OFF**.
 
 ### Tuning
 
 - `EPS` (default `0.000001`): treat ratios <= EPS as zero to avoid float noise.
-- `O2_PER_VOL` (default `0.33`): oxygen-to-volatiles multiplier used for valve cutoff.
+- `O2_PER_VOL` (default `0.33`): oxygen-to-methane multiplier used for valve cutoff.
 
 ## Setup
 

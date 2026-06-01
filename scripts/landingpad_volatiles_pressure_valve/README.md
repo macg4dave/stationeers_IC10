@@ -4,7 +4,7 @@ Status: Functional
 
 Turns **ON** both a `Landingpad Gas Output` and a `Pipe Digital Valve` only when:
 
-1. `Landingpad Gas Output` reports **100% Volatiles** (`RatioVolatiles`), and
+1. `Landingpad Gas Output` reports **100% Methane** (`RatioMethane`), and
 2. Pipe pressure is at or below the safety limit.
 
 Manual override:
@@ -30,8 +30,8 @@ Optional:
 
 In `landingpad_volatiles_pressure_valve.ic10`:
 
-- `VOLATILES_FULL_MIN` (default `0.999`)
-  - Treats values this high (or higher) as “100% volatiles”.
+- `METHANE_FULL_MIN` (default `0.999`)
+  - Treats values this high (or higher) as “100% methane”.
 - `PRESSURE_CUTOFF_KPA` (default `20000`)
   - 20 MPa cutoff in kPa.
 - `OVERRIDE_LEVEL_ON` (default `1`)
@@ -39,7 +39,7 @@ In `landingpad_volatiles_pressure_valve.ic10`:
 
 ## Behavior summary
 
-- `desired_on = 1` when `RatioVolatiles >= VOLATILES_FULL_MIN`.
+- `desired_on = 1` when `RatioMethane >= METHANE_FULL_MIN`.
 - `desired_on = 1` when manual override is active.
 - If `Pressure > PRESSURE_CUTOFF_KPA`, script forces OFF.
 - Script self-heals valve lock by setting `Lock = 0` on the Pipe Digital Valve.
@@ -47,8 +47,8 @@ In `landingpad_volatiles_pressure_valve.ic10`:
 
 Debug status (`db Setting`):
 
-- `10` volatiles condition met (request ON)
-- `20` volatiles condition not met (request OFF)
+- `10` methane condition met (request ON)
+- `20` methane condition not met (request OFF)
 - `30` pressure cutoff active (forced OFF)
 - `40` manual override active (request ON)
 

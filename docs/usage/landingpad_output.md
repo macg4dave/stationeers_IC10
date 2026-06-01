@@ -4,15 +4,15 @@ Use this when scripting against landingpad output devices.
 
 ## 1) Pick the correct device variant first
 
-- Gas script -> use `Landingpad_Gas_Output` fields (example: `RatioVolatiles`).
-- Liquid script -> use `Landingpad_Liquid_Output` fields (example: `RatioLiquidVolatiles`).
+- Gas script -> use `Landingpad_Gas_Output` fields (example: `RatioMethane`).
+- Liquid script -> use `Landingpad_Liquid_Output` fields (example: `RatioLiquidMethane`).
 
 If these are mixed, scripts can compile but never actuate correctly.
 
 ## 2) Match ratio field to the chosen variant
 
-- Gas output: read `RatioVolatiles`.
-- Liquid output: read `RatioLiquidVolatiles`.
+- Gas output: read `RatioMethane`.
+- Liquid output: read `RatioLiquidMethane`.
 
 ## 3) Pressure cutoff source should be explicit
 

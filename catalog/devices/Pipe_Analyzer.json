@@ -1,8 +1,10 @@
 {
   "source": {
+    "kind": "best_guess",
     "wikiUrl": "https://stationeers-wiki.com/Pipe_Analyzer",
     "wikiTitle": "Pipe_Analyzer",
-    "retrievedAt": "2026-02-02T14:16:40+00:00"
+    "retrievedAt": "2026-06-01T00:00:00+00:00",
+    "notes": "Best-guess post-Gases-update refresh. The cached wiki snapshot is stale; the legacy combustible-gas field was renamed to Methane in the March 2026 update, and additional analyzer fields were inferred from updated related device catalogs plus in-game observation of RatioMethane."
   },
   "identity": {
     "itemName": "StructurePipeAnalysizer",
@@ -53,6 +55,11 @@
         "description": "The ratio of oxygen in the pipe. A value between 0 (no oxygen at all, or 0%) and 1 ( pure oxygen atmosphere, or 100%)"
       },
       {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": "ratio in mass percent / 100"
+      },
+      {
         "name": "RatioCarbonDioxide",
         "type": "float",
         "description": "ratio in mass percent / 100"
@@ -73,12 +80,17 @@
         "description": "ratio in mass percent / 100"
       },
       {
-        "name": "RatioVolatiles",
+        "name": "RatioMethane",
         "type": "float",
         "description": "ratio in mass percent / 100"
       },
       {
         "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutedWater",
         "type": "float",
         "description": ""
       },
@@ -128,7 +140,12 @@
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatiles",
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidMethane",
         "type": "float",
         "description": ""
       },

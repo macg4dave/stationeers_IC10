@@ -1,8 +1,8 @@
 # volatiles_purge_active_vent
 
-**Purpose:** If Volatiles are present in a pipe, run an **Active Vent** until **Oxygen ratio reaches at least 33%**.
+**Purpose:** If Methane is present in a pipe, run an **Active Vent** until **Oxygen ratio reaches at least 33%**.
 
-This is useful as a simple “purge volatiles” controller when you expect the pipe mixture to become oxygen-dominant again.
+This is useful as a simple methane-purge controller when you expect the pipe mixture to become oxygen-dominant again.
 
 ## Devices
 
@@ -20,13 +20,13 @@ Required:
 
 Each loop the script reads:
 
-- `RatioVolatiles` from the Pipe Analyzer
+- `RatioMethane` from the Pipe Analyzer
 - `RatioOxygen` from the Pipe Analyzer
 
 Rules:
 
-- If `RatioVolatiles` is not present (<= `EPS`), vent is **OFF**.
-- If `RatioVolatiles` is present and `RatioOxygen < O2_TARGET`, vent is **ON**.
+- If `RatioMethane` is not present (<= `EPS`), vent is **OFF**.
+- If `RatioMethane` is present and `RatioOxygen < O2_TARGET`, vent is **ON**.
 - Otherwise (i.e., `RatioOxygen >= O2_TARGET`), vent is **OFF**.
 
 The script also forces the vent `Mode` to **Outward** (`0`) once at startup and keeps

@@ -103,8 +103,8 @@ Before writing logic for landingpad outputs:
 
 - Confirm device variant first (`Landingpad_Gas_Output` vs `Landingpad_Liquid_Output`).
 - Use matching ratio field:
-  - gas -> `RatioVolatiles`
-  - liquid -> `RatioLiquidVolatiles`
+  - gas -> `RatioMethane`
+  - liquid -> `RatioLiquidMethane`
 - If using pressure cutoff, document a single source (recommended: Pipe Analyzer `Pressure` in kPa).
 - Do not assume every inferred field is safe on landingpad outputs; if runtime line faults, remove that field access first (common candidate: `Lock`).
 - Add compact `db Setting` status codes to show branch decisions in-game.

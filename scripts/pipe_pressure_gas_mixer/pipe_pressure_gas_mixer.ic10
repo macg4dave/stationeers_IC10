@@ -1,0 +1,75 @@
+# pipe_pressure_gas_mixer
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - If Pipe Analyzer pressure is above 10 MPa, turn Gas Mixer OFF.
+# - Otherwise turn Gas Mixer ON.
+#
+# Device registers:
+#   d0 = Pipe Analyzer
+#   d1 = Gas Mixer
+#
+# Notes:
+# - Pipe Analyzer Pressure is in kPa. 10 MPa = 10000 kPa.
+# - If the Pipe Analyzer reports Error, mixer is forced OFF.
+# - If the Pipe Analyzer is OFF, script turns it ON and waits a tick.
+# - Avoids redundant writes to mixer On.
+
+alias pa d0
+alias mix d1
+
+alias pipe_kpa r0
+alias desired_on r1
+alias current_on r2
+alias cond r3
+alias analyzer_error r4
+alias dbg_state r5
+alias analyzer_on r6
+
+define MAX_PRESSURE_KPA 10000
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+main:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+l analyzer_on pa On
+bnez analyzer_on analyzer_ready
+s pa On 1
+move desired_on 0
+move dbg_state 4
+j write_state
+
+analyzer_ready:
+l analyzer_error pa Error
+bnez analyzer_error analyzer_fault
+
+l pipe_kpa pa Pressure
+sgt cond pipe_kpa MAX_PRESSURE_KPA
+seqz desired_on cond
+move dbg_state desired_on
+j write_state
+
+analyzer_fault:
+move desired_on 0
+move dbg_state 3
+
+write_state:
+
+# avoid redundant writes (and network spam): only set when it changes
+l current_on mix On
+sne cond desired_on current_on
+beqz cond done
+s mix On desired_on
+
+done:
+s db Setting dbg_state
+
+yield
+j main

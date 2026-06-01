@@ -4,7 +4,7 @@
 
 - `Pressure` (kPa)
 - `Temperature` (Kelvin)
-- Gas ratios like `RatioVolatiles`, `RatioSteam`, `RatioOxygen` (0..1)
+- Gas ratios like `RatioMethane`, `RatioSteam`, `RatioOxygen` (0..1)
 - `Error` (0/1)
 
 ## Minimum to get valid readings

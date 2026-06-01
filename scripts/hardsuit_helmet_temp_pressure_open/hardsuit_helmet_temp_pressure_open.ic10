@@ -15,6 +15,8 @@
 # - Suit external Pressure is in kPa.
 # - Opens only while 4 <= tempC <= 45 and 80 <= Pressure <= 150.
 # - Closes again whenever tempC or Pressure fall outside that safe range.
+# - If you manually close it after auto-open, it stays closed until conditions go unsafe
+#   and become safe again, or until you manually reopen it.
 
 alias suit db
 alias helmet d0
@@ -22,7 +24,11 @@ alias helmet d0
 alias tempC r0
 alias pressure r1
 alias desired_open r2
+alias manual_hold r3
 alias cond r4
+alias current_open r5
+alias prev_open r6
+alias current_lock r7
 
 define KELVIN_TO_C 273.15
 define TEMP_OPEN_AT_OR_ABOVE_C 4
@@ -41,22 +47,51 @@ main:
 	l tempC suit TemperatureExternal
 	l pressure suit PressureExternal
 	sub tempC tempC KELVIN_TO_C
+	l current_open helmet Open
 
 	move desired_open 0
 
 	slt cond tempC TEMP_OPEN_AT_OR_ABOVE_C
-	bnez cond check_write
+	bnez cond clear_hold
 	sgt cond tempC TEMP_OPEN_AT_OR_BELOW_C
-	bnez cond check_write
+	bnez cond clear_hold
 	slt cond pressure PRESSURE_OPEN_AT_OR_ABOVE_KPA
-	bnez cond check_write
+	bnez cond clear_hold
 	sgt cond pressure PRESSURE_OPEN_AT_OR_BELOW_KPA
+	bnez cond clear_hold
+
+	bnez manual_hold check_hold
+	seq cond prev_open 1
+	beqz cond allow_open
+	seq cond current_open 0
+	beqz cond allow_open
+	move manual_hold 1
+	j check_write
+
+check_hold:
+	seq cond current_open 0
 	bnez cond check_write
+	move manual_hold 0
+
+allow_open:
 	move desired_open 1
+	j check_write
+
+clear_hold:
+	move manual_hold 0
 
 check_write:
+	l current_lock helmet Lock
+	beqz current_lock write_open
 	s helmet Lock 0
+
+write_open:
+	sne cond desired_open current_open
+	beqz cond store_state
 	s helmet Open desired_open
+
+store_state:
+	move prev_open desired_open
 
 	sleep 1
 	j main

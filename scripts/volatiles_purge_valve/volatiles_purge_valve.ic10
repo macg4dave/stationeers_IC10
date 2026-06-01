@@ -2,8 +2,8 @@
 # Category: Controller
 # Status: Functional
 #
-# Purpose: If the pipe contains Volatiles, turn a Pipe Digital Valve on until
-#          Oxygen ratio is >= 33% of Volatiles ratio.
+# Purpose: If the pipe contains Methane, turn a Pipe Digital Valve on until
+#          Oxygen ratio is >= 33% of Methane ratio.
 #
 # Device registers:
 #   d0 = Pipe Analyzer      (gas pipe)
@@ -28,7 +28,7 @@ alias pa_error r7
 # Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
 
-# Oxygen target as a fraction of current volatiles ratio (33%)
+# Oxygen target as a fraction of current methane ratio (33%)
 define O2_PER_VOL 0.33
 
 # Pipe Analyzer prefab hash from catalog/devices/Pipe_Analyzer.json
@@ -48,13 +48,13 @@ l pa_error pa Error
 bnez pa_error wait
 
 # Read current gas composition
-l vol pa RatioVolatiles
+l vol pa RatioMethane
 l o2 pa RatioOxygen
 
 # Default to OFF
 move desired_on 0
 
-# If volatiles are present AND oxygen < (33% of volatiles) => valve ON
+# If methane is present AND oxygen < (33% of methane) => valve ON
 sgt cond vol EPS
 beqz cond decide
 move o2_target O2_PER_VOL

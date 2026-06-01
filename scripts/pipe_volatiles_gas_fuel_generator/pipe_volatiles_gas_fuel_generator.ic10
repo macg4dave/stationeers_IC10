@@ -1,0 +1,74 @@
+# pipe_volatiles_gas_fuel_generator
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - If Pipe Analyzer reports any Methane: turn Gas Fuel Generator ON.
+# - Otherwise turn Gas Fuel Generator OFF.
+#
+# Device registers:
+#   d0 = Pipe Analyzer
+#   d1 = Gas Fuel Generator
+#
+# Notes:
+# - Presence means RatioMethane > EPS.
+# - If the Pipe Analyzer reports Error, generator is forced OFF.
+# - Avoids redundant writes to generator On.
+
+alias pa d0
+alias gen d1
+
+alias vol r0
+alias desired_on r1
+alias current_on r2
+alias cond r3
+alias analyzer_error r4
+alias dbg_state r5
+alias analyzer_on r6
+
+define EPS 0.000001
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+main:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+l analyzer_on pa On
+bnez analyzer_on analyzer_ready
+s pa On 1
+move desired_on 0
+move dbg_state 4
+j done
+
+analyzer_ready:
+
+l analyzer_error pa Error
+bnez analyzer_error analyzer_fault
+
+l vol pa RatioMethane
+sgt desired_on vol EPS
+move dbg_state desired_on
+j write_state
+
+analyzer_fault:
+move desired_on 0
+move dbg_state 3
+
+write_state:
+
+# avoid redundant writes (and network spam): only set when it changes
+l current_on gen On
+sne cond desired_on current_on
+beqz cond done
+s gen On desired_on
+
+done:
+s db Setting dbg_state
+
+yield
+j main

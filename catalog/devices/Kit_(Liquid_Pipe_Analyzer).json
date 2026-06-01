@@ -53,6 +53,11 @@
         "description": "The ratio of oxygen in the pipe. A value between 0 (no oxygen at all, or 0%) and 1 ( pure oxygen atmosphere, or 100%)"
       },
       {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": "ratio in mass percent / 100"
+      },
+      {
         "name": "RatioCarbonDioxide",
         "type": "float",
         "description": "ratio in mass percent / 100"
@@ -73,12 +78,17 @@
         "description": "ratio in mass percent / 100"
       },
       {
-        "name": "RatioVolatiles",
+        "name": "RatioMethane",
         "type": "float",
         "description": "ratio in mass percent / 100"
       },
       {
         "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutedWater",
         "type": "float",
         "description": ""
       },
@@ -128,7 +138,12 @@
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatiles",
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidMethane",
         "type": "float",
         "description": ""
       },

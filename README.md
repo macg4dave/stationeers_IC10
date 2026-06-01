@@ -37,12 +37,14 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 - Select all, copy.
 
 Copy/paste tips:
+
 - Copy from a plain-text editor (VS Code recommended) so you don't pick up extra formatting.
 - Avoid "smart quotes" or unusual Unicode characters (the in-game editor can be picky).
 
 ### 3) Paste into the in-game IC chip
 
 In Stationeers:
+
 - Place an **IC Housing** and insert an **IC Chip**
 - Open the chip editor
 - Paste the script text
@@ -79,7 +81,7 @@ AI can be great for **small, testable** IC10 changes, script variants, and docum
 (optional) Behavior rules: <if-then rules based on device readings>
 
 E.g. For making a script.:
-- Purpose: Turn on an Active Vent when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
+- Purpose: Turn on an Active Vent when Methane is present until Oxygen ratio is >= 33%.
 - Devices:
   - Pipe Analyzer
   - Active Vent
@@ -132,10 +134,12 @@ cd stationeers_IC10
 ## VS Code setup (recommended)
 
 This repo includes VS Code workspace helpers:
+
 - Extension: `Traineratwot.stationeers-ic10` (see `.vscode/extensions.json`)
 - Debug launch config: `.vscode/launch.json` (uses debug `type: ic10`)
 
 The extension also supports an optional **hardware environment** file in TOML:
+
 - Put a `.toml` file next to scripts to define a device setup (e.g. `d0` prefab hash, slots, reagents).
 - You can use a script-specific environment by matching the script base name (example: `solar.ic10` -> `solar.toml`).
 
@@ -230,8 +234,8 @@ If a script appears to "not find" devices, check in this order:
 ## Developer notes (contributing / repo internals)
 
 - IC10 language reference:
-  - https://stationeers-wiki.com/IC10
-  - https://stationeers-wiki.com/IC10/instructions
+  - <https://stationeers-wiki.com/IC10>
+  - <https://stationeers-wiki.com/IC10/instructions>
 - AI-specific guidance for this repo lives in `.github/copilot-instructions.md` (it covers IC10 syntax, pacing, batch patterns, and documentation conventions).
 - Script conventions (when adding new scripts):
   - Prefer short `snake_case` names.

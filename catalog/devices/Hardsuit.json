@@ -128,7 +128,7 @@
         "description": ""
       },
       {
-        "name": "RatioVolatiles",
+        "name": "RatioMethane",
         "type": "float",
         "description": ""
       },
@@ -238,7 +238,7 @@
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatiles",
+        "name": "RatioLiquidMethane",
         "type": "float",
         "description": ""
       },

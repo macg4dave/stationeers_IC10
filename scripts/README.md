@@ -62,11 +62,12 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
 - `room_heater_below_20c/` — Reads a Gas Sensor and turns a Wall Heater on below 20°C.
 - `gas_sensor_glass_door_30c/` — Reads a Gas Sensor and opens a Glass Door above 30°C, closes below 30°C.
-- `volatiles_purge_active_vent/` — Turns an Active Vent on when Volatiles are present until Oxygen ratio is >= Volatiles ratio.
-- `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Volatiles are present until Oxygen ratio is >= 33% of Volatiles ratio.
+- `volatiles_purge_active_vent/` — Turns an Active Vent on when Methane is present until Oxygen ratio is >= 33%.
+- `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Methane is present until Oxygen ratio is >= 33% of Methane ratio.
+- `pipe_volatiles_gas_fuel_generator/` — Turns a Gas Fuel Generator on when a Pipe Analyzer reports any Methane.
 - `large_battery_mean_gas_generator/` — Turns a Gas Fuel Generator on when mean Ratio of all Large Station Batteries on the data network is below 30%.
 - `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
-- `landingpad_volatiles_pressure_valve/` — Enables Landingpad Liquid Output + Liquid Digital Valve only at 100% liquid volatiles, with 20 MPa safety cutoff.
+- `landingpad_volatiles_pressure_valve/` — Enables Landingpad Gas Output + Pipe Digital Valve only at 100% methane, with 20 MPa safety cutoff.
 - `hardsuit_helmet_temp_pressure_open/` — Opens a Hardsuit Helmet at or above 4°C and 80 kPa, else closes it.
 - `solar_named_tracking/` — Tracks named Solar Panel groups by Daylight Sensor and parks each group at its own home angle at night.
 - `vending_machine_export/` — Exports an exact item count from a Vending Machine by using a Stacker + Sorter return loop.
@@ -78,6 +79,7 @@ Additional scripts in this repo:
 - `liquid_temp_valve/`
 - `no_volatiles_valve/`
 - `no_volatiles_no_steam_valve/`
+- `pipe_pressure_gas_mixer/` — Turns a Gas Mixer off above a Pipe Analyzer pressure ceiling.
 - `pipe_temp_valve/`
 - `pipe_heater_below_20c/`
 - `pipe_half_full_active_vent/`

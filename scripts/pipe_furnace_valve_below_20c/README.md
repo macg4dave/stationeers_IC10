@@ -5,7 +5,9 @@
 Read a **Pipe Analyzer** and control an **Advanced Furnace** plus a
 **Pipe Digital Valve** from pipe temperature:
 
-- if temperature is **below 20°C**, turn the furnace and valve **ON**
+- if temperature is **below 20°C**, turn the valve **ON** and turn the furnace **ON**
+- if the pipe is still below **20°C**, set furnace `SettingInput = 5` and `SettingOutput = 5`
+- if the pipe is still below **20°C** and the furnace is above **100°C**, override furnace `SettingInput = 0`
 - if temperature is **above 20°C**, turn the furnace and valve **OFF**
 - if temperature is **exactly 20°C**, keep the current state
 
@@ -47,10 +49,20 @@ Edit the constants at the top of `pipe_furnace_valve_below_20c.ic10`:
   - turn furnace + valve on when `tempC < TEMP_ON_BELOW_C`
   - turn furnace + valve off when `tempC > TEMP_ON_BELOW_C`
   - hold current state when `tempC == TEMP_ON_BELOW_C`
+- `FURNACE_MAX_ON_C` (°C):
+  - if the Advanced Furnace temperature is above this value while the pipe is still below `TEMP_ON_BELOW_C`, override furnace `SettingInput` with the hot-mode value below
+  - the furnace still stays on while the pipe is cold
+- `COLD_INPUT`:
+  - furnace `SettingInput` to use while the pipe is below `TEMP_ON_BELOW_C`
+- `HOT_INPUT`:
+  - furnace `SettingInput` override to use when the furnace is hotter than `FURNACE_MAX_ON_C` and the pipe is still cold
+- `HOT_OUTPUT`:
+  - furnace `SettingOutput` to use while the pipe is still cold
 
 Temperature notes:
 
 - Pipe Analyzer `Temperature` is reported in Kelvin (K).
+- Advanced Furnace `Temperature` is also reported in Kelvin (K).
 - The script converts to Celsius using $C = K - 273.15$.
 
 ## In-game setup notes

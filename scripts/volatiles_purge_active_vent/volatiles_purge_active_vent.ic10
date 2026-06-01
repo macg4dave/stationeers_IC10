@@ -2,7 +2,7 @@
 # Category: Controller
 # Status: Functional
 #
-# Purpose: If the pipe contains Volatiles, turn an Active Vent on until
+# Purpose: If the pipe contains Methane, turn an Active Vent on until
 #          Oxygen ratio is >= 33%.
 #
 # Device registers:
@@ -48,13 +48,13 @@ mode_ok:
 
 main:
 # Read current gas composition
-l vol pa RatioVolatiles
+l vol pa RatioMethane
 l o2 pa RatioOxygen
 
 # Default to OFF
 move desired_on 0
 
-# If volatiles are present AND oxygen < 33% => vent ON
+# If methane is present AND oxygen < 33% => vent ON
 sgt cond vol EPS
 beqz cond decide
 slt cond o2 O2_TARGET

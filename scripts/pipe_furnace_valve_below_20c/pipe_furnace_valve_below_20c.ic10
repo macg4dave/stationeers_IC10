@@ -1,21 +1,6 @@
 # pipe_furnace_valve_below_20c
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - Read a Pipe Analyzer temperature.
-# - If temperature is below 20C, turn ON an Adv Furnace and Pipe Digital Valve.
-# - If temperature is above 20C, turn them OFF.
-# - At exactly 20C, keep current state.
-#
-# Device registers:
-#   d0 = Pipe Analyzer
-#   d1 = Pipe Digital Valve
-#   d2 = Advanced Furnace
-#
-# Notes:
-# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - The script clears Lock on the valve/furnace if needed.
+# d0=Pipe Analyzer d1=Pipe Digital Valve d2=Advanced Furnace
+# pipe<20C: ON, In=5 Out=5; if furnace>100C set In=0; pipe>20C: OFF
 
 alias pipe_read d0
 alias pipe_valve d1
@@ -30,12 +15,19 @@ alias current_furnace_on r5
 alias current_lock r6
 alias current_activate r7
 alias desired_activate r8
-alias sensor_hash r9
+alias furnaceC r9
+alias current_in r10
+alias desired_in r11
+alias current_out r12
+alias desired_out r13
+alias cold_pipe r14
 
 define KELVIN_TO_C 273.15
 define TEMP_ON_BELOW_C 20
-
-# Pipe Analyzer prefab hash from catalog/devices/Pipe_Analyzer.json
+define FURNACE_MAX_ON_C 100
+define COLD_INPUT 5
+define HOT_INPUT 0
+define HOT_OUTPUT 5
 define PIPE_ANALYZER_HASH 435685051
 
 wait_devices:
@@ -48,26 +40,33 @@ main:
 bdns d0 wait_devices
 bdns d1 wait_devices
 bdns d2 wait_devices
-l sensor_hash pipe_read PrefabHash
-bne sensor_hash PIPE_ANALYZER_HASH wait_devices
+l furnaceC pipe_read PrefabHash
+bne furnaceC PIPE_ANALYZER_HASH wait_devices
 
 l tempC pipe_read Temperature
 sub tempC tempC KELVIN_TO_C
+l furnaceC furnace Temperature
+sub furnaceC furnaceC KELVIN_TO_C
 
 l current_valve_on pipe_valve On
 l current_furnace_on furnace On
 l current_activate furnace Activate
+l current_in furnace SettingInput
+l current_out furnace SettingOutput
 move desired_valve_on current_valve_on
 move desired_furnace_on current_furnace_on
 move desired_activate current_activate
-
-# below threshold -> valve/furnace ON
-slt cond tempC TEMP_ON_BELOW_C
-select desired_valve_on cond 1 desired_valve_on
-select desired_furnace_on cond 1 desired_furnace_on
-select desired_activate cond 1 desired_activate
-
-# above threshold -> valve/furnace OFF
+move desired_in current_in
+move desired_out current_out
+slt cold_pipe tempC TEMP_ON_BELOW_C
+select desired_valve_on cold_pipe 1 desired_valve_on
+select desired_furnace_on cold_pipe 1 desired_furnace_on
+select desired_activate cold_pipe 1 desired_activate
+select desired_in cold_pipe COLD_INPUT desired_in
+select desired_out cold_pipe HOT_OUTPUT desired_out
+slt cond FURNACE_MAX_ON_C furnaceC
+and cond cond cold_pipe
+select desired_in cond HOT_INPUT desired_in
 slt cond TEMP_ON_BELOW_C tempC
 select desired_valve_on cond 0 desired_valve_on
 select desired_furnace_on cond 0 desired_furnace_on
@@ -99,6 +98,16 @@ sne cond desired_furnace_on current_furnace_on
 beqz cond furnace_on_done
 s furnace On desired_furnace_on
 furnace_on_done:
+
+sne cond desired_in current_in
+beqz cond furnace_in_done
+s furnace SettingInput desired_in
+furnace_in_done:
+
+sne cond desired_out current_out
+beqz cond furnace_out_done
+s furnace SettingOutput desired_out
+furnace_out_done:
 
 seq cond desired_activate 1
 beqz cond done

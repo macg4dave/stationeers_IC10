@@ -53,6 +53,11 @@
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },
       {
+        "name": "RatioHydrogen",
+        "type": "float",
+        "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
+      },
+      {
         "name": "RatioCarbonDioxide",
         "type": "float",
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
@@ -73,12 +78,17 @@
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },
       {
-        "name": "RatioVolatiles",
+        "name": "RatioMethane",
         "type": "float",
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },
       {
         "name": "RatioWater",
+        "type": "float",
+        "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioPollutedWater",
         "type": "float",
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },
@@ -128,7 +138,12 @@
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },
       {
-        "name": "RatioLiquidVolatiles",
+        "name": "RatioLiquidHydrogen",
+        "type": "float",
+        "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
+      },
+      {
+        "name": "RatioLiquidMethane",
         "type": "float",
         "description": "Assumed from Pipe_Analyzer (gas-side baseline) due to missing wiki Data Network table."
       },

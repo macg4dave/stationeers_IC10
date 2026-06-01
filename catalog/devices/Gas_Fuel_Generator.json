@@ -1,12 +1,13 @@
 {
   "source": {
-    "wikiUrl": "https://stationeers-wiki.com/Kit_(Gas_Fuel_Generator)",
-    "wikiTitle": "Kit_(Gas_Fuel_Generator)",
-    "retrievedAt": "2026-02-15T20:36:21+00:00"
+    "wikiUrl": "https://stationeers-wiki.com/Gas_Fuel_Generator",
+    "wikiTitle": "Gas_Fuel_Generator",
+    "retrievedAt": "2026-06-01T06:07:13+00:00",
+    "notes": "Imported from a user-saved local HTML copy in temp/ because the live wiki is behind a Cloudflare challenge from this environment."
   },
   "identity": {
-    "itemName": "ItemKitGasGenerator",
-    "itemHash": 377745425
+    "itemName": "StructureGasGenerator",
+    "itemHash": 1165997963
   },
   "io": {
     "parameters": [
@@ -25,22 +26,22 @@
       {
         "name": "Power",
         "type": "boolean",
-        "description": "Returns whether the Gas Generator is turned on and receives power (0 for no, 1 for yes)."
+        "description": "Returns whether the Gas Generator is turned on and receives power. (0 for no, 1 for yes)"
       },
       {
         "name": "Error",
         "type": "boolean",
-        "description": "Returns whether the Gas Generator is flashing an error (0 for no, 1 for yes)."
+        "description": "Returns whether the Gas Generator is flashing an error. (0 for no, 1 for yes)"
       },
       {
         "name": "Pressure",
         "type": "float",
-        "description": "Returns the pressure in the Gas Generator in kilo pascal (kPa)."
+        "description": "Returns the pressure in the Gas Generator in kilo pascal."
       },
       {
         "name": "Temperature",
         "type": "float",
-        "description": "Returns the temperature in the Gas Generator in kelvin (K)."
+        "description": "Returns the temperature in the Gas Generator in kelvin."
       },
       {
         "name": "Setting",
@@ -156,6 +157,21 @@
         "name": "PowerGeneration",
         "type": "float",
         "description": "Returns power production"
+      },
+      {
+        "name": "TotalMoles",
+        "type": "float",
+        "description": "Returns total amount of fuel in moles"
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": ""
       }
     ]
   }

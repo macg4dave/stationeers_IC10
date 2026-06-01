@@ -39,6 +39,8 @@ The visor will:
 - **open** only when external `Pressure` is between `80 kPa` and `150 kPa`
 - **close** otherwise
 - **close again** if it was open and either reading later drops below the threshold
+- **stay closed** if you manually close it after auto-open, until conditions go unsafe and
+  become safe again or you manually reopen it
 
 ## Tuning
 
@@ -56,7 +58,11 @@ Edit the constants at the top of `hardsuit_helmet_temp_pressure_open.ic10`:
 - Hardsuit `PressureExternal` is compared as **kPa**.
 - The script reevaluates temperature and pressure every cycle, so it will reopen or re-close
   the helmet as conditions move inside or outside the safe range.
-- The script writes `Lock = 0` and then updates `Open` every cycle.
+- A manual close while conditions are still safe becomes a temporary override latch.
+- That latch clears automatically after conditions leave the safe range, or if you manually
+  reopen the helmet.
+- The script clears `Lock` only when needed and updates `Open` only when the desired state
+  changes.
 - If the helmet is missing or detached, the script waits until `d0` is available again.
 
 ## Status

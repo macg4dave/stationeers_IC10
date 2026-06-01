@@ -1,10 +1,10 @@
 # no_volatiles_no_steam_valve
 
-Opens a **Pipe Digital Valve** only when the connected **Pipe Analyzer** reports **no Volatiles** and **no Steam**.
+Opens a **Pipe Digital Valve** only when the connected **Pipe Analyzer** reports **no Methane** and **no Steam**.
 
 ## Purpose
 
-Useful as a “clean-gas only” gate: if either Volatiles or Steam is present in the pipe, the valve stays closed.
+Useful as a clean-gas-only gate: if either Methane or Steam is present in the pipe, the valve stays closed.
 
 ## Devices
 
@@ -23,7 +23,7 @@ Required:
 
 Every tick it reads:
 
-- `RatioVolatiles` (from the Pipe Analyzer)
+- `RatioMethane` (from the Pipe Analyzer)
 - `RatioSteam` (from the Pipe Analyzer)
 - `Pressure` (from the Pipe Analyzer, in kPa)
 

@@ -56,6 +56,12 @@
       "itemHash": null
     },
     {
+      "wikiTitle": "Gas_Fuel_Generator",
+      "file": "devices/Gas_Fuel_Generator.json",
+      "itemName": "StructureGasGenerator",
+      "itemHash": 1165997963
+    },
+    {
       "wikiTitle": "Hardsuit",
       "file": "devices/Hardsuit.json",
       "itemName": "ItemHardSuit",
