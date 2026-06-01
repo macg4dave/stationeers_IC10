@@ -1,0 +1,46 @@
+# sat_trader_track_master
+# d0=dishw d1=alertw d2=ctok d3=ctype d4=dial d5=typeled
+alias dishw d0
+alias alertw d1
+alias ctok d2
+alias ctype d3
+alias dial d4
+alias led d5
+alias sel r0
+alias cur r1
+alias tok r2
+init:
+move tok 0
+s db Setting 0
+main:
+yield
+bdns dishw main
+bdns alertw main
+bdns ctok main
+bdns ctype main
+bnez cur aok
+s dishw On 1
+aok:
+l cur alertw On
+bnez cur lok
+s alertw On 1
+lok:
+l sel dial Setting
+l cur led Setting
+beq cur sel lon
+s led Setting sel
+lon:
+l cur led On
+bnez cur sync
+s led On 1
+sync:
+l cur ctype Setting
+beq cur sel ok
+s ctype Setting sel
+add tok tok 1
+s ctok Setting tok
+s db Setting 10
+j main
+ok:
+s db Setting 1
+j main

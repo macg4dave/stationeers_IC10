@@ -19,6 +19,7 @@ Each modular feature lives in:
 - `PrinterHall/` — Shared-bus multi-Autolathe hall controller with selector, logistics, overflow, and idle workers.
 - `SmallDishHandoff/` — Two-chip scanning/contact satellite dish handoff using one Logic Memory slot.
 - `SatCom/` — Satellite communications modular scaffold.
+- `SatTraderTrack/` — Compact modular trader tracker with medium/large dish handoff and auto-land support.
 - `_template/` — Starter master/worker template for new modular features.
 
 ## Notes

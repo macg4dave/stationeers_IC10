@@ -1,0 +1,126 @@
+# sat_trader_track_worker_dish
+alias dish d0
+alias dishL d1
+alias selm d3
+alias lev d4
+alias led d5
+alias h r15
+alias v r14
+alias sig r13
+alias old r12
+alias phs r11
+alias step r10
+alias prog r9
+alias sid r8
+alias sel r7
+define MIN 500
+define MAX 10000
+define LPWR 20000
+init:
+s dish Setting MAX
+main:
+yield
+bdns dish main
+bdns dishL main
+bdns selm main
+bdns lev main
+bdns led main
+l r0 dish On
+beqz r0 idle
+l sel selm Setting
+s led Setting sel
+s led Color sel
+jal hv
+s dish Horizontal h
+sleep 1
+l r0 dish Idle
+breqz r0 -2
+l prog dish InterrogationProgress
+l sig dish SignalStrength
+l r4 dish ContactTypeId
+l sid dish SignalID
+beqz sel any
+seq r2 r4 sel
+select r1 r2 sid -1
+select r1 prog -1 r1
+s dish BestContactFilter r1
+j live
+any:
+beqz prog 2
+s dish BestContactFilter -1
+live:
+bgtz prog done
+blez sig step6
+l r1 dish MinimumWattsToContact
+l r2 dish WattsReachingContact
+bdseal dishL swap
+blt r1 r2 fire
+sub r0 old sig
+sub step 100 sig
+mul step r0 step
+select step r0 step 1
+seq r0 old -1
+select step r0 1 step
+mod step step 3
+bgtz step adv
+mul r0 deg2rad step
+add phs phs r0
+add phs phs pi
+j main
+step6:
+move old sig
+add h h 6
+brlt h 360 2
+add phs phs 0.785398163397
+j main
+adv:
+move old sig
+add h h step
+brlt h 360 2
+add phs phs 0.785398163397
+j main
+fire:
+s dish Activate 0
+s led Color 11
+s dish Activate 1
+s db Setting 140
+j main
+done:
+beq prog 1 land
+j main
+idle:
+s db Setting 100
+j main
+land:
+l r0 lev Open
+beqz r0 miss
+beqz sel go
+bne r4 sel miss
+go:
+s dish Activate 1
+s db Setting 150
+j main
+miss:
+s db Setting 151
+j main
+hv:
+mod h h 360
+mod phs phs 6.283185307179586
+mul r0 deg2rad h
+add r0 r0 phs
+sin r0 r0
+mul r0 r0 90
+abs v r0
+s dish Vertical v
+j ra
+swap:
+brlt r1 MAX 5
+alias dish d1
+s dishL Setting LPWR
+s dishL BestContactFilter sid
+s dishL On 1
+brge r1 MAX 4
+alias dish d0
+alias dishL d1
+s dishL On 0
+j ra

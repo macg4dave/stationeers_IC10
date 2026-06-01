@@ -1,0 +1,38 @@
+# sat_trader_track_worker_landing
+# d0=med d1=large d2=typeled d3=stepled d4=n4 d5=n5
+alias dish d0
+alias dishL d1
+alias type d2
+alias step d3
+alias n4 d4
+alias n5 d5
+alias pad r0
+alias mode r1
+alias out r2
+define PAD HASH("Landingpad_DataConnectionPiece")
+init:
+s db Setting 200
+main:
+yield
+bdns dish main
+bdns dishL main
+bdns type main
+bdns step main
+lb pad PAD On Average
+s dish On pad
+s type On pad
+s step On pad
+beqz pad off
+lb mode PAD Mode Average
+seq out mode 4
+sb -1535893860 On out
+sb -828056979 On out
+select out out 210 201
+s db Setting out
+j main
+off:
+s dishL On 0
+sb -1535893860 On 0
+sb -828056979 On 0
+s db Setting 200
+j main
