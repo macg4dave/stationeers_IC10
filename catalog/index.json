@@ -212,6 +212,12 @@
       "itemHash": -1751627006
     },
     {
+      "wikiTitle": "Pipe_Igniter",
+      "file": "devices/Pipe_Igniter.json",
+      "itemName": "ItemPipeIgniter",
+      "itemHash": 617293416
+    },
+    {
       "wikiTitle": "Pipe_Volume_Pump",
       "file": "devices/Pipe_Volume_Pump.json",
       "itemName": "ItemPipeVolumePump",

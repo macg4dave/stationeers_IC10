@@ -1,0 +1,29 @@
+{
+  "source": {
+    "kind": "best_guess",
+    "wikiUrl": "https://stationeers-wiki.com/Pipe_Igniter",
+    "wikiTitle": "Pipe_Igniter",
+    "retrievedAt": "2026-06-01T00:00:00+00:00",
+    "notes": "Manual best-guess entry because the Stationeers wiki is unavailable from this environment. Identity uses the user-provided item hash 617293416 and an inferred item name of ItemPipeIgniter; I/O is kept conservative to only the confirmed/expected On field until verified in-game or from the wiki."
+  },
+  "identity": {
+    "itemName": "ItemPipeIgniter",
+    "itemHash": 617293416
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Best guess: turns the Pipe Igniter on when set to 1 and off when set to 0."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Best guess: returns whether the Pipe Igniter is set to on."
+      }
+    ]
+  }
+}
