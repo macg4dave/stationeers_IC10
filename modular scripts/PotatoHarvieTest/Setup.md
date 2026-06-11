@@ -20,6 +20,7 @@ This version is intentionally direct-wired so each IC chip stays paste-ready.
 - 1x Hydroponics Device
 - 1x Harvie
 - 1x Grow Light
+- 1x Daylight Sensor
 
 ## Name contract
 
@@ -37,8 +38,8 @@ Set these exact names (case-sensitive):
 
 ## Setup steps
 
-1. Put the chips, memories, lever, Hydroponics Device, Harvie, and Grow Light on the same
-   base data / power network.
+1. Put the chips, memories, lever, Hydroponics Device, Harvie, Grow Light, and Daylight
+  Sensor on the same base data / power network.
 
 2. Paste scripts:
 
@@ -62,7 +63,7 @@ Set these exact names (case-sensitive):
 - `d1` -> Logic Memory `slot0`
 - `d2` -> Logic Memory `slot1`
 - `d3` -> Logic Memory `slot2`
-- `d4` -> unused
+- `d4` -> Daylight Sensor
 - `d5` -> unused
 
 1. Wire the **actuator worker** chip:
@@ -71,7 +72,7 @@ Set these exact names (case-sensitive):
 - `d1` -> Grow Light
 - `d2` -> Logic Memory `cmd_type`
 - `d3` -> Logic Memory `slot0`
-- `d4` -> Logic Memory `slot1`
+- `d4` -> unused
 - `d5` -> Logic Memory `slot2`
 
 1. Wire the **setup guard** chip exactly like the master chip.
@@ -83,8 +84,15 @@ Set these exact names (case-sensitive):
 ## Pin label convention
 
 - Master and setup guard alias `d5` as `n5`.
-- Sensor worker aliases `d4..d5` as `n4..n5`.
+- Sensor worker aliases `d5` as `n5`.
+- Actuator worker aliases `d4` as `n4`.
 - This keeps in-game pin labels current after updates.
+
+## Daylight Sensor notes
+
+- The script treats the Daylight Sensor as a simple daylight-available signal.
+- Mount it in the same general daylight conditions as the tray when possible.
+- If you use the same sensor orientation as the repo clock script, keep it facing up.
 
 ## Controls
 
@@ -113,5 +121,7 @@ Quick interpretation:
 
 - if `cmd_type` changes with the lever, master wiring is working
 - if `sensor_worker = 110`, tray reads are live
+- if `slot0` bit `16` is set, the module currently sees daylight available
+- if `slot2` is near `1.0` or higher, plant efficiency is healthy
 - if `actuator_worker = 220`, a plant pulse was sent
 - if `actuator_worker = 230`, a harvest pulse was sent
