@@ -1,0 +1,75 @@
+# potato_harvie_test_worker_sensor
+# d0=hydro d1=slot0 d2=slot1 d3=slot2 d4=n4 d5=n5
+alias hydro d0
+alias slot0 d1
+alias slot1 d2
+alias slot2 d3
+alias n4 d4
+alias n5 d5
+alias flags r0
+alias env r1
+alias tmp r2
+alias cond r3
+alias growth r4
+
+define K2C 273.15
+
+init:
+s db Setting 100
+main:
+yield
+bdns hydro main
+bdns slot0 main
+bdns slot1 main
+bdns slot2 main
+move flags 0
+move env 0
+ls cond hydro 0 Occupied
+beqz cond chk_mat
+or flags flags 1
+chk_mat:
+ls cond hydro 0 Mature
+beqz cond chk_seed
+or flags flags 2
+chk_seed:
+ls tmp hydro 0 Seeding
+sgt cond tmp 0
+beqz cond chk_hp
+or flags flags 4
+chk_hp:
+ls tmp hydro 0 Health
+sgt cond tmp 0.5
+beqz cond chk_temp
+or flags flags 8
+chk_temp:
+l tmp hydro Temperature
+sub tmp tmp K2C
+slt cond tmp 20
+bnez cond chk_press
+sgt cond tmp 30
+bnez cond chk_press
+or env env 1
+chk_press:
+l tmp hydro Pressure
+slt cond tmp 50
+bnez cond chk_water
+sgt cond tmp 100
+bnez cond chk_water
+or env env 2
+chk_water:
+l tmp hydro RatioWater
+sgt cond tmp 0
+beqz cond chk_co2
+or env env 4
+chk_co2:
+l tmp hydro RatioCarbonDioxide
+sgt cond tmp 0
+beqz cond save
+or env env 8
+save:
+ls growth hydro 0 Growth
+s slot0 Setting flags
+s slot1 Setting growth
+s slot2 Setting env
+s db Setting 110
+j main

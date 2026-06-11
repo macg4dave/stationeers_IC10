@@ -1,0 +1,99 @@
+# potato_harvie_test_worker_actuator
+# d0=hv d1=lit d2=ctype d3=slot0 d4=slot1 d5=slot2
+alias hv d0
+alias lit d1
+alias ctype d2
+alias slot0 d3
+alias slot1 d4
+alias slot2 d5
+alias mode r0
+alias flags r1
+alias cur r2
+alias cond r3
+alias busy r4
+alias pcd r5
+alias hcd r6
+alias occ r7
+alias mat r8
+alias imp r9
+alias lock r10
+init:
+move pcd 0
+move hcd 0
+s db Setting 200
+main:
+yield
+bdns hv main
+bdns lit main
+bdns ctype main
+bdns slot0 main
+bdns slot1 main
+bdns slot2 main
+l mode ctype Setting
+beqz mode offm
+sgt cond pcd 0
+beqz cond dec_h
+sub pcd pcd 1
+dec_h:
+sgt cond hcd 0
+beqz cond prep
+sub hcd hcd 1
+prep:
+l lock hv Lock
+beqz lock hv_on
+s hv Lock 0
+hv_on:
+l cur hv On
+bnez cur readm
+s hv On 1
+readm:
+l flags slot0 Setting
+and occ flags 1
+and mat flags 2
+l cur lit On
+beqz occ light_off
+bnez cur read_busy
+s lit On 1
+j read_busy
+light_off:
+beqz cur read_busy
+s lit On 0
+read_busy:
+l busy hv Activate
+bnez busy steady
+beqz occ try_plant
+beqz mat steady
+sgt cond hcd 0
+bnez cond steady
+s hv Harvest 1
+s db Setting 230
+yield
+s hv Harvest 0
+move hcd 5
+j main
+try_plant:
+l imp hv ImportCount
+sgt cond imp 0
+beqz cond steady
+sgt cond pcd 0
+bnez cond steady
+s hv Plant 1
+s db Setting 220
+yield
+s hv Plant 0
+move pcd 5
+j main
+steady:
+s db Setting 210
+j main
+offm:
+l cur hv On
+beqz cur off_l
+s hv On 0
+off_l:
+l cur lit On
+beqz cur off_ok
+s lit On 0
+off_ok:
+s db Setting 200
+j main

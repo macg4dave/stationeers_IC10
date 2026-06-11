@@ -1,0 +1,44 @@
+{
+  "source": {
+    "kind": "best_guess",
+    "wikiUrl": "https://stationeers-wiki.com/Kit_(Grow_Light)",
+    "wikiTitle": "Kit_(Grow_Light)",
+    "retrievedAt": "2026-06-11T00:00:00Z",
+    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup."
+  },
+  "identity": {
+    "itemName": "ItemKitGrowLight",
+    "itemHash": 341030083
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}

@@ -74,10 +74,28 @@
       "itemHash": -84573099
     },
     {
+      "wikiTitle": "Hydroponics_Device",
+      "file": "devices/Hydroponics_Device.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Kit_(Gas_Fuel_Generator)",
       "file": "devices/Kit_(Gas_Fuel_Generator).json",
       "itemName": "ItemKitGasGenerator",
       "itemHash": 377745425
+    },
+    {
+      "wikiTitle": "Kit_(Grow_Light)",
+      "file": "devices/Kit_(Grow_Light).json",
+      "itemName": "ItemKitGrowLight",
+      "itemHash": 341030083
+    },
+    {
+      "wikiTitle": "Kit_(Harvie)",
+      "file": "devices/Kit_(Harvie).json",
+      "itemName": null,
+      "itemHash": null
     },
     {
       "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",

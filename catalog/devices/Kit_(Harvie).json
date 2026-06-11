@@ -1,0 +1,122 @@
+{
+  "source": {
+    "kind": "best_guess",
+    "wikiUrl": "https://stationeers-wiki.com/Kit_(Harvie)",
+    "wikiTitle": "Kit_(Harvie)",
+    "retrievedAt": "2026-06-11T00:00:00Z",
+    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup."
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "Idle"
+      },
+      {
+        "value": 1,
+        "meaning": "Happy"
+      },
+      {
+        "value": 2,
+        "meaning": "Unhappy"
+      },
+      {
+        "value": 3,
+        "meaning": "Dead"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": "Idle = 0, Planting = 1, Harvesting = 2"
+      },
+      {
+        "name": "ClearMemory",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Harvest",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Locks the device when set to 1. Unlocks it when set to 0."
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Idle = 0, Happy = 1, Unhappy = 2, Dead = 3"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Plant",
+        "type": "boolean",
+        "description": ""
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": "Idle = 0, Planting = 1, Harvesting = 2"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "ExportCount",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "ImportCount",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Returns whether the device is locked."
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Idle = 0, Happy = 1, Unhappy = 2, Dead = 3"
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+# room_co2_below_20pct_active_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose:
+# - If Gas Sensor CO2 ratio < 20% OR room pressure < 100 kPa:
+#   open and turn ON an Active Vent.
+# - Otherwise close the Active Vent and turn it OFF.
+#
+# Device registers:
+#   d0 = Gas Sensor
+#   d1 = Active Vent
+#
+# Notes:
+# - Gas Sensor RatioCarbonDioxide is reported as 0..1.
+# - Gas Sensor Pressure may be Pa or kPa; this script normalizes to kPa.
+# - This script uses a strict threshold: below 20% means < 0.20.
+# - The script sets vent Mode, Setting, Open, and On.
+# - Active Vent mode constants are listed below; swap if your build differs.
+# - Change VENT_MODE below if you want the opposite airflow direction.
+
+alias gas_read d0
+alias vent d1
+
+alias co2 r0
+alias cond r1
+alias desired_on r2
+alias current_on r3
+alias current_open r4
+alias sensor_hash r5
+alias pressure r6
+alias pressure_kpa r7
+alias current_setting r8
+alias current_mode r9
+
+define CO2_OPEN_BELOW_RATIO 0.20
+define MIN_ROOM_PRESSURE_KPA 100
+
+# Active Vent mode values (swap if needed)
+define MODE_OUTWARD 0
+define MODE_INWARD 1
+define VENT_MODE MODE_OUTWARD
+
+# Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
+define GAS_SENSOR_HASH -1252983604
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+
+main:
+bdns d0 wait_devices
+bdns d1 wait_devices
+l sensor_hash gas_read PrefabHash
+bne sensor_hash GAS_SENSOR_HASH wait_devices
+
+l co2 gas_read RatioCarbonDioxide
+l pressure gas_read Pressure
+move pressure_kpa pressure
+sgt cond pressure 2000
+beqz cond pressure_ready
+div pressure_kpa pressure 1000
+pressure_ready:
+
+# Vent ON/Open when CO2 ratio < threshold OR pressure < MIN_ROOM_PRESSURE_KPA
+move desired_on 0
+slt cond co2 CO2_OPEN_BELOW_RATIO
+bnez cond need_vent
+slt cond pressure_kpa MIN_ROOM_PRESSURE_KPA
+beqz cond decide
+need_vent:
+move desired_on 1
+decide:
+
+# avoid redundant writes (and network spam): only set when it changes
+l current_mode vent Mode
+l current_setting vent Setting
+l current_open vent Open
+l current_on vent On
+sne cond VENT_MODE current_mode
+bnez cond write_state
+sne cond MIN_ROOM_PRESSURE_KPA current_setting
+bnez cond write_state
+sne cond desired_on current_open
+bnez cond write_state
+sne cond desired_on current_on
+beqz cond done
+
+write_state:
+s vent Lock 0
+sne cond VENT_MODE current_mode
+beqz cond skip_mode
+s vent Mode VENT_MODE
+yield
+skip_mode:
+sne cond MIN_ROOM_PRESSURE_KPA current_setting
+beqz cond skip_setting
+s vent Setting MIN_ROOM_PRESSURE_KPA
+skip_setting:
+s vent Open desired_on
+s vent On desired_on
+done:
+
+yield
+j main

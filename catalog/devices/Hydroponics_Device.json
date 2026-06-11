@@ -1,0 +1,89 @@
+{
+  "source": {
+    "kind": "best_guess",
+    "wikiUrl": "https://stationeers-wiki.com/Hydroponics_Device",
+    "wikiTitle": "Hydroponics_Device",
+    "retrievedAt": "2026-06-11T00:00:00Z",
+    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup. Slot metadata exists on the wiki page, but the current catalog schema stores only parameters and outputs."
+  },
+  "identity": {
+    "itemName": null,
+    "itemHash": null
+  },
+  "io": {
+    "parameters": [
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": "Unknown"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Activate",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Combustion",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "Returns ItemHash of device."
+      },
+      {
+        "name": "Pressure",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxide",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygen",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutant",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatiles",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWater",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Temperature",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TotalMoles",
+        "type": "float",
+        "description": ""
+      }
+    ]
+  }
+}

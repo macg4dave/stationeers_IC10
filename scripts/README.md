@@ -60,6 +60,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
 - `pipe_pressure_active_vent/` — Reads a Pipe Analyzer pressure and batch-drives named Active Vents to fill the pipe to a target MPa.
 - `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
+- `room_co2_below_20pct_active_vent/` — Reads room CO2 ratio (Gas Sensor) and opens an Active Vent below 20%.
 - `room_heater_below_20c/` — Reads a Gas Sensor and turns a Wall Heater on below 20°C.
 - `gas_sensor_glass_door_30c/` — Reads a Gas Sensor and opens a Glass Door above 30°C, closes below 30°C.
 - `volatiles_purge_active_vent/` — Turns an Active Vent on when Methane is present until Oxygen ratio is >= 33%.

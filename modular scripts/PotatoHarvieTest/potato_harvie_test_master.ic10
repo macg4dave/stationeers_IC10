@@ -1,0 +1,50 @@
+# potato_harvie_test_master
+# d0=sensw d1=actw d2=ctok d3=ctype d4=lev d5=n5
+alias sensw d0
+alias actw d1
+alias ctok d2
+alias ctype d3
+alias lev d4
+alias n5 d5
+alias mode r0
+alias prev r1
+alias tok r2
+alias cond r3
+init:
+move prev -1
+move tok 0
+s db Setting 0
+main:
+yield
+bdns sensw main
+bdns actw main
+bdns ctok main
+bdns ctype main
+bdns lev main
+l cond sensw On
+bnez cond chk_act
+s sensw On 1
+chk_act:
+l cond actw On
+bnez cond read
+s actw On 1
+read:
+l mode lev Open
+beq mode prev steady
+move prev mode
+s ctype Setting mode
+add tok tok 1
+s ctok Setting tok
+beqz mode pub_off
+s db Setting 20
+j main
+pub_off:
+s db Setting 10
+j main
+steady:
+beqz mode off_ok
+s db Setting 2
+j main
+off_ok:
+s db Setting 1
+j main
