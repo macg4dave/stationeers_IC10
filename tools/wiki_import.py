@@ -27,7 +27,7 @@ from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Iterable, List, Optional
-from urllib.parse import parse_qs, urldefrag, urlparse
+from urllib.parse import parse_qs, unquote, urldefrag, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -93,6 +93,36 @@ def _parse_wiki_url(url: str) -> tuple[str, str, Optional[str]]:
     # If the URL includes a fragment, treat that as the logical "device title".
     wiki_title = fragment or page_title
     return wiki_title, fetch_url, fragment
+
+
+def _local_path_from_arg(arg: str) -> Optional[Path]:
+    path = Path(arg)
+    if path.exists():
+        return path
+
+    parsed = urlparse(arg)
+    if parsed.scheme == "file":
+        file_path = Path(unquote(parsed.path))
+        if file_path.exists():
+            return file_path
+
+    return None
+
+
+def _extract_wiki_title_from_html(html: str, *, fallback: str) -> str:
+    """Extract the MediaWiki page title from saved page HTML."""
+
+    m = re.search(r'"wgPageName"\s*:\s*"([^"]+)"', html)
+    if m:
+        return m.group(1)
+
+    m = re.search(r"<title>\s*(.*?)\s*(?:-\s*Stationeers Community Wiki)?\s*</title>", html)
+    if m:
+        title = unescape(m.group(1)).strip()
+        if title:
+            return title.replace(" ", "_")
+
+    return fallback
 
 
 def _normalize_type(type_str: str) -> str:
@@ -638,15 +668,21 @@ def upsert_index(entry: dict) -> None:
 
 def main(argv: List[str]) -> int:
     if len(argv) != 2:
-        print("Usage: python tools/wiki_import.py <stationeers-wiki device URL>")
+        print("Usage: python tools/wiki_import.py <stationeers-wiki device URL or saved HTML file>")
         print("  Tip: for multi-device pages, you can import a specific section:")
         print("    python tools/wiki_import.py https://stationeers-wiki.com/Sensors#Gas_Sensor")
         return 2
 
     url = argv[1]
-    wiki_title, fetch_url, fragment = _parse_wiki_url(url)
-
-    html = fetch_html(fetch_url)
+    local_path = _local_path_from_arg(url)
+    if local_path:
+        html = local_path.read_text(encoding="utf-8", errors="replace")
+        wiki_title = _extract_wiki_title_from_html(html, fallback=local_path.stem.replace(" ", "_"))
+        fetch_url = f"https://stationeers-wiki.com/{wiki_title}"
+        fragment = None
+    else:
+        wiki_title, fetch_url, fragment = _parse_wiki_url(url)
+        html = fetch_html(fetch_url)
 
     section_start_pos: Optional[int] = None
     if fragment:
@@ -698,10 +734,11 @@ def main(argv: List[str]) -> int:
 
     if not params and not outs:
         # Attempt to follow a transclusion to */Data_Network by grabbing the edit view.
-        try:
-            edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
-        except Exception:
-            edit_html = ""
+        if not local_path:
+            try:
+                edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
+            except Exception:
+                edit_html = ""
 
         dn_title = _extract_transcluded_data_network_title(edit_html) if edit_html else None
         if dn_title:
@@ -742,7 +779,7 @@ def main(argv: List[str]) -> int:
     else:
         item_name, item_hash = _extract_identity(html)
 
-        if not edit_html:
+        if not edit_html and not local_path:
             try:
                 edit_html = fetch_html(_with_query(fetch_url, query="action=edit"))
             except Exception:

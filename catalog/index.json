@@ -20,6 +20,12 @@
       "itemHash": -616758353
     },
     {
+      "wikiTitle": "Air_Conditioner",
+      "file": "devices/Air_Conditioner.json",
+      "itemName": "StructureAirConditioner",
+      "itemHash": -2087593337
+    },
+    {
       "wikiTitle": "Autolathe",
       "file": "devices/Autolathe.json",
       "itemName": "ItemKitAutolathe",
@@ -44,6 +50,12 @@
       "itemHash": null
     },
     {
+      "wikiTitle": "Gas_Fuel_Generator",
+      "file": "devices/Gas_Fuel_Generator.json",
+      "itemName": "StructureGasGenerator",
+      "itemHash": 1165997963
+    },
+    {
       "wikiTitle": "Gas_Sensor",
       "file": "devices/Gas_Sensor.json",
       "itemName": "StructureGasSensor",
@@ -54,12 +66,6 @@
       "file": "devices/Glass_Door.json",
       "itemName": null,
       "itemHash": null
-    },
-    {
-      "wikiTitle": "Gas_Fuel_Generator",
-      "file": "devices/Gas_Fuel_Generator.json",
-      "itemName": "StructureGasGenerator",
-      "itemHash": 1165997963
     },
     {
       "wikiTitle": "Hardsuit",

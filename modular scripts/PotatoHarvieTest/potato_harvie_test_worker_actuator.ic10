@@ -1,21 +1,20 @@
 # potato_harvie_test_worker_actuator
-# d0=hv d1=lit d2=ctype d3=slot0 d4=n4 d5=slot2
+# d0=hv d1=lit d2=ctype d3=slot0 d4=n4 d5=n5
 alias hv d0
 alias lit d1
 alias ctype d2
 alias slot0 d3
 alias n4 d4
-alias slot2 d5
+alias n5 d5
 alias cur r0
 alias tmp r1
 alias cond r2
 alias pcd r3
 alias hcd r4
 alias cyc r5
-
+alias hhash r6
 define LIGHT_TICKS 600
 define TOTAL_TICKS 1000
-
 init:
 move pcd 0
 move hcd 0
@@ -27,20 +26,21 @@ bdns hv main
 bdns lit main
 bdns ctype main
 bdns slot0 main
-bdns slot2 main
+l hhash hv PrefabHash
 l cur ctype Setting
 beqz cur offm
 sgt cond pcd 0
 sub pcd pcd cond
 sgt cond hcd 0
 sub hcd hcd cond
-l cur hv Lock
+lb cur hhash Lock Maximum
 beqz cur hv_on
-s hv Lock 0
+sb hhash Lock 0
 hv_on:
-l cur hv On
-bnez cur readm
-s hv On 1
+lb cur hhash On Average
+seq cond cur 1
+bnez cond readm
+sb hhash On 1
 readm:
 l tmp slot0 Setting
 and cond tmp 1
@@ -62,19 +62,6 @@ j read_busy
 reset_cycle:
 move cyc 0
 light_phase:
-and cond tmp 16
-beqz cond need_lit
-l cur slot2 Setting
-slt cond cur 1
-bnez cond need_lit
-l cur lit On
-beqz cur sun_ok
-s lit On 0
-sun_ok:
-add cyc cyc 1
-s db Setting 211
-j read_busy
-need_lit:
 l cur lit On
 bnez cur lit_ok
 s lit On 1
@@ -84,43 +71,42 @@ s db Setting 212
 j read_busy
 no_plant:
 move cyc 0
- s db Setting 210
+s db Setting 210
 l cur lit On
 beqz cur read_busy
 s lit On 0
 read_busy:
-l cur hv Activate
-bnez cur main
+lb cur hhash Activate Maximum
+bnez cur busy
 and cond tmp 1
 beqz cond try_plant
 and cond tmp 2
 beqz cond main
 sgt cond hcd 0
 bnez cond main
-s hv Harvest 1
+sb hhash Harvest 1
 s db Setting 230
 yield
-s hv Harvest 0
+sb hhash Harvest 0
 move hcd 5
 j main
 try_plant:
-l cur hv ImportCount
+lb cur hhash ImportCount Maximum
 sgt cond cur 0
 beqz cond main
 sgt cond pcd 0
 bnez cond main
-s hv Plant 1
+sb hhash Plant 1
 s db Setting 220
 yield
-s hv Plant 0
+sb hhash Plant 0
 move pcd 5
+j main
+busy:
+s db Setting 221
 j main
 offm:
 move cyc 0
-l cur hv On
-beqz cur off_l
-s hv On 0
-off_l:
 l cur lit On
 beqz cur off_ok
 s lit On 0

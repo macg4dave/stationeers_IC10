@@ -1,0 +1,53 @@
+# air_conditioner_25c
+# Category: Controller
+# Status: Functional
+#
+# Purpose: Keep one Air Conditioner enabled at a 25C output target.
+#
+# Device registers:
+#   db = Air Conditioner interface from an IC chip installed in the AC
+#
+# Notes:
+# - Paste this into the IC slot inside the Air Conditioner.
+# - Edit TARGET_C in Celsius; script writes Kelvin to AC Setting.
+# - TemperatureInput is Kelvin; convert via C = K - 273.15 if used for logic.
+# - Mode values: 0=Idle, 1=Active (catalog/devices/Air_Conditioner.json).
+
+alias ac db
+
+alias cur r0
+alias cond r1
+alias targetK r2
+
+define TARGET_C 25
+define KELVIN_TO_C 273.15
+define MODE_ACTIVE 1
+
+wait_devices:
+yield
+bdns db wait_devices
+
+main:
+bdns db wait_devices
+
+add targetK TARGET_C KELVIN_TO_C
+
+l cur ac Setting
+sne cond cur targetK
+beqz cond skip_setting
+s ac Setting targetK
+skip_setting:
+
+l cur ac Mode
+sne cond cur MODE_ACTIVE
+beqz cond skip_mode
+s ac Mode MODE_ACTIVE
+skip_mode:
+
+l cur ac On
+sne cond cur 1
+beqz cond done
+s ac On 1
+done:
+yield
+j main

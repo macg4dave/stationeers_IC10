@@ -1,0 +1,404 @@
+{
+  "source": {
+    "wikiUrl": "temp/Air Conditioner - Stationeers Community Wiki.html",
+    "wikiTitle": "Air_Conditioner",
+    "retrievedAt": "2026-06-12T01:06:41+00:00"
+  },
+  "identity": {
+    "itemName": "StructureAirConditioner",
+    "itemHash": -2087593337
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "Idle",
+        "settingInterpretation": "Air Conditioner stopped"
+      },
+      {
+        "value": 1,
+        "meaning": "Active",
+        "settingInterpretation": "Air Conditioner running"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": "Closed"
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Idle"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Unpowered"
+      },
+      {
+        "name": "Open",
+        "type": "integer",
+        "description": "Closed"
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Idle"
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Unlocked"
+      },
+      {
+        "name": "Setting",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "Maximum",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "Ratio",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "Off"
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "PressureInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygenInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxideInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogenInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutantInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatilesInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWaterInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxideInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TotalMolesInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PressureOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutantOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatilesOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWaterOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TotalMolesOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PressureOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioOxygenOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioCarbonDioxideOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrogenOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioPollutantOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioVolatilesOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioWaterOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioNitrousOxideOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TotalMolesOutput2",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "CombustionInput",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "CombustionOutput",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "CombustionOutput2",
+        "type": "boolean",
+        "description": ""
+      },
+      {
+        "name": "OperationalTemperatureEfficiency",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "TemperatureDifferentialEfficiency",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "PressureEfficiency",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogenInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrogenOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygenInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygenOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidOxygenOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatilesInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatilesOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidVolatilesOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteamInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteamOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioSteamOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxideInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidCarbonDioxideOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutantInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutantOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidPollutantOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxideInput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxideOutput",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "RatioLiquidNitrousOxideOutput2",
+        "type": "float",
+        "description": ""
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": ""
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": ""
+      }
+    ]
+  }
+}

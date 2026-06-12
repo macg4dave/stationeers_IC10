@@ -16,7 +16,7 @@ Each modular feature lives in:
 - `ingot_printer/` — Queue-driven multi-Autolathe ingot printer for Free Ingots mod support.
 - `AutolatheBatch/` — Simple modular Autolathe batch-runner test rig (master + worker + setup guard).
 - `AutolatheVendStock/` — Simplified fully automatic single-Autolathe vending stocker (no buttons).
-- `PotatoHarvieTest/` — Direct-wired potato grow test for one Hydroponics Device, Harvie, and Grow Light.
+- `PotatoHarvieTest/` — Potato grow test for one Hydroponics Device, one or more Harvies, and one Grow Light.
 - `PrinterHall/` — Shared-bus multi-Autolathe hall controller with selector, logistics, overflow, and idle workers.
 - `SmallDishHandoff/` — Two-chip scanning/contact satellite dish handoff using one Logic Memory slot.
 - `SatCom/` — Satellite communications modular scaffold.

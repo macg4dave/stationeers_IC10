@@ -53,6 +53,7 @@ If behavior looks like "script can't find device", verify data-network connectio
 - `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
 - `large_satellite_dish_cycle_contacts/` — Collects unique contacts, then button-cycles lock target in discovery order.
 - `large_satellite_dish_led_readout/` — Mirrors dish `Horizontal`, `Vertical`, `SizeX`, and `SizeZ` to 4 LED Displays.
+- `air_conditioner_25c/` — Keeps one Air Conditioner enabled at a 25C output target.
 - `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
 - `pipe_heater_below_20c/` — Reads a Pipe Analyzer and turns a Pipe Heater on below 20°C.
 - `pipe_furnace_valve_below_20c/` — Reads a Pipe Analyzer and turns an Advanced Furnace plus Pipe Digital Valve on below 20°C.
