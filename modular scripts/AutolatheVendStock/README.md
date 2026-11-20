@@ -290,3 +290,13 @@ Current limitation:
 - If logistics feeder worker shows a large non-status value, that is the ingot hash it is currently trying to route into the Autolathe.
 - If the vending machine fills with partial stacks, manually consolidate or clear stock; vending machines do not merge stacks internally.
 - If `slot2` or `logistics_worker` stays on an alloy ingot unexpectedly, verify the code is checking `Required[alloy reagent hash]` rather than `Required[alloy ingot item hash]`.
+
+## Change history
+
+- 2026-11 (machine worker): the "Autolathe already prepared" check was inverted.
+  When the machine was on, idle and closed but its `RecipeHash` did **not** match
+  `slot0`, the machine worker set `slot3 = 1` (ready). `machine_prep_worker` then
+  saw "ready" and never wrote the recipe, so the Autolathe could build whatever
+  recipe it last had. Now the machine worker only sets `slot3 = 1` when the recipe
+  matches, and otherwise waits for prep (`120`). Simulated with both chip update
+  orders; **needs in-game confirmation.**

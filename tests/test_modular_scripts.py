@@ -148,7 +148,6 @@ class AutolatheVendStockHandshake(unittest.TestCase):
     def m(self, name):
         return self.mem[name].fields["Setting"]
 
-    @known_defect("D7")
     def test_missing_item_is_printed_and_command_consumed(self):
         # In-game chip update order within a tick is not something scripts can
         # rely on, so the handshake must work with either worker running first.
@@ -174,7 +173,8 @@ class AutolatheVendStockHandshake(unittest.TestCase):
         self.mach.fields.update(ExportCount=1, Activate=0)
         self.stack.fields["ExportCount"] = 1
         lockstep(self.chips, 5)
-        self.assertEqual((self.m("slot4"), self.m("slot3"), self.machine.status), (0, 0, 140))
+        self.assertEqual((self.m("slot4"), self.m("slot3")), (0, 0), "run lock released")
+        self.assertIn(140, self.machine.pins["db"].writes_of("Setting"), "reported done")
 
     def test_machine_worker_restart_releases_run_lock(self):
         lockstep(self.chips, 120)

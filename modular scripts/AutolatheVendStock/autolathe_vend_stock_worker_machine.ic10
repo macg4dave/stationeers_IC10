@@ -66,7 +66,7 @@ l curr_open mach Open
 bnez curr_open wait_prep
 l curr_on mach RecipeHash
 lbn ready MEMH SLOT0 Setting Maximum
-beq curr_on ready check_done
+bne curr_on ready wait_prep
 sbn MEMH SLOT3 Setting 1
 j check_done
 wait_prep:
