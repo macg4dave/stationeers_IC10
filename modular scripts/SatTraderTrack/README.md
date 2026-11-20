@@ -138,3 +138,10 @@ Internal prefab/name tokens referenced by the scripts:
 - If `dish_worker` stays at `100`, the dish is currently gated off by landingpad offline state.
 - If `dish_worker = 151`, the interrogation completed but the lever was off or the contact type did not match the dial.
 - If `landing_worker = 210`, the module sees landingpad mode `4` and is actively driving the flash light / klaxon outputs.
+
+## Change history
+
+- 2026-11 (master): the master tested `cur` before loading it, so its "re-enable
+  dish_worker" check used last loop's `cmd_type` value. It now reads
+  `dish_worker` `On` first: a disabled dish worker is switched back on, and an
+  enabled one is no longer re-written every tick.

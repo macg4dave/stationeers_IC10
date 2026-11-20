@@ -68,14 +68,12 @@ class SatTraderTrackMaster(unittest.TestCase):
         self.chip.run(5)
         self.assertEqual(self.ctok.fields["Setting"], 1, "no new token without a change")
 
-    @known_defect("D5")
     def test_reenables_dish_worker(self):
         self.chip.run(3)
         self.dishw.fields["On"] = 0
         self.chip.run(3)
         self.assertEqual(self.dishw.fields["On"], 1)
 
-    @known_defect("D5")
     def test_no_redundant_worker_writes(self):
         self.chip.run(10)
         self.assertEqual(self.dishw.writes_of("On"), [], "worker already on: no writes")

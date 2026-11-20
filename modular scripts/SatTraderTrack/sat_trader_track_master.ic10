@@ -18,6 +18,7 @@ bdns dishw main
 bdns alertw main
 bdns ctok main
 bdns ctype main
+l cur dishw On
 bnez cur aok
 s dishw On 1
 aok:
