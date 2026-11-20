@@ -67,3 +67,9 @@ based on exact device name matches using `HASH()` + `sbn`, gated by room tempera
 ## Status
 
 Functional
+
+## Change history
+
+- 2026-11: on a cold start the script now turns both groups **OFF**. Before, it
+  assumed they were already off, so vents left running from an earlier session kept
+  running until the room first warmed past the threshold.

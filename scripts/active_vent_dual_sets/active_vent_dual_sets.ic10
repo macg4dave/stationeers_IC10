@@ -19,6 +19,7 @@ alias ticks r8
 move vent_hash -1129453144
 move in_name_hash HASH("IN")
 move out_name_hash HASH("OUT")
+move state -1   # unknown at boot: first loop always applies ON or OFF
 
 # Active Vent mode values (swap if needed)
 define MODE_OUTWARD 0

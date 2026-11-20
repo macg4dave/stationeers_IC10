@@ -68,7 +68,6 @@ class ActiveVentDualSets(unittest.TestCase):
         self.chip = Chip(script("active_vent_dual_sets"), pins={"d0": self.sensor},
                          network=[self.vin, self.vout])
 
-    @known_defect("D3")
     def test_cold_start_turns_running_vents_off(self):
         self.chip.run(4)
         self.assertEqual((self.vin.fields["On"], self.vout.fields["On"]), (0, 0))
