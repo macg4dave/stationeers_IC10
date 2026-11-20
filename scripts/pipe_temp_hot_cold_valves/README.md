@@ -49,10 +49,19 @@ Pressure control:
 
 - `PRESSURE_TARGET_KPA` (default `10000`) — target pressure in **kPa** (10 MPa)
 - `PRESSURE_HYST_KPA` (default `250`) — hysteresis band in **kPa**
-- `PUMP_SETTING_L` (default `10`) — volume pump setting (liters per tick)
+- `PUMP_SETTING_L` (default `1`) — volume pump setting (liters per tick)
+
+Pump behaviour: ON below 9,750 kPa, OFF above 10,250 kPa, unchanged in between.
 
 
 ## Notes
 
 - Pipe Analyzer `Temperature` is **Kelvin** (K). The script converts using: $C = K - 273.15$.
-- Pipe Analyzer `Pressure` is normalized automatically if it appears to be in **Pa** (converted to kPa).
+- Pipe Analyzer `Pressure` is read as **kPa** (wiki: "In kPa").
+
+## Change history
+
+- 2026-11: fixed the pump never stopping above 2 MPa. An old "Pa -> kPa"
+  guess divided any reading above 2,000 kPa by 1000, so at the 10 MPa target the
+  script saw ~10 and kept pumping. Temperature/valve behaviour is unchanged.
+  Status stays **Functional**; re-test the pump stop in-game.

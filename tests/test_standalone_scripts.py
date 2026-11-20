@@ -49,7 +49,6 @@ class PipeTempHotColdValves(unittest.TestCase):
         self.assertEqual(self.at(38), (0, 1))       # inside hot band: hold
         self.assertEqual(self.at(35), (0, 0))
 
-    @known_defect("D1")
     def test_pump_regulates_around_10_mpa(self):
         self.at(kpa=5000)
         self.assertEqual(self.pump.fields["On"], 1)

@@ -50,12 +50,8 @@ bdns d3 wait_devices
 main:
 l tempC pipe_read Temperature
 sub tempC tempC KELVIN_TO_C
+# Pipe Analyzer Pressure is already kPa (wiki: "In kPa")
 l pressureKPa pipe_read Pressure
-# normalize Pa -> kPa if needed
-sgt cond pressureKPa 2000
-beqz cond pressure_normalized
-div pressureKPa pressureKPa 1000
-pressure_normalized:
 l cold_current valve_cold On
 l hot_current valve_hot On
 move cold_desired cold_current
