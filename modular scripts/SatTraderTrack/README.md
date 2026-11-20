@@ -145,3 +145,7 @@ Internal prefab/name tokens referenced by the scripts:
   dish_worker" check used last loop's `cmd_type` value. It now reads
   `dish_worker` `On` first: a disabled dish worker is switched back on, and an
   enabled one is no longer re-written every tick.
+- 2026-11 (dish worker): `beqz prog 2` was an absolute jump to line 2 (a restart)
+  where a one-line skip (`breqz prog 2`) was intended. In "any trader" mode
+  (dial `0`) with no interrogation progress, the dish never advanced its sweep.
+  Typed mode (dial `> 0`) was not affected. **Needs in-game confirmation.**

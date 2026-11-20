@@ -46,7 +46,7 @@ select r1 prog -1 r1
 s dish BestContactFilter r1
 j live
 any:
-beqz prog 2
+breqz prog 2
 s dish BestContactFilter -1
 live:
 bgtz prog done

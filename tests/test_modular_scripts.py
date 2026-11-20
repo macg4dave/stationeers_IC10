@@ -103,7 +103,6 @@ class SatTraderTrackDish(unittest.TestCase):
     def test_typed_mode_sweeps_when_no_signal(self):
         self.assertGreater(len(self.sweep(sel=3)), 3)
 
-    @known_defect("D6")
     def test_any_mode_sweeps_when_no_signal(self):
         self.assertGreater(len(self.sweep(sel=0)), 3, "dish must keep sweeping in 'any' mode")
 
