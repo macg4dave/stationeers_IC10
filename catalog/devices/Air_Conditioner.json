@@ -2,7 +2,8 @@
   "source": {
     "wikiUrl": "temp/Air Conditioner - Stationeers Community Wiki.html",
     "wikiTitle": "Air_Conditioner",
-    "retrievedAt": "2026-06-12T01:06:41+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-04-25T01:42:16Z"
   },
   "identity": {
     "itemName": "StructureAirConditioner",
@@ -135,7 +136,7 @@
         "description": ""
       },
       {
-        "name": "RatioVolatilesInput",
+        "name": "RatioMethaneInput",
         "type": "float",
         "description": ""
       },
@@ -185,7 +186,7 @@
         "description": ""
       },
       {
-        "name": "RatioVolatilesOutput",
+        "name": "RatioMethaneOutput",
         "type": "float",
         "description": ""
       },
@@ -235,7 +236,7 @@
         "description": ""
       },
       {
-        "name": "RatioVolatilesOutput2",
+        "name": "RatioMethaneOutput2",
         "type": "float",
         "description": ""
       },
@@ -315,17 +316,17 @@
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatilesInput",
+        "name": "RatioLiquidMethaneInput",
         "type": "float",
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatilesOutput",
+        "name": "RatioLiquidMethaneOutput",
         "type": "float",
         "description": ""
       },
       {
-        "name": "RatioLiquidVolatilesOutput2",
+        "name": "RatioLiquidMethaneOutput2",
         "type": "float",
         "description": ""
       },

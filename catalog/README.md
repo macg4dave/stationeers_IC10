@@ -12,6 +12,17 @@ Example source page:
 
 - <https://stationeers-wiki.com/Pipe_Analyzer>
 
+The live wiki blocks scripted downloads (Cloudflare challenge). To refresh the
+catalog, export pages from your browser at
+<https://stationeers-wiki.com/Special:Export> (tick "Include templates"), save the
+`.xml` under `temp/`, then:
+
+- `python tools/wiki_xml_import.py temp/<export>.xml` — compare only
+- `python tools/wiki_xml_import.py temp/<export>.xml --write` — merge into `catalog/devices/`
+
+The merge is additive (it never deletes fields, since the wiki often lags the game)
+and maps the old Volatiles names to the in-game Methane names.
+
 ## File layout
 
 - `catalog/devices/<WikiTitle>.json`
@@ -38,6 +49,9 @@ Each device JSON is shaped like:
 - `identity`
   - `itemName`: string | null (wiki “Item Name”, when present)
   - `itemHash`: number | null (wiki “Item Hash”, when present)
+  - `structureName` / `structureHash` (optional): the placed structure's prefab
+    (from the wiki Structurebox). Use this hash for IC10 `sb`/`lb`/`sbn`/`lbn`;
+    `itemHash` on some entries is the kit item instead.
 - `io`
   - `modeValues` (optional): array of `{ value, meaning, settingInterpretation }` for devices that document an enum-like `Mode` table
   - `parameters`: array of `{ name, type, description }`  (intended “write”)

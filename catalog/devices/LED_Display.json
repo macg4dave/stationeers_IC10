@@ -2,7 +2,8 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Console#LED_Display_(Small,_Medium_and_Large)",
     "wikiTitle": "LED_Display",
-    "retrievedAt": "2026-02-12T17:26:40+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-09-29T05:07:30Z"
   },
   "identity": {
     "itemName": null,
@@ -84,6 +85,16 @@
         "value": 14,
         "meaning": "Pa display",
         "settingInterpretation": "Adds a Pascals suffix (Pa) to the number. Also divides the number as needed and adds a metricprefix to the suffix. (e.g. kPa)"
+      },
+      {
+        "value": 15,
+        "meaning": "Newtons",
+        "settingInterpretation": "Adds a Newtons suffix (N) to the number. Also divides the number as needed and adds a metricprefix to the suffix. (e.g. kN)"
+      },
+      {
+        "value": 16,
+        "meaning": "Degrees",
+        "settingInterpretation": "Adds a Degrees suffix(°) to the number."
       }
     ],
     "parameters": [

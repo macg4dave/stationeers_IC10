@@ -3,12 +3,15 @@
     "kind": "best_guess",
     "wikiUrl": "https://stationeers-wiki.com/Kit_(Grow_Light)",
     "wikiTitle": "Kit_(Grow_Light)",
-    "retrievedAt": "2026-06-11T00:00:00Z",
-    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup."
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup.",
+    "exportRevision": "2026-09-18T02:31:39Z"
   },
   "identity": {
     "itemName": "ItemKitGrowLight",
-    "itemHash": 341030083
+    "itemHash": 341030083,
+    "structureName": "StructureGrowLight",
+    "structureHash": -1758710260
   },
   "io": {
     "parameters": [

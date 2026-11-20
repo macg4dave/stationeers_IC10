@@ -2,11 +2,14 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Kit_(Liquid_Volume_Pump)",
     "wikiTitle": "Kit_(Liquid_Volume_Pump)",
-    "retrievedAt": "2026-02-12T00:04:06+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-03-26T13:12:42Z"
   },
   "identity": {
     "itemName": "ItemLiquidPipeVolumePump",
-    "itemHash": -2106280569
+    "itemHash": -2106280569,
+    "structureName": "StructureLiquidVolumePump",
+    "structureHash": -454028979
   },
   "io": {
     "parameters": [

@@ -2,7 +2,8 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Console#Console_Dual",
     "wikiTitle": "Console_Dual",
-    "retrievedAt": "2026-02-12T17:22:53+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-09-29T05:07:30Z"
   },
   "identity": {
     "itemName": null,
@@ -19,6 +20,11 @@
         "name": "On",
         "type": "boolean",
         "description": "Turns the Console on, when set to 1. Turns it off, when set to 0."
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "Sets the display mode (only available on LED displays)."
       }
     ],
     "outputs": [

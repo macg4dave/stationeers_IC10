@@ -3,8 +3,9 @@
     "kind": "best_guess",
     "wikiUrl": "https://stationeers-wiki.com/Hydroponics_Device",
     "wikiTitle": "Hydroponics_Device",
-    "retrievedAt": "2026-06-11T00:00:00Z",
-    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup. Slot metadata exists on the wiki page, but the current catalog schema stores only parameters and outputs."
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "notes": "Manually transcribed from saved wiki HTML in temp/ during PotatoHarvieTest setup. Slot metadata exists on the wiki page, but the current catalog schema stores only parameters and outputs.",
+    "exportRevision": "2025-01-18T18:49:52Z"
   },
   "identity": {
     "itemName": null,
@@ -65,7 +66,7 @@
         "description": ""
       },
       {
-        "name": "RatioVolatiles",
+        "name": "RatioMethane",
         "type": "float",
         "description": ""
       },

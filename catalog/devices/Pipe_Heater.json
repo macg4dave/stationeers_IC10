@@ -2,12 +2,15 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Pipe_Heater",
     "wikiTitle": "Pipe_Heater",
-    "retrievedAt": "2026-05-30T18:50:00+00:00",
-    "notes": "Imported from a user-saved local HTML copy in temp/ because the live wiki is behind a Cloudflare challenge from this environment."
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "notes": "Imported from a user-saved local HTML copy in temp/ because the live wiki is behind a Cloudflare challenge from this environment.",
+    "exportRevision": "2026-03-08T17:42:58Z"
   },
   "identity": {
     "itemName": "ItemPipeHeater",
-    "itemHash": -1751627006
+    "itemHash": -1751627006,
+    "structureName": "StructurePipeHeater",
+    "structureHash": -419758574
   },
   "io": {
     "parameters": [

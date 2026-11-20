@@ -2,13 +2,26 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Advanced_Furnace",
     "wikiTitle": "Advanced_Furnace",
-    "retrievedAt": "2026-02-02T18:55:31+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-11-05T11:36:47Z"
   },
   "identity": {
     "itemName": "ItemKitAdvancedFurnace",
-    "itemHash": -616758353
+    "itemHash": -616758353,
+    "structureName": "StructureAdvancedFurnace",
+    "structureHash": 545937711
   },
   "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "Invalid"
+      },
+      {
+        "value": 1,
+        "meaning": "Valid"
+      }
+    ],
     "parameters": [
       {
         "name": "Open",

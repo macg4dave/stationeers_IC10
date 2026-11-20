@@ -2,11 +2,14 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Kit_(Liquid_Pipe_Analyzer)",
     "wikiTitle": "Kit_(Liquid_Pipe_Analyzer)",
-    "retrievedAt": "2026-02-02T16:39:27+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-03-08T17:43:48Z"
   },
   "identity": {
     "itemName": "ItemLiquidPipeAnalysizer",
-    "itemHash": 226055671
+    "itemHash": 226055671,
+    "structureName": "StructureLiquidPipeAnalysizer",
+    "structureHash": -2113838091
   },
   "io": {
     "parameters": [

@@ -2,13 +2,26 @@
   "source": {
     "wikiUrl": "https://stationeers-wiki.com/Active_Vent",
     "wikiTitle": "Active_Vent",
-    "retrievedAt": "2026-02-02T20:34:25+00:00"
+    "retrievedAt": "2026-11-20T22:02:42+00:00",
+    "exportRevision": "2026-09-07T02:11:05Z"
   },
   "identity": {
     "itemName": "ItemActiveVent",
-    "itemHash": -842048328
+    "itemHash": -842048328,
+    "structureName": "StructureActiveVent",
+    "structureHash": -1129453144
   },
   "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "\"Outward\" mode (Moves gas from the connected pipe network to the surrounding atmosphere.)"
+      },
+      {
+        "value": 1,
+        "meaning": "\"Inward\" mode (Moves gas from the surrounding atmosphere to the connected pipe network.)"
+      }
+    ],
     "parameters": [
       {
         "name": "Open",
