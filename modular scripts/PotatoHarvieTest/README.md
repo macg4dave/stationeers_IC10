@@ -158,3 +158,10 @@ Set these exact names (case-sensitive):
   Keep unrelated Harvies off that network or split them behind another worker.
 - If plants still over-light, remember this module cannot block excess sunlight without a
   separate shutter / blackout system.
+
+## Change history
+
+- 2026-11: fixed the actuator light/dark cycle. Two branches used `brlt`/`brge`
+  (relative jumps) with label targets, which jumped ~60 lines forward into the
+  "mode off" tail. In practice the Grow Light was switched off every loop and the
+  Harvie never planted or harvested. Now `blt`/`bge`. Re-test in-game.

@@ -45,8 +45,8 @@ readm:
 l tmp slot0 Setting
 and cond tmp 1
 beqz cond no_plant
-brlt cyc LIGHT_TICKS light_phase
-brge cyc TOTAL_TICKS reset_cycle
+blt cyc LIGHT_TICKS light_phase
+bge cyc TOTAL_TICKS reset_cycle
 l cur lit On
 beqz cur dark_chk
 s lit On 0

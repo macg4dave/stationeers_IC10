@@ -13,7 +13,7 @@ from ic10_engine import analyse, known_logic_types, load
 SCRIPTS = sorted(list((ROOT / "scripts").rglob("*.ic10")) +
                  list((ROOT / "modular scripts").rglob("*.ic10")))
 # Files with a known lint error, each tied to an audit defect id.
-KNOWN_LINT_ERRORS = {"potato_harvie_test_worker_actuator.ic10": "D4"}
+KNOWN_LINT_ERRORS: dict = {}
 
 
 def stub() -> Device:

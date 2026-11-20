@@ -28,7 +28,6 @@ class PotatoHarvieActuator(unittest.TestCase):
                          pins={"d0": self.hv, "d1": self.lit, "d2": self.ctype, "d3": self.slot0},
                          network=[self.hv])
 
-    @known_defect("D4")
     def test_light_dark_cycle(self):
         self.chip.run(20)
         self.assertEqual((self.lit.fields["On"], self.chip.status), (1, 212), "light phase")
@@ -43,11 +42,14 @@ class PotatoHarvieActuator(unittest.TestCase):
         self.chip.run(3)
         self.assertEqual((self.lit.fields["On"], self.chip.status), (0, 200))
 
-    @known_defect("D4")
-    def test_mature_plant_is_harvested_once(self):
-        self.slot0.fields["Setting"] = 1 | 2 | 8
-        self.chip.run(8)
-        self.assertEqual(self.hv.writes_of("Harvest"), [1, 0])
+    def test_mature_plant_harvest_pulse_and_cooldown(self):
+        self.slot0.fields["Setting"] = 1 | 2 | 8      # occupied + mature + healthy
+        self.chip.run(30)
+        pulses = [t for t, f, v in self.hv.writes if f == "Harvest" and v == 1]
+        self.assertTrue(pulses, "mature plant must be harvested")
+        self.assertEqual(self.hv.writes_of("Harvest")[:2], [1, 0], "pulse 1 then 0")
+        gaps = [b - a for a, b in zip(pulses, pulses[1:])]
+        self.assertTrue(all(g >= 5 for g in gaps), f"cooldown between pulses: {gaps}")
 
 
 class SatTraderTrackMaster(unittest.TestCase):
