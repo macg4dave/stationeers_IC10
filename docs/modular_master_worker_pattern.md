@@ -33,6 +33,26 @@ For cross-chip communication, prefer dedicated **Logic Memory** devices over ove
 ### Why token commands?
 
 Workers can detect **new command** as `token != prev_token` without edge-timing issues.
+Only publish a token if a worker actually reads it; otherwise a plain value channel
+(`cmd_type`) is enough.
+
+### One writer per slot
+
+Give every shared slot a single owning chip. When two chips write the same slot, each
+one's decision can be undone by the other a tick later. Lessons from this repo:
+
+- AutolatheVendStock `slot3` (prep readiness) was also written by the machine worker,
+  with an inverted test, which skipped writing the recipe (fixed 2026-11, audit D7).
+- ingot_printer `slot0` is written by both the master and `finstd_worker`; it works
+  because both copy the same selector value, but the ownership is fragile.
+
+If a second writer is unavoidable, document which value each chip writes and when.
+
+### Test the contract
+
+`tests/test_modular_scripts.py` runs chips in lockstep on one simulated network. Run a
+new handshake with both chip orders: in-game update order is not something a script
+can rely on.
 
 ## Naming and folder layout
 

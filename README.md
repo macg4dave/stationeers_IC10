@@ -21,8 +21,10 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 - `tools/` - helper tools (Python, stdlib-only)
 - `catalog/` - local JSON catalog of device Logic I/O names/types (imported from the Stationeers wiki)
 - `catalog/recipes/` - local JSON catalog of wiki recipe tables for producer devices (starting with `Autolathe`)
+- `tests/` - simulated behaviour scenarios for the scripts (stdlib `unittest`)
+- `docs/engineering_audit.md` - architecture, known defects, open risks, in-game test list
 - `.vscode/` - recommended VS Code extension + debug config
-- `.github/copilot-instructions.md` - extra context for AI coding assistants (especially GitHub Copilot)
+- `AGENTS.md` - engineering guide for AI assistants (`.github/copilot-instructions.md` points to it)
 
 ## Quick start (players)
 
@@ -60,7 +62,8 @@ AI can be great for **small, testable** IC10 changes, script variants, and docum
 
 - Install **GitHub Copilot** (and **Copilot Chat**) in VS Code and sign in.
 - Open this repo as a workspace.
-- Copilot Chat will pick up repository-specific guidance from `.github/copilot-instructions.md`.
+- Copilot Chat picks up `.github/copilot-instructions.md`, which points to `AGENTS.md`
+  (the full guide; other agents such as Claude Code and Codex read `AGENTS.md` directly).
 
 ### Good tasks for AI
 
@@ -147,6 +150,41 @@ The extension also supports an optional **hardware environment** file in TOML:
 
 All tools are **stdlib-only Python** (no pip installs required).
 
+### Run every check (start here)
+
+```bash
+python tools/check_all.py
+```
+
+Runs paste limits, the IC10 linter, setup-contract, catalog and doc checks, the
+generated-file check and the behaviour tests. Results mean different things:
+
+- **static checks pass** - files are paste-ready and structurally sound
+- **tests pass** - simulated behaviour matches the scenarios in `tests/`
+- neither proves in-game behaviour; `docs/engineering_audit.md` lists what to test in-game
+
+### Lint IC10 scripts
+
+```bash
+python tools/ic10_lint.py            # everything
+python tools/ic10_lint.py --info path/to/script.ic10
+```
+
+Catches unknown instructions, wrong operand counts, undefined labels, relative
+branches given a label (`brlt x y label`), absolute jumps to a numeric line,
+LogicTypes not in the catalog, unreachable code and registers read before they are
+written.
+
+### Behaviour tests
+
+```bash
+python -m unittest discover -s tests
+```
+
+`tools/ic10_engine.py` simulates the chip (128 lines per tick, `yield`/`sleep`, batch
+ops, exact name hashes). Scenarios drive each script through its thresholds,
+hysteresis, startup and fault cases; modular tests run several chips in lockstep.
+
 ### Check IC10 script size (paste limits)
 
 - Script: `tools/ic10_size_check.py`
@@ -158,12 +196,21 @@ python tools/ic10_size_check.py scripts/ --ext .ic10
 
 ### Import device IO from the Stationeers wiki into `catalog/`
 
-- Script: `tools/wiki_import.py`
-- Example:
+The live wiki blocks scripted downloads (Cloudflare challenge), so export pages from
+your browser instead:
+
+1. Open <https://stationeers-wiki.com/Special:Export>, paste page titles (or add a
+   category), tick **Include templates**, save the `.xml` into `temp/`.
+2. Compare, then merge:
 
 ```bash
-python tools/wiki_import.py https://stationeers-wiki.com/Pipe_Analyzer
+python tools/wiki_xml_import.py temp/<export>.xml          # report only
+python tools/wiki_xml_import.py temp/<export>.xml --write  # additive merge
 ```
+
+The merge never deletes fields (the wiki lags the game) and maps old Volatiles names to
+the in-game Methane names. `tools/wiki_import.py` still works on a single page saved
+from the browser as HTML (`python tools/wiki_import.py "temp/Pipe Analyzer.html"`).
 
 - Output:
   - `catalog/devices/<WikiTitle>.json`
@@ -236,7 +283,8 @@ If a script appears to "not find" devices, check in this order:
 - IC10 language reference:
   - <https://stationeers-wiki.com/IC10>
   - <https://stationeers-wiki.com/IC10/instructions>
-- AI-specific guidance for this repo lives in `.github/copilot-instructions.md` (it covers IC10 syntax, pacing, batch patterns, and documentation conventions).
+- AI-specific guidance for this repo lives in `AGENTS.md` (IC10 facts, sources of truth,
+  rules for changing working scripts, testing requirements).
 - Script conventions (when adding new scripts):
   - Prefer short `snake_case` names.
   - Keep scripts in `scripts/<script_name>/` with:

@@ -26,9 +26,13 @@ from pathlib import Path
 from typing import Iterable
 
 
-DEFAULT_MAX_LINES = 128
-DEFAULT_MAX_COLS = 90
-DEFAULT_MAX_BYTES = 4096
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Single source for the in-game paste limits (also used by ic10_lint.py).
+from ic10_engine import MAX_BYTES as DEFAULT_MAX_BYTES  # noqa: E402
+from ic10_engine import MAX_COLS as DEFAULT_MAX_COLS  # noqa: E402
+from ic10_engine import MAX_LINES as DEFAULT_MAX_LINES  # noqa: E402
 
 
 @dataclass(frozen=True)

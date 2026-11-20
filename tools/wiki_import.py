@@ -667,8 +667,11 @@ def upsert_index(entry: dict) -> None:
 
 
 def main(argv: List[str]) -> int:
-    if len(argv) != 2:
+    if len(argv) != 2 or argv[1] in ("-h", "--help"):
         print("Usage: python tools/wiki_import.py <stationeers-wiki device URL or saved HTML file>")
+        print("  Note: the live wiki blocks scripted fetches (Cloudflare). Save the page from")
+        print("  your browser and pass the .html path, or use tools/wiki_xml_import.py with a")
+        print("  Special:Export dump.")
         print("  Tip: for multi-device pages, you can import a specific section:")
         print("    python tools/wiki_import.py https://stationeers-wiki.com/Sensors#Gas_Sensor")
         return 2

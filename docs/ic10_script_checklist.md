@@ -1,180 +1,94 @@
-# IC10 script checklist (paste-ready)
+# IC10 script checklist
 
-Use this when creating or editing **paste-into-game** IC10 scripts in `scripts/`.
+Use this when creating or editing a script in `scripts/` (most points also apply to
+modular chips). Background and the reasons behind each rule: `AGENTS.md`.
 
-## 1) Create the script folder + files
+## 1. Files
 
-- Create `scripts/<script_name>/` (short `snake_case`)
-- Add:
-  - `scripts/<script_name>/<script_name>.ic10` (paste-ready)
-  - `scripts/<script_name>/README.md` (player-facing setup)
+- `scripts/<script_name>/<script_name>.ic10` (short `snake_case`) and `README.md`.
+- Copy `scripts/_template/` to start.
 
-## 2) IC10 file header (required)
+## 2. Header (top of the `.ic10`)
 
-At the top of `<script_name>.ic10`, include a compact header:
+Script name, `Category | Status`, purpose in 1–3 lines, the `d0..d5`/`db` map, and any
+note that prevents a common failure (units, required in-game settings).
 
-- Script name
-- Category + Status
-- Purpose (1–3 lines)
-- Device registers mapping (`d0..d5`, `db` if used)
-- Notes that prevent common failures (units, required in-game settings)
+## 3. Device guards
 
-Example patterns are in:
+- Wait loop: `yield` then `bdns dN wait` for every required pin.
+- In the main loop, guard pins before critical `l` reads if a device can be removed or
+  lose power while the chip runs (`bdns d0 wait` at the top of `main`).
+- Reading an unset pin halts the chip in-game.
 
-- `scripts/pipe_temp_hot_cold_valves/pipe_temp_hot_cold_valves.ic10`
-- `scripts/room_pressure_active_vent/room_pressure_active_vent.ic10`
+## 4. Units
 
-## 3) Gate device availability (don’t assume d0 exists yet)
+- Temperatures: Kelvin. `C = K - 273.15`.
+- `Pressure` on Pipe Analyzer, Liquid Pipe Analyzer and Gas Sensor: **kPa**.
+  Do not add "if it looks like Pa, divide by 1000" logic.
+- Ratios (`Ratio*`, battery `Ratio`): 0..1.
 
-Use a `wait:` / `wait_devices:` loop with `yield` + `bdns` for every required device.
+## 5. Modes and enums
 
-Also add a lightweight in-loop guard before critical `l` reads (especially analyzer reads):
+- Take `Mode` values from `catalog/devices/<Device>.json` → `io.modeValues`; `define`
+  them; set them explicitly at startup; document them in the README.
+- Active Vent: write `Mode`, `yield`, then `Setting` (a mode change resets its limits).
+- LED Display `Mode 10` (string): pack two ASCII bytes as `c0*256 + c1`, digits as
+  `48 + n`; quantise to integers first.
 
-- Example: put `bdns d0 wait_devices` at the top of `main:` before `l ... Temperature`
-- Why: this avoids intermittent runtime line faults when a mapped device is temporarily unavailable (power/network reassignment/load timing)
+## 6. Control logic
 
-## 4) Units & normalization (most common AI mistake)
+- Hysteresis on every threshold that drives an actuator, unless the README explains why not.
+- Read before write: `l cur dev On`, write only when it differs (also for `Setting`).
+- Do not assume the start state of devices or registers: registers boot at 0.
+- Branches: labels with `j`/`b*`; offsets with `br*`/`jr`.
+- Use literal values in `define`.
 
-- Temperatures are often **Kelvin** → convert: $C = K - 273.15$.
-- Some pressures may be **Pa** in some contexts; if you expect kPa, normalize like `room_pressure_active_vent.ic10` (detect large values then divide by 1000).
+## 7. Batch / name targeting
 
-## 4.5) Device modes: always use the catalog map
+- `sbn`/`lbn`: structure prefab hash + exact `HASH("name")` (case-sensitive, no
+  substrings). Verify hard-coded hashes with `ic10_hash()` (see `AGENTS.md`).
+- Use the placed structure's prefab, not the kit item (Active Vent: `-1129453144`,
+  not `-842048328`).
+- Some devices ignore writes while `Lock = 1`; clear it first if the README says so.
+- List every required in-game name in the README.
 
-Before writing logic for a device with `Mode` (or enum-like fields):
+### Landingpad outputs
 
-- Open `catalog/devices/<Device>.json` and use its `modeValues` map.
-- Add `define` constants for selected mode values in the script.
-- Set those modes explicitly in `init` / setup (don’t assume defaults).
-- Document chosen mode values in the script README.
+- Gas output → `RatioMethane`; liquid output → `RatioLiquidMethane`.
+- Landingpad catalog entries are inferred (no wiki data network table). If a field
+  faults at runtime, remove that access first (`Lock` is the usual suspect).
 
-Example (`LED_Display`):
+## 8. Status output
 
-- `Mode=0` number, `Mode=8` minutes, `Mode=7` seconds.
+Write a small numeric status to `db Setting` when it helps in-game debugging, and list
+the codes in the README.
 
-If using `Mode=10` (string display):
+## 9. Player README
 
-- Encode characters as ASCII bytes (e.g., `'0'` is `48`).
-- Pack bytes as `packed = c0*256 + c1` (up to 6 chars supported by device).
-- Quantize values to integers before extracting digits.
-- Validate in-game output is digit-only (`00..23`, `00..59`) and not symbols.
+Purpose; required devices and `d0..d5`; required names; in-game prerequisites (link
+`docs/usage/<device>.md`); tuning constants with units; behaviour at and between
+thresholds; limitations; troubleshooting; Status.
 
-## 5) Avoid network spam
+## 10. Validate
 
-Before writing device flags (e.g. `On`, `Open`), prefer:
+- Add or update a scenario in `tests/test_standalone_scripts.py`.
+- `python tools/check_all.py` (paste limits, lint, contracts, catalog, docs, tests).
+- Tell the user what was verified statically, what was simulated, and what still
+  needs an in-game test.
 
-- read current value
-- only `s` when different
+## 11. Catalog and playbooks
 
-Example: `pipe_temp_hot_cold_valves.ic10`.
+- New "device does nothing" gotcha → add it to `docs/usage/`.
+- Need authoritative LogicTypes → browser Special:Export + `tools/wiki_xml_import.py`
+  (see `catalog/README.md`). The wiki may lag the game.
 
-For display scripts, also avoid re-writing unchanged `Setting` each loop.
+## 12. Daylight-derived clocks
 
-## 6) Batch patterns: exact name hashes
+Document orientation, invert, offset and fine-shift constants with a calibration order;
+say clearly that the time is derived from the sun angle (whole-degree resolution =
+4 game minutes in `led_display_hms_clock`).
 
-If using `lbn/sbn`, remember:
+## 13. Modular features
 
-- `HASH("IN")` matches **exact device name** only (not substring)
-- Document the required in-game renames in the script `README.md`
-
-### 6.5) Hashing/device-targeting checklist (prevent "not found" issues)
-
-When writing batch network scripts:
-
-- Prefer an authoritative numeric prefab hash from `catalog/devices/<Device>.json` when known.
-  - Example: Pipe Digital Valve prefab hash is documented as `-1280984102`.
-- Do **not** substitute item hash for prefab hash. For example, Active Vent batch writes must use
-  prefab hash `-1129453144` (`StructureActiveVent`), not item hash `-842048328`.
-- Keep name hashes explicit and exact (`HASH("cold")` means exactly `cold`, case-sensitive).
-- If using `On` as actuator state, consider writing `Lock=0` before `On` when device behavior can be lock-gated.
-- In script README usage steps, include exact rename text users should apply in-game.
-
-Debug order when a batch write appears to do nothing:
-
-1. confirm devices are on the same data network
-2. confirm exact in-game name for name hash filters
-3. confirm prefab hash value matches intended device type
-4. confirm mode/lock prerequisites for that device
-
-Example: `scripts/active_vent_dual_sets/active_vent_dual_sets.ic10`.
-
-### 6.6) Landingpad output scripts (gas vs liquid)
-
-Before writing logic for landingpad outputs:
-
-- Confirm device variant first (`Landingpad_Gas_Output` vs `Landingpad_Liquid_Output`).
-- Use matching ratio field:
-  - gas -> `RatioMethane`
-  - liquid -> `RatioLiquidMethane`
-- If using pressure cutoff, document a single source (recommended: Pipe Analyzer `Pressure` in kPa).
-- Do not assume every inferred field is safe on landingpad outputs; if runtime line faults, remove that field access first (common candidate: `Lock`).
-- Add compact `db Setting` status codes to show branch decisions in-game.
-
-## 7) Player-facing README (required)
-
-In `scripts/<script_name>/README.md` include:
-
-- Purpose (plain language)
-- Required devices + what goes in `d0..d5`
-- In-game settings prerequisites (link `docs/usage/<device>.md` when applicable)
-  - Example: Active Vents often require **both** `On=1` **and** `Open=1`, plus correct `Mode` and usually a sensible `Setting` target. Leave `PressureExternal` / `PressureInternal` alone unless you specifically need advanced vent regulation (`docs/usage/active_vent.md`)
-- Tuning constants + units
-- Status
-
-## 8) Validate paste limits before “shipping”
-
-IC chip limits: **128 lines** and **90 chars/line** (including comments and blanks).
-
-Run the checker after editing scripts:
-
-- `python tools/ic10_size_check.py scripts/ --ext .ic10`
-
-## 9) Update the catalog / playbooks when you learn something
-
-- If you hit a new “device does nothing” gotcha, add it to `docs/usage/` (keep it checklist-y).
-- If you need authoritative I/O names, import/update the device in `catalog/` via `tools/wiki_import.py`.
-
-## 10) Daylight-derived clocks (if no direct clock source)
-
-When deriving a clock from Daylight Sensor angles:
-
-- Document the mapping constants in README (orientation, invert, offset, fine shift).
-- Include a calibration order so users can tune quickly:
-  1) orientation, 2) invert, 3) phase offset, 4) fine shift.
-- Note clearly that this is an angle-derived clock, not a built-in direct clock value.
-
-## 11) Modular features (master + workers)
-
-When a feature is large, stateful, or multi-phase, prefer modular scripts:
-
-- Use one folder with multiple chips:
-  - `modular scripts/<feature>/`
-  - `<feature>_master.ic10`
-  - `<feature>_worker_<task>.ic10` (one concern each)
-  - `README.md` with full wiring + shared-memory contract + status codes
-- Put orchestration in master only:
-  - button/lever edge handling
-  - worker enable/disable (`On`)
-  - command token writes
-- Put task loops in workers only:
-  - scan/collect/control logic specific to one concern
-- For cross-chip messaging, prefer **Logic Memory** slots (`Setting`) as explicit channels.
-- Initialization/guard chips must initialize shared command channels once, then stop
-  writing them every loop (continuous reset can erase valid commands before workers
-  consume them).
-- If chips are wired to other chips/channels, map those links first from `d0`
-  downward (`d0`, `d1`, `d2`, ...) before buttons and feature devices.
-- Add status output for each chip via its own `db Setting` and document meanings.
-- Keep `Setup.md` synchronized with script contracts:
-  - include a `Name contract` section
-  - include `IC Housing:` entries for each non-deprecated feature chip script
-  - include all `HASH("name")` tokens used by feature scripts
-  - include all shared channel names used by feature scripts (`cmd_token`,
-    `cmd_type`, `slotN`, `dataN`)
-  - include a compact runtime debug snapshot list (`master`, `setup_guard`,
-    worker statuses, `cmd_token`, `cmd_type`) for issue reports
-  - list every non-deprecated feature `.ic10` file in setup steps
-- Validate paste limits for **every** `.ic10` file in the feature folder.
-- Validate setup docs contract consistency:
-  - `python tools/setup_contract_check.py`
-
-See: `docs/modular_master_worker_pattern.md`.
+See `docs/modular_master_worker_pattern.md` and the "Modular systems" section of
+`AGENTS.md`; validate `Setup.md` with `python tools/setup_contract_check.py`.
