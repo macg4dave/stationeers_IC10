@@ -13,8 +13,8 @@ alias inited r1
 alias actual r2
 
 define HASH_SKIP -1
-define EXPECTED_A_HASH HASH_SKIP
-define EXPECTED_B_HASH HASH_SKIP
+define EXPECTED_A_HASH -1   # -1 = HASH_SKIP
+define EXPECTED_B_HASH -1   # -1 = HASH_SKIP
 
 init:
 move inited 0

@@ -38,7 +38,7 @@ define MIN_ROOM_PRESSURE_KPA 100
 # Active Vent mode values (swap if needed)
 define MODE_OUTWARD 0
 define MODE_INWARD 1
-define VENT_MODE MODE_OUTWARD
+define VENT_MODE 0   # = MODE_OUTWARD; use 1 for MODE_INWARD
 
 # Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
 define GAS_SENSOR_HASH -1252983604
