@@ -121,7 +121,6 @@ class RoomPressureActiveVent(unittest.TestCase):
         self.assertEqual(self.v.fields["Setting"], 90)
         self.assertEqual(self.p(90)[0], 0)
 
-    @known_defect("D2")
     def test_very_high_pressure_exhausts(self):
         # A 2.5 MPa room must be exhausted, never treated as "low".
         self.assertEqual(self.p(2500), (1, 1))
@@ -145,7 +144,6 @@ class RoomCo2ActiveVent(unittest.TestCase):
         self.chip.run(4)
         self.assertEqual(self.v.fields["On"], 1)
 
-    @known_defect("D2")
     def test_high_pressure_room_does_not_open(self):
         self.s.fields["Pressure"] = 2500
         self.chip.run(4)

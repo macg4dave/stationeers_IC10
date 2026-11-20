@@ -1,6 +1,5 @@
 # room_pressure_active_vent (batch)
 alias sensor d0
-alias p r0
 alias cond r1
 alias state r2
 alias p_kpa r3
@@ -25,12 +24,8 @@ j stop
 
 main:
 bdns sensor wait
-l p sensor Pressure
-move p_kpa p
-sgt cond p 2000
-beqz cond keep_state
-div p_kpa p 1000
-keep_state:
+# Gas Sensor Pressure is kPa (wiki: "In kPa")
+l p_kpa sensor Pressure
 seq cond state STATE_INTAKE
 beqz cond check_exhaust
 sge cond p_kpa HIGH_PRESSURE_KPA

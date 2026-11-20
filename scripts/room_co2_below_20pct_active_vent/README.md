@@ -61,9 +61,10 @@ Ratio notes:
 
 Pressure notes:
 
-- The script normalizes Gas Sensor `Pressure` to kPa before comparing.
-- If the sensor reports Pa, values above `2000` are divided by `1000`.
+- Gas Sensor `Pressure` is read as kPa (wiki: "In kPa").
 - With the default setting, pressure below **100 kPa** forces the vent **ON/open**.
+- 2026-11: removed an old "looks like Pa" guess (divide by 1000 above 2,000) that
+  made a >2 MPa room look like low pressure and opened the vent.
 
 ## In-game setup notes
 

@@ -52,9 +52,9 @@ Edit the `define` constants at the top of `room_pressure_active_vent.ic10`:
 
 ## Notes
 
-- Pressure is in **kPa**.
-- If the Gas Sensor reports a value that looks like **Pa** (e.g. ~101000), the script
-  auto-normalizes to kPa.
+- Pressure is in **kPa** (Gas Sensor `Pressure`, wiki: "In kPa").
+- 2026-11: removed an old "looks like Pa" guess that divided readings above 2,000 by
+  1000. It made a >2 MPa room look like 2 kPa and switched the vents to *intake*.
 - The script batch-targets Active Vents using:
   - prefab hash `-1129453144` (`StructureActiveVent`)
   - exact name hash `HASH("ROOM_VENT")`

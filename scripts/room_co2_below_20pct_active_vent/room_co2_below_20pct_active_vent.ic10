@@ -13,7 +13,7 @@
 #
 # Notes:
 # - Gas Sensor RatioCarbonDioxide is reported as 0..1.
-# - Gas Sensor Pressure may be Pa or kPa; this script normalizes to kPa.
+# - Gas Sensor Pressure is kPa.
 # - This script uses a strict threshold: below 20% means < 0.20.
 # - The script sets vent Mode, Setting, Open, and On.
 # - Active Vent mode constants are listed below; swap if your build differs.
@@ -28,7 +28,6 @@ alias desired_on r2
 alias current_on r3
 alias current_open r4
 alias sensor_hash r5
-alias pressure r6
 alias pressure_kpa r7
 alias current_setting r8
 alias current_mode r9
@@ -56,12 +55,7 @@ l sensor_hash gas_read PrefabHash
 bne sensor_hash GAS_SENSOR_HASH wait_devices
 
 l co2 gas_read RatioCarbonDioxide
-l pressure gas_read Pressure
-move pressure_kpa pressure
-sgt cond pressure 2000
-beqz cond pressure_ready
-div pressure_kpa pressure 1000
-pressure_ready:
+l pressure_kpa gas_read Pressure
 
 # Vent ON/Open when CO2 ratio < threshold OR pressure < MIN_ROOM_PRESSURE_KPA
 move desired_on 0
