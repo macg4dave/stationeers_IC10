@@ -251,19 +251,49 @@ def _emit_logistics_worker(profile: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def emit_profile(profile: dict[str, Any]) -> list[Path]:
+def render_profile(profile: dict[str, Any]) -> dict[Path, str]:
     profile_id = profile["id"]
-    stock_path = MODULE_DIR / f"autolathe_vend_stock_worker_stock.{profile_id}.ic10"
-    logistics_path = MODULE_DIR / f"autolathe_vend_stock_worker_logistics.{profile_id}.ic10"
-    stock_path.write_text(_emit_stock_worker(profile), encoding="utf-8")
-    logistics_path.write_text(_emit_logistics_worker(profile), encoding="utf-8")
-    return [stock_path, logistics_path]
+    return {
+        MODULE_DIR / f"autolathe_vend_stock_worker_stock.{profile_id}.ic10": _emit_stock_worker(profile),
+        MODULE_DIR / f"autolathe_vend_stock_worker_logistics.{profile_id}.ic10": _emit_logistics_worker(profile),
+    }
+
+
+def emit_profile(profile: dict[str, Any]) -> list[Path]:
+    out = render_profile(profile)
+    for path, text in out.items():
+        # LF on every OS so regenerating on Windows does not rewrite every line.
+        path.write_text(text, encoding="utf-8", newline="\n")
+    return list(out)
+
+
+def check_profiles(profiles: dict[str, dict[str, Any]], wanted: list[str]) -> int:
+    """Compare committed variant files with fresh output. Missing files are skipped
+    (a profile only ships the variants that exist in the repo)."""
+    stale = 0
+    checked = 0
+    for profile_id in wanted:
+        for path, text in render_profile(profiles[profile_id]).items():
+            if not path.exists():
+                continue
+            checked += 1
+            if path.read_text(encoding="utf-8") != text:
+                stale += 1
+                print(f"STALE: {path.relative_to(ROOT)} (re-run: python tools/"
+                      f"autolathe_profile_emit.py {profile_id})")
+    if stale:
+        print(f"FAILED: {stale} generated file(s) out of date")
+        return 1
+    print(f"OK: {checked} generated file(s) match their profiles")
+    return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Emit AutolatheVendStock worker variants")
     parser.add_argument("profile_ids", nargs="*", help="Profile id(s) to emit, e.g. free_ingots")
     parser.add_argument("--all", action="store_true", help="Emit worker variants for all profiles")
+    parser.add_argument("--check", action="store_true",
+                        help="Do not write; fail if committed variant files are out of date")
     args = parser.parse_args()
 
     if not args.all and not args.profile_ids:
@@ -271,11 +301,15 @@ def main() -> int:
 
     profiles = _load_profiles()
     wanted = sorted(profiles) if args.all else args.profile_ids
+    for profile_id in wanted:
+        if profile_id not in profiles:
+            parser.error(f"unknown profile id: {profile_id} (known: {', '.join(sorted(profiles))})")
+
+    if args.check:
+        return check_profiles(profiles, wanted)
 
     emitted: list[Path] = []
     for profile_id in wanted:
-        if profile_id not in profiles:
-            parser.error(f"unknown profile id: {profile_id}")
         emitted.extend(emit_profile(profiles[profile_id]))
 
     for path in emitted:
