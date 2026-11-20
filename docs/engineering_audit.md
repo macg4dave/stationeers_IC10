@@ -135,6 +135,11 @@ them; literals are equivalent either way).
 - `tests/test_all_scripts.py` — every shipped file lints clean and runs 300 ticks on
   stub devices without halting.
 
+Differential check (one-off, during the audit): for D1, D2 and D3 the original script
+from `main` and the fixed script were fed the same 200 random 30-step input sequences
+inside the normal range (pressures < 2 MPa; warm start for D3). Device writes were
+identical in all 800 runs, so the fixes only change behaviour in the defect cases.
+
 Not covered: `vending_machine_export`, ingot_printer selector/finstd/print/stackers
 workers, AutolatheVendStock logistics/feeder/master/guard, PotatoHarvie sensor/master/
 guard, SatTraderTrack landing worker — they only get the lint and run checks.
