@@ -1,90 +1,87 @@
 # Scripts
 
-This folder contains **player-facing** Stationeers IC10 programs.
+Single-chip, paste-ready Stationeers IC10 programs. Each lives in its own folder:
 
-## Folder layout
+- `scripts/<name>/<name>.ic10` — paste this into the in-game IC chip
+- `scripts/<name>/README.md` — devices, `d0..d5` mapping, settings, tuning
 
-Each script lives in its own folder:
+Multi-chip systems live in `modular scripts/` instead.
 
-- `scripts/<script_name>/`
-  - `README.md` — how to set it up in-game (device mapping, settings, tips)
-  - `<script_name>.ic10` — the IC10 code you paste into the in-game IC chip
+## Script index
 
-## In-game device naming (recommended)
+**Pins** = devices are assigned to `d0..d5` in the IC Housing.
+**Names** = devices are found on the data network by prefab + exact name (`sbn`/`lbn`),
+so you must rename them in-game exactly as the README says.
 
-Stationeers lets you rename items. Renaming devices to match a script’s README makes setup much faster:
+Status is the author's in-game status label (unchanged by tooling).
+**Sim** = behaviour scenario in `tests/test_standalone_scripts.py` passes
+(simulated only; it does not replace an in-game test).
 
-- You can quickly find the right devices in the in-game UI when assigning `d0..d5`.
-- You can deploy multiple copies of the same script by using numbered names like `_1`, `_2`, etc.
+### Temperature control
 
-Example naming pattern:
+| Script | What it does | Targeting | Status | Sim |
+| --- | --- | --- | --- | --- |
+| `air_conditioner_25c/` | Runs an Air Conditioner at a 25°C target (chip inside the AC) | db | Functional | yes |
+| `pipe_heater_below_20c/` | Pipe Heater on below 20°C (Pipe Analyzer); off on analyzer error | Pins | Functional | yes |
+| `room_heater_below_20c/` | Wall Heater on below 20°C (Gas Sensor) | Pins | Functional | yes |
+| `room_cooler_steamless_vent/` | Wall Cooler above 30°C; Active Vent on while no steam | Pins | Functional | yes |
+| `pipe_furnace_valve_below_20c/` | Below 20°C: valve + Advanced Furnace on, input/output 5; furnace >100°C stops input | Pins | Functional | yes |
+| `dual_analyzer_furnace_pulse/` | Gas <30°C or liquid <80°C: pulse Advanced Furnace and valve every ~30 s | Pins | Functional | yes |
+| `gas_sensor_glass_door_30c/` | Opens a Glass Door above 30°C, closes below | Pins | Functional | yes |
 
-- `read_pipe_temp_1`
-- `read_pipe_temp_2`
+### Temperature-routed valves (one family: same pattern, different sensor/targets)
 
-The exact names are optional, but consistency helps.
+| Script | What it does | Targeting | Status | Sim |
+| --- | --- | --- | --- | --- |
+| `pipe_temp_valve/` | Valves named `cold`: open <10°C, close >30°C | Names | Functional | yes |
+| `liquid_temp_valve/` | All Liquid Digital Valves: open <20°C, close >30°C | Prefab | Functional | yes |
+| `phase_change_temp_valve/` | Valves named `cold`: open above 30°C | Names | Functional | yes |
+| `pipe_temp_hot_cold_valves/` | Routes `cold`/`hot` valves with hysteresis; pump holds ~10 MPa (fixed 2026-11) | Pins | Functional | yes |
 
-## Notes
+### Pressure and atmosphere
 
-- These scripts are intended to be pasted into the **in-game** IC10 chip.
-- Repo tooling/source files are not constrained by in-game chip limits unless you are producing final paste-into-game IC10.
+| Script | What it does | Targeting | Status | Sim |
+| --- | --- | --- | --- | --- |
+| `room_pressure_active_vent/` | Room <90 kPa intake, >120 kPa exhaust (vents named `ROOM_VENT`) (fixed 2026-11) | Names | Functional | yes |
+| `pipe_pressure_active_vent/` | Fills a pipe to 10 MPa with vents named `PIPE_VENT` | Names | Functional | yes |
+| `active_vent_dual_sets/` | Above 30°C: vents `IN` blow in, vents `OUT` pull out; below: all off (fixed 2026-11) | Names | Functional | yes |
+| `room_co2_below_20pct_active_vent/` | Vent on when CO2 <20% or room <100 kPa (fixed 2026-11) | Pins | Functional | yes |
+| `pipe_half_full_active_vent/` | Vent on below 50 kPa, off above 55 kPa | Pins | Functional | yes |
+| `liquid_pipe_fill_percent_active_vent/` | Vent on while liquid volume <50% of pipe volume | Pins | Functional | yes |
+| `pipe_pressure_gas_mixer/` | Gas Mixer off above 10 MPa | Pins | Functional | yes |
 
-## Hash-targeted script setup (important)
+### Methane (formerly "volatiles") handling
 
-Some scripts target devices via network hashes (`lb/sb/lbn/sbn`) instead of direct `d0..d5` references.
+The folder names keep the old "volatiles" wording so existing installs and links keep
+working; the scripts read the current `RatioMethane` LogicType.
 
-- Name hashes are exact and case-sensitive.
-  - `HASH("cold")` matches only `cold`.
-  - `cold_1`, `Cold`, and `COLD` are different names.
-- Batch name hash matching is not substring matching.
-- If a script README says "name valves `cold`", rename targets exactly to `cold`.
+| Script | What it does | Targeting | Status | Sim |
+| --- | --- | --- | --- | --- |
+| `no_volatiles_valve/` | Valve on while any methane is present, off when none | Pins | Functional | yes |
+| `no_volatiles_no_steam_valve/` | Valve on only with no methane, no steam and >1 kPa | Pins | Functional | yes |
+| `volatiles_purge_valve/` | Valve on while methane present and O2 < 33% of methane | Pins | Functional | yes |
+| `volatiles_purge_active_vent/` | Vent on while methane present and O2 < 33% | Pins | Functional | yes |
+| `pipe_volatiles_gas_fuel_generator/` | Gas Fuel Generator on while any methane is present | Pins | Functional | yes |
+| `landingpad_volatiles_pressure_valve/` | Landingpad Gas Output + valve on at ~100% methane; 20 MPa cutoff; override | Pins | Functional | yes |
+| `purge_valve/` | Lever-armed purge of a liquid pipe (valve, vent, outlet) with LED status | Pins | Functional | yes |
 
-If behavior looks like "script can't find device", verify data-network connection and exact rename first.
+### Power, suits, displays, logistics
 
-## Creating a new script (template)
+| Script | What it does | Targeting | Status | Sim |
+| --- | --- | --- | --- | --- |
+| `large_battery_mean_gas_generator/` | Generator on when mean Large Battery charge <30% | Prefab | Functional | yes |
+| `hardsuit_helmet_temp_pressure_open/` | Opens the helmet in safe air (4–45°C, 80–150 kPa); respects manual close | db + pin | Functional | yes |
+| `led_display_hms_clock/` | Hours and minutes on two LED Displays from a Daylight Sensor (no seconds) | Pins | Functional | yes |
+| `vending_machine_export/` | Exports an exact item count via Stacker + Sorter return loop | Pins | Functional | no |
 
-- Start from `scripts/_template/` (copy the folder, then rename folder + `.ic10` file).
-- Follow `docs/ic10_script_checklist.md` to stay consistent and paste-ready.
+## Naming and batch targeting
 
-## Script list
+- Name hashes are exact and case-sensitive: `HASH("cold")` matches `cold`, not `cold_1`
+  or `Cold`.
+- If a script "can't find" devices: check the data network, then the exact name, then
+  the device's `Lock`/`Mode` (`docs/usage/README.md`).
 
-- `led_display_hms_clock/` — Drives 3 LED Displays as a 24h HH:MM:SS clock.
-- `small_satellite_dish_fast_track/` — One-chip early-game auto sweep/lock tracker for a Small Satellite Dish.
-- `large_satellite_dish_sweep_scan/` — Deterministic H/V sweep with edge flip, strength threshold option, and button toggle.
-- `large_satellite_dish_cycle_contacts/` — Collects unique contacts, then button-cycles lock target in discovery order.
-- `large_satellite_dish_led_readout/` — Mirrors dish `Horizontal`, `Vertical`, `SizeX`, and `SizeZ` to 4 LED Displays.
-- `air_conditioner_25c/` — Keeps one Air Conditioner enabled at a 25C output target.
-- `phase_change_temp_valve/` — Opens a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
-- `pipe_heater_below_20c/` — Reads a Pipe Analyzer and turns a Pipe Heater on below 20°C.
-- `pipe_furnace_valve_below_20c/` — Reads a Pipe Analyzer and turns an Advanced Furnace plus Pipe Digital Valve on below 20°C.
-- `pipe_temp_hot_cold_valves/` — Reads a Pipe Analyzer temperature and opens either a "cold" or "hot" Pipe Digital Valve based on thresholds.
-- `active_vent_dual_sets/` — Sets one named group of Active Vents to intake and another to exhaust using batch hashes.
-- `pipe_pressure_active_vent/` — Reads a Pipe Analyzer pressure and batch-drives named Active Vents to fill the pipe to a target MPa.
-- `room_pressure_active_vent/` — Reads room pressure (Gas Sensor) and sets an Active Vent mode based on low/high pressure thresholds.
-- `room_co2_below_20pct_active_vent/` — Reads room CO2 ratio (Gas Sensor) and opens an Active Vent below 20%.
-- `room_heater_below_20c/` — Reads a Gas Sensor and turns a Wall Heater on below 20°C.
-- `gas_sensor_glass_door_30c/` — Reads a Gas Sensor and opens a Glass Door above 30°C, closes below 30°C.
-- `volatiles_purge_active_vent/` — Turns an Active Vent on when Methane is present until Oxygen ratio is >= 33%.
-- `volatiles_purge_valve/` — Turns a Pipe Digital Valve on when Methane is present until Oxygen ratio is >= 33% of Methane ratio.
-- `pipe_volatiles_gas_fuel_generator/` — Turns a Gas Fuel Generator on when a Pipe Analyzer reports any Methane.
-- `large_battery_mean_gas_generator/` — Turns a Gas Fuel Generator on when mean Ratio of all Large Station Batteries on the data network is below 30%.
-- `liquid_pipe_fill_percent_active_vent/` — Turns an Active Vent on when a Liquid Pipe Analyzer reports liquid volume below a configurable percentage.
-- `landingpad_volatiles_pressure_valve/` — Enables Landingpad Gas Output + Pipe Digital Valve only at 100% methane, with 20 MPa safety cutoff.
-- `hardsuit_helmet_temp_pressure_open/` — Opens a Hardsuit Helmet at or above 4°C and 80 kPa, else closes it.
-- `solar_named_tracking/` — Tracks named Solar Panel groups by Daylight Sensor and parks each group at its own home angle at night.
-- `vending_machine_export/` — Exports an exact item count from a Vending Machine by using a Stacker + Sorter return loop.
-- `SatCom/` — Multi-chip satellite comms scaffold (master + discover worker + cycle worker).
+## Adding a script
 
-Additional scripts in this repo:
-
-- `dual_analyzer_furnace_pulse/`
-- `liquid_temp_valve/`
-- `no_volatiles_valve/`
-- `no_volatiles_no_steam_valve/`
-- `pipe_pressure_gas_mixer/` — Turns a Gas Mixer off above a Pipe Analyzer pressure ceiling.
-- `pipe_temp_valve/`
-- `pipe_heater_below_20c/`
-- `pipe_half_full_active_vent/`
-- `purge_valve/`
-- `room_cooler_steamless_vent/`
-- `solar_tracking/`
+Copy `scripts/_template/`, follow `docs/ic10_script_checklist.md`, add a scenario to
+`tests/test_standalone_scripts.py`, then run `python tools/check_all.py`.

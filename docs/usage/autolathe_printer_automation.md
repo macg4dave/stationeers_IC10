@@ -190,16 +190,15 @@ Why this works well here:
 
 ## Good fits for this repo
 
-Useful follow-up work here would be:
+Useful follow-up work here would be (proposals, not yet in the repo):
 
-- a modular `printer_supply_chain/` feature under `modular scripts/`
-- a small player-facing single-machine `autolathe_batch_producer/` script under `scripts/`
+- a modular printer supply-chain feature under `modular scripts/`
+- a small player-facing single-machine Autolathe batch script under `scripts/`
 - producer recipe expansion beyond `Autolathe` in `catalog/recipes/`
 
-Useful intermediate step before a full supply chain:
-
-- add a **logistics worker** to `AutolatheBatch` that owns an optional sorter + vending + retry button
-- let multiple machine workers share one vending machine by serializing ingot requests through shared memory
+`modular scripts/AutolatheVendStock/` already covers the single-machine case with a
+logistics worker, feeder and shared-memory ingot requests. A next step would be letting
+several machine workers share one Vending Machine by serialising ingot requests.
 
 ## Gotchas
 

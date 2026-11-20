@@ -140,12 +140,6 @@
       "itemHash": null
     },
     {
-      "wikiTitle": "Landingpad_Gas_Storage",
-      "file": "devices/Landingpad_Gas_Storage.json",
-      "itemName": null,
-      "itemHash": null
-    },
-    {
       "wikiTitle": "Landingpad_Liquid_Input",
       "file": "devices/Landingpad_Liquid_Input.json",
       "itemName": null,
@@ -304,6 +298,12 @@
     {
       "wikiTitle": "Wall_Heater",
       "file": "devices/Wall_Heater.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "phase_change_device",
+      "file": "devices/phase_change_device.json",
       "itemName": null,
       "itemHash": null
     }

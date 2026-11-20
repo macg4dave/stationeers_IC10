@@ -3,6 +3,12 @@
 This intentionally focuses on inline backticked paths in markdown docs.
 It ignores placeholders/wildcards/URLs and command snippets.
 
+Two kinds of reference are checked:
+- repo-rooted paths (`scripts/...`, `docs/...`, `tools/...`, ...)
+- doc-relative entries such as `pipe_temp_valve/` or `active_vent.md`, resolved
+  against the folder of the doc that mentions them (this is how the script and
+  playbook indexes list their entries)
+
 Exit codes:
   0 - checks passed
   1 - one or more missing paths
@@ -17,7 +23,21 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOC_GLOBS = ("README.md", "scripts/README.md", "modular scripts/README.md", "docs/**/*.md")
+DOC_GLOBS = (
+    "README.md", "AGENTS.md", ".github/*.md", "catalog/README.md",
+    "scripts/README.md", "scripts/*/README.md",
+    "modular scripts/README.md", "modular scripts/*/*.md",
+    "docs/**/*.md",
+)
+_RELATIVE_RE = re.compile(r"^[A-Za-z0-9_.()-]+(/|\.md)$")
+
+
+def _relative_candidate(token: str) -> str | None:
+    """A bare `name/` or `name.md` entry, checked relative to the doc's folder."""
+    token = token.strip().rstrip(".,:;")
+    if token in {"README.md", "Setup.md", "AGENTS.md"}:
+        return None   # generic names: usually "the README", not a specific file
+    return token if _RELATIVE_RE.match(token) else None
 
 
 def _normalize_candidate(token: str) -> str | None:
@@ -93,11 +113,13 @@ def main() -> int:
             for m in pattern.finditer(line):
                 token = m.group(1)
                 candidate = _normalize_candidate(token)
-                if not candidate:
+                if candidate:
+                    if not (root / candidate).resolve().exists():
+                        missing.append(f"{rel_doc}:{line_no}: {candidate}")
                     continue
-                path = (root / candidate).resolve()
-                if not path.exists():
-                    missing.append(f"{rel_doc}:{line_no}: {candidate}")
+                rel = _relative_candidate(token)
+                if rel and not (doc.parent / rel).exists() and not (root / rel).exists():
+                    missing.append(f"{rel_doc}:{line_no}: {rel} (relative to {rel_doc.parent})")
 
     if missing:
         for msg in missing:

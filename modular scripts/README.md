@@ -1,37 +1,35 @@
 # Modular scripts
 
-This folder contains **multi-chip IC10 projects** using a master + workers architecture.
+Multi-chip IC10 systems (master + workers) for jobs that do not fit one chip or that
+need several independent loops. Each feature folder contains:
 
-## Folder layout
+- `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, often a `_setup_guard`
+- `README.md` — wiring, shared-memory contract, status-code tables
+- `Setup.md` — player build list and step-by-step setup
 
-Each modular feature lives in:
+## Features
 
-- `modular scripts/<feature>/`
-  - `<feature>_master.ic10`
-  - `<feature>_worker_<task>.ic10` (one or more)
-  - `README.md` (wiring + command/data contract + status table)
+| Feature | What it does | Chips | Sim coverage |
+| --- | --- | --- | --- |
+| `AutolatheVendStock/` | Keeps a Vending Machine stocked from one Autolathe; feeds ingots | 7 (+2 Free Ingots variants) | stock → machine → prep handshake, worker restart |
+| `ingot_printer/` | Multi-Autolathe ingot printer for the Free Ingots mod | 5 | master slot sync |
+| `PotatoHarvieTest/` | Potato grow loop: Hydroponics + Harvie(s) + Grow Light | 4 | actuator light cycle, harvest |
+| `SatTraderTrack/` | Trader tracking with medium → large dish handoff and auto-land | 4 | master tokens, dish sweep |
+| `_template/` | Starter master / worker / setup-guard files | — | lint + run only |
 
-## Included projects
+`AutolatheVendStock` `*.free_ingots.ic10` files are generated:
+`python tools/autolathe_profile_emit.py free_ingots` (checked by `tools/check_all.py`).
 
-- `ingot_printer/` — Queue-driven multi-Autolathe ingot printer for Free Ingots mod support.
-- `AutolatheBatch/` — Simple modular Autolathe batch-runner test rig (master + worker + setup guard).
-- `AutolatheVendStock/` — Simplified fully automatic single-Autolathe vending stocker (no buttons).
-- `PotatoHarvieTest/` — Potato grow test for one Hydroponics Device, one or more Harvies, and one Grow Light.
-- `PrinterHall/` — Shared-bus multi-Autolathe hall controller with selector, logistics, overflow, and idle workers.
-- `SmallDishHandoff/` — Two-chip scanning/contact satellite dish handoff using one Logic Memory slot.
-- `SatCom/` — Satellite communications modular scaffold.
-- `SatTraderTrack/` — Compact modular trader tracker with medium/large dish handoff and auto-land support.
-- `_template/` — Starter master/worker template for new modular features.
+## Conventions
 
-## Notes
+- Inter-chip links take the lowest pins (`d0`, `d1`, ...), then user inputs, then
+  feature devices. Unused pins are aliased `n0..n5` so the housing labels stay current.
+- Each chip reports a numeric status on its own `db Setting`; tables are in each
+  feature `README.md`.
+- Shared state lives in named Logic Memory devices (`cmd_token`, `cmd_type`, `slotN`).
+  Give each slot a single writer where possible; see
+  `docs/modular_master_worker_pattern.md`.
+- Setup guards initialise shared channels once, then only validate.
 
-- Wiring standard: if chips are wired to other chips/channels, assign those
-  links first at `d0`, `d1`, `d2`... then map buttons/feature devices.
-- For modular scripts, alias unused device pins as `n0..n5` so the in-game housing labels
-  stop showing stale old pin roles after script updates.
-- End-user setup guide: `docs/usage/modular_wiring_setup.md`.
-- SatCom example setup guide: `modular scripts/SatCom/Setup.md`.
-- Keep every chip paste-ready: 128 lines / 90 chars per line.
-- Validate with:
-  - `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`
-  - `python tools/setup_contract_check.py`
+Setup walkthrough for players: `docs/usage/modular_wiring_setup.md`.
+Validate: `python tools/check_all.py`.
