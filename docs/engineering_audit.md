@@ -1,10 +1,10 @@
 # Engineering audit (2026-11)
 
-Scope: every `.ic10` under `scripts/` and `modular scripts/`, the Python tools, the
+Scope: every `.ic10` under `scripts/` and `modular scripts/`, the tooling, the
 catalog, templates and docs. Branch `modernisation/engineering-audit`.
 
 **How to read results.** *Static* = lint/size/contract checks. *Simulated* = scenario
-passes in `tools/ic10_engine.py` (a model of the chip, not the game). *In-game* = only
+passes in `src/engine.rs` (a model of the chip, not the game). *In-game* = only
 the user can confirm. Nothing below is claimed as in-game verified unless the user
 said so.
 
@@ -20,9 +20,9 @@ said so.
 - **Catalog**: per-device LogicTypes, `modeValues`, item and structure hashes; wiki
   import (HTML or Special:Export XML); recipe catalog and Autolathe profiles that
   generate the `*.free_ingots.ic10` variants.
-- **Tooling** (stdlib Python): paste-limit, setup-contract, catalog and doc-path
-  checkers; wiki importers; profile emitter. Added in this audit: `ic10_engine.py`
-  (parser, analyser, simulator), `ic10_lint.py`, `check_all.py`, `tests/`.
+- **Tooling** (one Rust crate since §14): IC10 parser, lint and simulator; catalog,
+  setup-contract and doc-path checks; profile emitter; scenarios in `tests/`. Sections
+  before §14 name the Python files it replaced.
 
 Inter-script dependencies: none between standalone scripts (each owns its devices;
 two scripts both use the name `cold` — `pipe_valves_open_when_cold` and `phase_change_cooling_valve`
@@ -127,14 +127,17 @@ Rows marked Fixed/Changed were addressed in the 2026-11-21 remake (§12).
 
 ## 8. Tests added
 
-- `tests/test_ic10_engine.py` — branches, timing, alias, batch, hash, analyser rules.
-- `tests/test_standalone_scripts.py` — scenarios for 28 of 29 scripts (not
+Now `tests/engine.rs`, `tests/standalone.rs`, `tests/modular.rs` and `tests/repo.rs`
+(ported from Python in §14); file names below are the originals.
+
+- `test_ic10_engine.py` — branches, timing, alias, batch, hash, analyser rules.
+- `test_standalone_scripts.py` — scenarios for 28 of 29 scripts (not
   `vending_export_exact_count`: needs an item-transport model).
-- `tests/test_modular_scripts.py` — Potato actuator cycle and harvest; trader_dish_auto_land
+- `test_modular_scripts.py` — Potato actuator cycle and harvest; trader_dish_auto_land
   master tokens and re-enable, dish sweep in both modes; ingot master sync and status
   passthrough; autolathe_restock_vending stock → machine → prep handshake in **both chip
   orders**, and a machine-worker restart mid-run.
-- `tests/test_all_scripts.py` — every shipped file lints clean and runs 300 ticks on
+- `test_all_scripts.py` — every shipped file lints clean and runs 300 ticks on
   stub devices without halting.
 
 Differential check (one-off, during the audit): for D1, D2 and D3 the original script
@@ -254,7 +257,7 @@ four-chip `SatTraderTrack` design. It was replaced by the single chip
   steps scaled by 1/sin(Vertical) and steps allowed over straight up. Then `Activate` to
   interrogate at `MAX_W`, re-lock on drift, 600 s give-up, and `Activate` again to call
   down when the lever is on. Status is `phase*100 + ContactTypeId`.
-- **Simulation:** `tests/test_trader_dish.py` uses a fake dish whose `SignalStrength` is
+- **Simulation:** `tests/trader_dish.rs` (then `.py`) uses a fake dish whose `SignalStrength` is
   the true angle to a contact. In a Monte Carlo of 160 random contacts at visibility
   radii 15–40°, 159 were found and called (median about 85 s). The one miss was at a 15°
   radius: a scan-grid gap that more `SCAN_W` closes.
@@ -262,3 +265,57 @@ four-chip `SatTraderTrack` design. It was replaced by the single chip
   Vertical 0 = straight up; `Activate` after interrogation calls down; `ContactTypeId`
   values; `MAX_W` enough for large/exotic traders.
 
+## 14. Tooling rewritten in Rust (2026-11-21)
+
+The owner asked for all tooling in Rust from now on, without the wiki importers.
+
+- **Removed:** every Python file in the old `tools` folder and in `tests/`, including `wiki_import.py`,
+  `wiki_xml_import.py` and `wiki_recipe_import.py`. The catalog is now edited by hand.
+- **Replaced by** one crate:
+  - `src/engine.rs` (parser, lint, simulator);
+  - `src/catalog.rs` (serde schemas, catalog check, profile emitter);
+  - `src/repo.rs` (lint every script, setup contracts, doc paths);
+  - `src/main.rs` (`ic10 check|lint|hash|emit`);
+  - `tests/*.rs`.
+- **Merged:**
+  - the separate paste-limit checker is gone, because lint already reports
+    E020–E022;
+  - `check_all.py` became `cargo test` (the static checks run as
+    `tests/repo.rs::every_static_check_passes`);
+  - each "refined behaviour" test was merged into its script's scenario.
+- **Parity:** lint findings, including `--info`, are identical to the Python version
+  on all 53 files. All 56 Rust tests pass, and a deliberately broken threshold turns
+  the matching scenario red.
+- **Small engine fixes:**
+  - `sap`/`sna` now take 4 operands, as in-game, and are simulated;
+  - `rrN` indirect registers work as targets and as values.
+- **Prebuilt crates checked:**
+  - `ryex/ic10emu` (Rust IC10 emulator, last pushed 2024-09) was not adopted. Its
+    data has `RatioVolatiles` and no `RatioMethane`, and it needs a full prefab
+    database for each device, which rules out the fake devices the tests rely on.
+  - `tree-sitter-ic10` is only a parser and needs a C build.
+  - Generic work uses `serde`, `serde_json`, `regex`, `glob`, `clap` and `crc32fast`.
+
+## 15. Solar tracking restored (2026-11-21)
+
+The old `solar_named_tracking` script was deleted on 2026-06-01 in commit `4eb4776`. The
+commit message mentions only satellite scripts, so the deletion looks accidental. It is
+replaced by `scripts/solar_panels_track_sun/`:
+
+- same naming contract (`0`/`90`/`180`/`270` = world direction of the data port);
+- same maths;
+- now also drives Dual, Heavy Dual and 1x5 panels; 1x5 panels are flipped in-game
+  (user-confirmed: name `0` = data port at 180), so their `Horizontal` gets +180;
+- follows the sun at night;
+- re-aims only on change, with a 10 s re-send.
+
+Simulated: four scenarios in `tests/standalone.rs`. Six single-line mutations of the
+script each turn at least one of them red.
+
+In-game checks needed:
+
+- **Facing at midday:** every type faces the sun. Dual panels may need their name
+  shifted one group, because the data-port position on Dual is unconfirmed.
+- **1x5 hashes:** confirm the hashes, which are guesses (`StructureSolarPanel1x5`,
+  `StructureSolarPanel1x5Reinforced`).
+- **Night:** at night, panels follow the sun below the horizon and face sunrise at dawn.

@@ -10,4 +10,4 @@ guide. The essentials, in case you only read this file:
 - Batch name hashes are exact and case-sensitive; use structure prefab hashes.
 - Read `catalog/devices/<Device>.json` for LogicTypes and `modeValues`; never guess.
 - Preserve working behaviour: add a failing test in `tests/` before fixing a script.
-- Run `python tools/check_all.py` before and after changes.
+- Run `cargo test` before and after changes; Rust rules are in `AGENTS.md`.

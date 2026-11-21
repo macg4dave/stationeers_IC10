@@ -1,12 +1,12 @@
 # AGENTS.md — engineering guide for AI agents (authoritative)
 
-This repo ships **paste-ready Stationeers IC10 scripts** plus **stdlib-only Python
-tooling** that validates and simulates them. This file is the single source of truth
+This repo ships **paste-ready Stationeers IC10 scripts** plus **one Rust crate**
+that lints, simulates and checks them. This file is the single source of truth
 for how to work here; `.github/copilot-instructions.md` only points back to it.
 
 ## Start every task with
 
-1. `python tools/check_all.py` — record what already fails *before* you change anything.
+1. `cargo test` — record what already fails *before* you change anything.
 2. Read the script's `README.md` (and feature `README.md` + `Setup.md` for modular).
 3. Read its scenario in `tests/` — it states the behaviour that must be preserved.
 
@@ -16,9 +16,9 @@ for how to work here; `.github/copilot-instructions.md` only points back to it.
 - `modular scripts/<feature>/` — multi-chip systems: master, workers, setup guard,
   `README.md` (contract + status codes), `Setup.md` (player steps)
 - `catalog/devices/*.json` — device LogicTypes, Mode values, prefab hashes (`catalog/README.md`)
-- `tools/` — `check_all.py` (run everything), `ic10_lint.py`, `ic10_engine.py`
-  (parser + simulator), size/setup/catalog/doc checkers, wiki importers, generator
-- `tests/` — `unittest` scenarios run by the simulator
+- `src/` + `Cargo.toml` — Rust tooling (see "Rust tooling rules"); `cargo run -- check`
+  for a static-check report, `cargo run -- lint|hash|emit`
+- `tests/` — Rust scenarios run by the simulator (`cargo test`)
 - `docs/` — checklists, modular pattern, device playbooks (`docs/usage/`)
 - `docs/engineering_audit.md` — known defects, open risks, what still needs in-game tests
 
@@ -38,7 +38,7 @@ for how to work here; `.github/copilot-instructions.md` only points back to it.
 - **Batch ops** (`lb/sb/lbn/sbn`) match **prefab hash** and, for `*n`, an **exact,
   case-sensitive name hash**. `HASH("cold")` matches `cold`, never `cold_1` or `Cold`.
 - **Hashes** are the signed CRC-32 of the prefab name. Verify a hard-coded hash with
-  `python -c "import sys; sys.path.insert(0,'tools'); from ic10_engine import ic10_hash; print(ic10_hash('StructureActiveVent'))"`.
+  `cargo run -- hash StructureActiveVent`.
   Use the **placed structure** prefab (`identity.structureHash` when present), not a
   kit/item hash, for devices on the network.
 - **Units:** temperatures are Kelvin (`C = K - 273.15`). Pipe Analyzer, Liquid Pipe
@@ -57,11 +57,9 @@ for how to work here; `.github/copilot-instructions.md` only points back to it.
 
 1. Behaviour the user confirmed in-game.
 2. Game data: prefab name → CRC-32 hash; LogicType names used by working scripts.
-3. Wiki via browser export (the live wiki blocks scripts with a Cloudflare challenge):
-   user exports `https://stationeers-wiki.com/Special:Export` ("Include templates") into
-   `temp/`, then `python tools/wiki_xml_import.py temp/<file>.xml` (compare) or `--write`
-   (additive merge). The wiki lags the game: a field missing there is not proof it was
-   removed.
+3. The wiki, read by the user in a browser (the live wiki blocks scripts with a
+   Cloudflare challenge). Catalog edits are by hand and additive: the wiki lags the
+   game, so a field missing there is not proof it was removed.
 4. Catalog entries with `"kind": "best_guess"` — treat as hypotheses.
 
 When you cannot verify a behaviour, keep the existing implementation and write the
@@ -70,8 +68,9 @@ instruction, LogicType, Mode value or device capability.
 
 ## Changing a script that already works in-game
 
-- Reproduce first: add a scenario that fails on the current script, then fix.
-  The tests use `@known_defect("Dn")` for defects not yet fixed.
+- Reproduce first: add a scenario that fails on the current script, then fix it in the
+  same commit. A defect that is not fixed yet goes in `docs/engineering_audit.md`, not
+  in an ignored test.
 - One defect per commit; say *why* in the commit and in the script README
   ("Change history"). Keep the author's `Status` label unchanged.
 - Script names follow `<where it lives>_<what it does>` (old names: `docs/renames.md`).
@@ -79,7 +78,7 @@ instruction, LogicType, Mode value or device capability.
   user asks: players have these wired in-game. If a contract must change, update every script, `README.md`
   and `Setup.md` that uses it in the same commit and call it out.
 - Prefer the smallest correct change. Do not restyle working code.
-- Re-run `python tools/check_all.py`; report results as **static**, **simulated** or
+- Re-run `cargo test`; report results as **static**, **simulated** or
   **in-game** — only the user can confirm the last one.
 
 ## Writing a new script
@@ -113,7 +112,52 @@ instruction, LogicType, Mode value or device capability.
 - Pins: inter-chip links first (`d0` upward), then user inputs, then devices; alias
   unused pins `n0..n5`. Status per chip on its own `db Setting`, documented in README.
 - `Setup.md` must list every `IC Housing:` name, every `HASH("...")` name and every
-  shared channel; `tools/setup_contract_check.py` enforces this.
+  shared channel; `cargo test` enforces this (`src/repo.rs`).
+
+## Rust tooling rules
+
+All tooling is one Rust crate: `src/engine.rs` (IC10 parser, lint, simulator),
+`src/catalog.rs` (catalog schemas, check, generated workers), `src/repo.rs` (repo-wide
+checks), `src/main.rs` (`ic10` CLI), `tests/*.rs` (scenarios; helpers in
+`tests/common/mod.rs`). Keep it that way: new tooling goes in Rust, in these files.
+
+**Style: combine, merge, delete.**
+
+- Before adding code, look for code to reuse, extend or delete. A change that removes
+  lines beats one that adds them; the best fix often deletes a special case.
+- Merge near-duplicates: two functions or tests that differ by data become one with a
+  table (`for (input, want) in [...]`). Grow an existing module before making a new one.
+- Delete dead code, unused parameters, forwarding wrappers, commented-out code and
+  stale comments in the same change. Nothing is kept "for later".
+- No abstractions without two real callers: no traits, generics, builders or config
+  for a single use. The `Logic` trait exists because tests model reacting devices.
+- Use well-known crates for generic work (`serde`/`serde_json`, `regex`, `glob`,
+  `clap`, `crc32fast`) instead of writing your own; use std when it is a few lines. Add
+  a dependency only when it removes real code. The IC10 engine is ours on purpose:
+  `ryex/ic10emu` was evaluated on 2026-11-21. Its game data predates Methane
+  (`RatioVolatiles`, no `RatioMethane`), and it needs the full prefab database for
+  every device.
+
+**No placeholders, no try.**
+
+- No `todo!()`, `unimplemented!()`, `TODO`/`FIXME`/`XXX` comments, stub functions or
+  `#[ignore]` tests. Finish the work or leave it out, and record open questions in
+  `docs/engineering_audit.md`.
+- No `?`, `try` blocks, `try!` or `catch_unwind`. Handle each failure where it
+  happens:
+  - a check records it as an error line (`path:line: message`);
+  - the simulator records it in `Chip::halted`, as the in-game chip halts;
+  - `main` prints it and returns a failing `ExitCode`.
+  Use `match`, `let ... else` and `unwrap_or*`.
+- No `unwrap()`. `expect("...")` only for values that cannot fail at runtime (constant
+  regexes). No `unsafe`, no `dbg!`.
+- These rules are enforced by `[lints]` in `Cargo.toml` and
+  `tests/repo.rs::rust_code_follows_the_house_rules`.
+
+**Workflow.** `cargo fmt`, `cargo clippy --all-targets -- -D warnings` and
+`cargo test` all pass before every commit. A new scenario must be able to fail: break
+the script on purpose once and watch the test go red. Assertion messages say which
+behaviour broke (`"analyzer error forces OFF"`).
 
 ## Do not
 
@@ -122,4 +166,4 @@ instruction, LogicType, Mode value or device capability.
 - Merge scripts only because they look alike — they often serve different setups.
 - Claim a script works in-game because lint and tests pass.
 - Overwrite `*.free_ingots.ic10` by hand: they are generated
-  (`python tools/autolathe_profile_emit.py free_ingots`).
+  (`cargo run -- emit free_ingots`).

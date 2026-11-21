@@ -17,7 +17,7 @@ need several independent loops. Each feature folder contains (old folder names: 
 | `_template/` | Starter master / worker / setup-guard files | — | lint + run only |
 
 `autolathe_restock_vending` `*.free_ingots.ic10` files are generated:
-`python tools/autolathe_profile_emit.py free_ingots` (checked by `tools/check_all.py`).
+`cargo run -- emit free_ingots` (checked by `cargo test`).
 
 ## Conventions
 
@@ -31,4 +31,4 @@ need several independent loops. Each feature folder contains (old folder names: 
 - Setup guards initialise shared channels once, then only validate.
 
 Setup walkthrough for players: `docs/usage/modular_wiring_setup.md`.
-Validate: `python tools/check_all.py`.
+Validate: `cargo test`.

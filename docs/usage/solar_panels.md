@@ -1,21 +1,38 @@
 # Solar panels (batch control) setup checklist
 
-## What scripts usually write
+Script: `scripts/solar_panels_track_sun/` (one Daylight Sensor, panels named by direction).
 
-- `Horizontal`
-- `Vertical`
+## Which panels move
+
+Prefab data (ic10emu's game data, 2024) lists eight solar prefabs, and all of them
+accept `Horizontal`/`Vertical` writes. Only these rotate, though:
+
+- Solar Panel `StructureSolarPanel` (-2045627372)
+- Solar Panel (Heavy) `StructureSolarPanelReinforced` (-934345724)
+- Solar Panel (Dual) `StructureSolarPanelDual` (-539224550)
+- Solar Panel (Heavy Dual) `StructureSolarPanelDualReinforced` (-1545574413)
+- 1x5 panels: newer than that data. Their names and hashes are not confirmed; read
+  `PrefabHash` in-game. They are built flipped: their data port sits opposite a
+  normal panel's, so `Horizontal` needs an extra 180°.
+
+Angled (`StructureSolarPanel45*`) and Flat (`StructureSolarPanelFlat*`) panels are
+built in a fixed pose.
+
+## What scripts write
+
+- `Horizontal`: a local angle, clockwise, with the data port at 270°. A world heading
+  W becomes `W + 270 - <world direction of the data port>`.
+- `Vertical`: degrees above the horizon, 15–165, 90 = straight up. Values below 90
+  tilt toward `Horizontal`.
 
 ## Minimum to work
 
-- Panels connected to the same data network as the IC Housing
-- Panels are the correct device type(s) expected by the script (many scripts batch by `PrefabHash`)
+- Panels connected to the same data network as the IC Housing.
+- Panel names exactly as the script expects. Name hashes are exact: no substrings,
+  case-sensitive.
 
 ## Common gotchas
 
 - Batch writes only reach devices on the data network.
-- If a script supports "per-panel offsets by label/name", the labels must match exactly:
-  - Name hashes are exact; no substrings.
-
-## Common patterns that scripts use
-
-- Many trackers set a "morning park" position at night (example: horizontal = -90 / East) and resume tracking during the day.
+- One panel type pointing wrong while the others are right means its data port sits
+  elsewhere on that panel. Rename it to the next direction group.

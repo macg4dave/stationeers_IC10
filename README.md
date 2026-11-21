@@ -18,10 +18,10 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 
 - `scripts/` - player-facing scripts (each script includes a `README.md` + a pasteable `.ic10`)
 - `modular scripts/` - modular multi-chip projects (master + worker IC10 files)
-- `tools/` - helper tools (Python, stdlib-only)
-- `catalog/` - local JSON catalog of device Logic I/O names/types (imported from the Stationeers wiki)
+- `src/`, `Cargo.toml` - Rust tooling: IC10 lint, simulator, repo checks (`cargo test`)
+- `catalog/` - local JSON catalog of device Logic I/O names/types (originally imported from the Stationeers wiki)
 - `catalog/recipes/` - local JSON catalog of wiki recipe tables for producer devices (starting with `Autolathe`)
-- `tests/` - simulated behaviour scenarios for the scripts (stdlib `unittest`)
+- `tests/` - simulated behaviour scenarios for the scripts (Rust integration tests)
 - `docs/engineering_audit.md` - architecture, known defects, open risks, in-game test list
 - `.vscode/` - recommended VS Code extension + debug config
 - `AGENTS.md` - engineering guide for AI assistants (`.github/copilot-instructions.md` points to it)
@@ -52,11 +52,11 @@ In Stationeers:
 - Paste the script text
 - Save/exit
 
-Use the size checker tool before pasting (see "Tools" below), especially after editing a script.
+Run `cargo run -- lint` before pasting (see "Tools" below), especially after editing a script.
 
 ## AI-assisted scripting (Copilot / ChatGPT / etc.)
 
-AI can be great for **small, testable** IC10 changes, script variants, and documentation. It's also easy for AI to generate IC10 that *looks* right but fails in-game, so use a tight loop: generate -> size-check -> paste -> test.
+AI can be great for **small, testable** IC10 changes, script variants, and documentation. It's also easy for AI to generate IC10 that *looks* right but fails in-game, so use a tight loop: generate -> `cargo test` -> paste -> test in-game.
 
 ### Using GitHub Copilot in this repo (VS Code)
 
@@ -88,18 +88,6 @@ E.g. For making a script.:
 - Devices:
   - Pipe Analyzer
   - Active Vent
-```
-
-E.g. For importing from the wiki:
-
-```text
-- Import this item: <URL of the Stationeers wiki page for a device>
-```
-
-E.g. For importing recipes from the wiki:
-
-```text
-- Import these recipes: <URL of the Stationeers wiki recipes page for a producer>
 ```
 
 E.g. For modular (master + workers):
@@ -148,16 +136,19 @@ The extension also supports an optional **hardware environment** file in TOML:
 
 ## Tools (advanced)
 
-All tools are **stdlib-only Python** (no pip installs required).
+The tooling is one Rust crate at the repo root (`Cargo.toml`, `src/`, `tests/`). Install
+Rust from <https://rustup.rs>, then:
 
 ### Run every check (start here)
 
 ```bash
-python tools/check_all.py
+cargo test                      # static checks + every behaviour scenario
+cargo run -- check              # static checks only, with a readable report
 ```
 
-Runs paste limits, the IC10 linter, setup-contract, catalog and doc checks, the
-generated-file check and the behaviour tests. Results mean different things:
+`cargo test` runs the IC10 lint (paste limits included), setup contracts, catalog
+schema, doc path references, the generated-file check and the simulated scenarios in
+`tests/`. Results mean different things:
 
 - **static checks pass** - files are paste-ready and structurally sound
 - **tests pass** - simulated behaviour matches the scenarios in `tests/`
@@ -166,99 +157,48 @@ generated-file check and the behaviour tests. Results mean different things:
 ### Lint IC10 scripts
 
 ```bash
-python tools/ic10_lint.py            # everything
-python tools/ic10_lint.py --info path/to/script.ic10
+cargo run -- lint                                   # every shipped script
+cargo run -- lint --info scripts/room_heater_hold_20c
 ```
 
-Catches unknown instructions, wrong operand counts, undefined labels, relative
-branches given a label (`brlt x y label`), absolute jumps to a numeric line,
-LogicTypes not in the catalog, unreachable code and registers read before they are
-written.
+Catches paste-limit overruns (128 lines, 90 chars, 4096 bytes), unknown instructions,
+wrong operand counts, undefined labels, relative branches given a label
+(`brlt x y label`), absolute jumps to a numeric line, LogicTypes not in the catalog,
+unreachable code and registers read before they are written.
 
 ### Behaviour tests
 
-```bash
-python -m unittest discover -s tests
-```
+`src/engine.rs` simulates the chip (128 lines per tick, `yield`/`sleep`, batch ops,
+exact name hashes). Scenarios drive each script through its thresholds, hysteresis,
+startup and fault cases; modular tests run several chips in lockstep.
 
-`tools/ic10_engine.py` simulates the chip (128 lines per tick, `yield`/`sleep`, batch
-ops, exact name hashes). Scenarios drive each script through its thresholds,
-hysteresis, startup and fault cases; modular tests run several chips in lockstep.
-
-### Check IC10 script size (paste limits)
-
-- Script: `tools/ic10_size_check.py`
-- Example:
+### Game hashes
 
 ```bash
-python tools/ic10_size_check.py scripts/ --ext .ic10
+cargo run -- hash StructureActiveVent               # -1129453144
 ```
-
-### Import device IO from the Stationeers wiki into `catalog/`
-
-The live wiki blocks scripted downloads (Cloudflare challenge), so export pages from
-your browser instead:
-
-1. Open <https://stationeers-wiki.com/Special:Export>, paste page titles (or add a
-   category), tick **Include templates**, save the `.xml` into `temp/`.
-2. Compare, then merge:
-
-```bash
-python tools/wiki_xml_import.py temp/<export>.xml          # report only
-python tools/wiki_xml_import.py temp/<export>.xml --write  # additive merge
-```
-
-The merge never deletes fields (the wiki lags the game) and maps old Volatiles names to
-the in-game Methane names. `tools/wiki_import.py` still works on a single page saved
-from the browser as HTML (`python tools/wiki_import.py "temp/Pipe Analyzer.html"`).
-
-- Output:
-  - `catalog/devices/<WikiTitle>.json`
-  - `catalog/index.json`
-
-### Import producer recipes from the Stationeers wiki into `catalog/recipes/`
-
-- Script: `tools/wiki_recipe_import.py`
-- Example:
-
-```bash
-python tools/wiki_recipe_import.py https://stationeers-wiki.com/Autolathe/Recipes
-```
-
-- Output:
-  - `catalog/recipes/<Producer>/recipes.json`
-  - `catalog/recipes/index.json`
 
 ### Emit opt-in Autolathe profile variants
 
-- Script: `tools/autolathe_profile_emit.py`
-- Example:
-
 ```bash
-python tools/autolathe_profile_emit.py free_ingots
+cargo run -- emit free_ingots
 ```
 
 - Output:
   - `modular scripts/autolathe_restock_vending/autolathe_restock_worker_stock.<profile>.ic10`
   - `modular scripts/autolathe_restock_vending/autolathe_restock_worker_logistics.<profile>.ic10`
+- Profile data lives in `catalog/recipes/Autolathe/profiles/`.
 
-- Profile data lives in:
-  - `catalog/recipes/Autolathe/profiles/index.json`
-  - `catalog/recipes/Autolathe/profiles/<profile>.json`
+### Catalog
 
-### Check modular Setup.md contract consistency
+`catalog/` is edited by hand (the wiki importers were removed in the Rust rewrite).
+`cargo test` checks every file against its schema (`src/catalog.rs`).
 
-- Script: `tools/setup_contract_check.py`
-- Verifies each modular feature `Setup.md` stays in sync with IC10 scripts:
-  - required sections (`Name contract`, `Setup steps`)
-  - `HASH("name")` tokens used in scripts appear in setup docs
-  - shared channel tokens (`cmd_token`, `cmd_type`, `slotN`, `dataN`) appear
-  - non-deprecated feature script filenames are referenced
-- Example:
+### Modular Setup.md contracts
 
-```bash
-python tools/setup_contract_check.py
-```
+Each modular feature's `Setup.md` must list its required sections (`Name contract`,
+`Setup steps`), every `HASH("name")`, every shared channel (`cmd_token`, `cmd_type`,
+`slotN`, `dataN`) and every script file. `cargo test` enforces this.
 
 ## Hashing quick rules (batch/network scripts)
 

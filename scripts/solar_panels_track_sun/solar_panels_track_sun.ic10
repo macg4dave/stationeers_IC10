@@ -1,0 +1,101 @@
+# solar_panels_track_sun - aims every movable solar panel at the sun
+# d0=Daylight Sensor. Name each panel 0, 90, 180 or 270: the way its data port faces.
+# Types: Solar Panel, Heavy, Dual, Heavy Dual, 1x5, Heavy 1x5 (1x5 hashes unconfirmed).
+# 1x5 panels are built flipped: their names mean the opposite way (0 = port at 180).
+# At night panels keep following the sun below the horizon, so they face sunrise.
+# db Setting: 1=day 2=night 9=Daylight Sensor missing or wrong device on d0
+
+alias sensor d0
+alias sh r0
+alias tv r1
+alias th r2
+alias name r3
+alias lastH r4
+alias lastV r5
+alias t r6
+alias resend r7
+alias f r8
+
+define SENSOR_PORT 0
+define STEP 0.5
+define RESEND 20
+define SENSOR_HASH 1076425094
+define P_STD -2045627372
+define P_HEAVY -934345724
+define P_DUAL -539224550
+define P_HDUAL -1545574413
+define P_1X5 939649277
+define P_H1X5 1945473703
+
+wait:
+s db Setting 9
+yield
+bdns sensor wait
+l t sensor PrefabHash
+bne t SENSOR_HASH wait
+
+main:
+yield
+bdns sensor wait
+l t sensor PrefabHash
+bne t SENSOR_HASH wait
+l t sensor On
+bnez t powered
+s sensor On 1
+powered:
+l sh sensor Horizontal
+l tv sensor Vertical
+add sh sh SENSOR_PORT
+add sh sh 360
+mod sh sh 360
+sgt t tv 90
+add t t 1
+s db Setting t
+sub tv 90 tv
+max tv tv 15
+min tv tv 90
+sub resend resend 1
+blez resend send
+sub t sh lastH
+abs t t
+sub th 360 t
+min t t th
+bgt t STEP send
+sub t tv lastV
+abs t t
+bgt t STEP send
+j main
+
+send:
+move lastH sh
+move lastV tv
+move resend RESEND
+add th sh 630
+move name HASH("0")
+jal aim
+move name HASH("90")
+jal aim
+move name HASH("180")
+jal aim
+move name HASH("270")
+jal aim
+j main
+
+aim:
+mod t th 360
+add f t 180
+mod f f 360
+sbn P_STD name Horizontal t
+sbn P_STD name Vertical tv
+sbn P_HEAVY name Horizontal t
+sbn P_HEAVY name Vertical tv
+sbn P_DUAL name Horizontal t
+sbn P_DUAL name Vertical tv
+sbn P_HDUAL name Horizontal t
+sbn P_HDUAL name Vertical tv
+sbn P_1X5 name Horizontal f
+sbn P_1X5 name Vertical tv
+sbn P_H1X5 name Horizontal f
+sbn P_H1X5 name Vertical tv
+sub th th 90
+j ra

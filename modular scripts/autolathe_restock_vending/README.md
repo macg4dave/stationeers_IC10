@@ -15,7 +15,7 @@ This module now supports **explicit opt-in profiles** rather than hidden runtime
 - default shipped worker files are the **vanilla** profile
 - optional mod profiles only apply when this module README/Setup explicitly documents them
 - profile source data lives under `catalog/recipes/Autolathe/profiles/`
-- profile worker variants are emitted by `tools/autolathe_profile_emit.py`
+- profile worker variants are emitted by `cargo run -- emit <profile>`
 
 Currently documented optional profile:
 

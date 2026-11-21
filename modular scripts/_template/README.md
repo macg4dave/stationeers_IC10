@@ -82,5 +82,4 @@ Make these part of every new modular feature unless there is a strong reason not
 ## Constraints
 
 - Each `.ic10` must fit: **128 lines** and **90 chars/line**.
-- Run: `python tools/ic10_size_check.py "modular scripts/" --ext .ic10`
-- Run: `python tools/setup_contract_check.py`
+- Run: `cargo test` (paste limits, lint and the `Setup.md` contract)

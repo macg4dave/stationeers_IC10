@@ -12,16 +12,12 @@ Example source page:
 
 - <https://stationeers-wiki.com/Pipe_Analyzer>
 
-The live wiki blocks scripted downloads (Cloudflare challenge). To refresh the
-catalog, export pages from your browser at
-<https://stationeers-wiki.com/Special:Export> (tick "Include templates"), save the
-`.xml` under `temp/`, then:
-
-- `python tools/wiki_xml_import.py temp/<export>.xml` — compare only
-- `python tools/wiki_xml_import.py temp/<export>.xml --write` — merge into `catalog/devices/`
-
-The merge is additive (it never deletes fields, since the wiki often lags the game)
-and maps the old Volatiles names to the in-game Methane names.
+The wiki importers were removed when the tooling moved to Rust (2026-11-21). The live
+wiki blocks scripted downloads (Cloudflare challenge), so edit the catalog by hand
+from what you read in a browser. Keep edits additive: never delete a field because
+the wiki lacks it (the wiki often lags the game), and use the in-game Methane names,
+not the old Volatiles names. Mark anything unconfirmed with `"kind": "best_guess"`.
+`cargo test` checks every file against the schema in `src/catalog.rs`.
 
 ## File layout
 

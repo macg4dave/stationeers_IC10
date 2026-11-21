@@ -22,7 +22,7 @@ Names follow `<where it lives>_<what it does>`. Old names are listed in
 **Pins** = devices assigned to `d0..d5` in the IC Housing. **Names** = devices found on
 the network by type + exact name, so rename them in-game exactly as the README says.
 **Prefab** = every device of that type on the network. **Sim** = a behaviour scenario
-in `tests/test_standalone_scripts.py` passes (simulated, not an in-game test).
+in `tests/standalone.rs` passes (simulated, not an in-game test).
 
 ### Heating and cooling
 
@@ -73,13 +73,14 @@ in `tests/test_standalone_scripts.py` passes (simulated, not an in-game test).
 
 | Script | What it does | Targeting | Sim |
 | --- | --- | --- | --- |
+| `solar_panels_track_sun/` | Every movable solar panel named `0`/`90`/`180`/`270` follows the sun (Daylight Sensor) | Names | yes |
 | `power_generator_on_low_battery/` | Generator on below 30 % average large-battery charge, off above 80 % | Prefab | yes |
 | `suit_helmet_auto_open/` | Helmet opens in safe air (4–45 °C, 80–150 kPa), respects a manual close | db + pin | yes |
 | `display_clock_from_sun/` | 24 h clock on two LED Displays from a Daylight Sensor | Pins | yes |
 | `vending_export_exact_count/` | Exports an exact item count; gives up if the item runs out | Pins | timeout only |
-| `trader_dish_auto_land/` | One dish finds a trader, locks on, interrogates, calls it down (**Experimental**, new design) | Pins | yes (simulated dish) |
+| `trader_dish_auto_land/` | One dish finds a trader, locks on, interrogates, calls it down | Pins | yes (simulated dish) |
 
-All scripts except `trader_dish_auto_land` carry the author's **Functional** label from before the 2026-11-21 remake.
+All scripts carry the author's **Functional** label.
 They have not yet been re-tested in-game; see `docs/engineering_audit.md` for the list.
 
 ## Naming and batch targeting
@@ -92,4 +93,4 @@ They have not yet been re-tested in-game; see `docs/engineering_audit.md` for th
 ## Adding a script
 
 Copy `scripts/_template/`, follow `docs/ic10_script_checklist.md`, add a scenario to
-`tests/test_standalone_scripts.py`, then run `python tools/check_all.py`.
+`tests/standalone.rs`, then run `cargo test`.

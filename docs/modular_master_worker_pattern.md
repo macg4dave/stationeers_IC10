@@ -50,7 +50,7 @@ If a second writer is unavoidable, document which value each chip writes and whe
 
 ### Test the contract
 
-`tests/test_modular_scripts.py` runs chips in lockstep on one simulated network. Run a
+`tests/modular.rs` runs chips in lockstep on one simulated network. Run a
 new handshake with both chip orders: in-game update order is not something a script
 can rely on.
 

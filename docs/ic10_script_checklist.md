@@ -71,15 +71,15 @@ thresholds; limitations; troubleshooting; Status.
 
 ## 10. Validate
 
-- Add or update a scenario in `tests/test_standalone_scripts.py`.
-- `python tools/check_all.py` (paste limits, lint, contracts, catalog, docs, tests).
+- Add or update a scenario in `tests/standalone.rs`.
+- `cargo test` (paste limits, lint, contracts, catalog, docs, scenarios).
 - Tell the user what was verified statically, what was simulated, and what still
   needs an in-game test.
 
 ## 11. Catalog and playbooks
 
 - New "device does nothing" gotcha → add it to `docs/usage/`.
-- Need authoritative LogicTypes → browser Special:Export + `tools/wiki_xml_import.py`
+- Need authoritative LogicTypes → read the wiki page in a browser, edit `catalog/` by hand
   (see `catalog/README.md`). The wiki may lag the game.
 
 ## 12. Daylight-derived clocks
@@ -91,4 +91,4 @@ say clearly that the time is derived from the sun angle (whole-degree resolution
 ## 13. Modular features
 
 See `docs/modular_master_worker_pattern.md` and the "Modular systems" section of
-`AGENTS.md`; validate `Setup.md` with `python tools/setup_contract_check.py`.
+`AGENTS.md`; `cargo test` validates `Setup.md`.

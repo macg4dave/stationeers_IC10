@@ -88,4 +88,4 @@ against a simulated dish. These points are assumptions:
 
 ## Status
 
-Experimental (new design, not yet run in-game).
+Functional (author's label). This design has been simulated, not yet run in-game.
