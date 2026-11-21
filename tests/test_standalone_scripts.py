@@ -30,7 +30,7 @@ class PipeTempHotColdValves(unittest.TestCase):
         self.pa = analyzer(20, 5000)
         self.hot, self.cold = switchable(), switchable()
         self.pump = switchable(Setting=0)
-        self.chip = Chip(script("pipe_temp_hot_cold_valves"),
+        self.chip = Chip(script("pipe_sort_hot_cold_with_pump"),
                          pins={"d0": self.pa, "d1": self.hot, "d2": self.cold, "d3": self.pump})
 
     def at(self, temp_c=None, kpa=None):
@@ -65,7 +65,7 @@ class ActiveVentDualSets(unittest.TestCase):
     def setUp(self):
         self.sensor = gas_sensor(20)
         self.vin, self.vout = vent("IN", On=1, Open=1), vent("OUT", On=1, Open=1)
-        self.chip = Chip(script("active_vent_dual_sets"), pins={"d0": self.sensor},
+        self.chip = Chip(script("room_vents_swap_air_when_hot"), pins={"d0": self.sensor},
                          network=[self.vin, self.vout])
 
     def test_cold_start_turns_running_vents_off(self):
@@ -86,7 +86,7 @@ class PipePressureActiveVent(unittest.TestCase):
     def test_fill_cycle(self):
         pa = analyzer(20, 9950)
         v = vent("PIPE_VENT", On=1, Open=1)
-        chip = Chip(script("pipe_pressure_active_vent"), pins={"d0": pa}, network=[v])
+        chip = Chip(script("pipe_vents_fill_to_10mpa"), pins={"d0": pa}, network=[v])
         chip.run(4)
         self.assertEqual(v.fields["On"], 0, "startup stops the vents")
         pa.fields["Pressure"] = 5000
@@ -104,7 +104,7 @@ class RoomPressureActiveVent(unittest.TestCase):
     def setUp(self):
         self.s = gas_sensor(20, 100)
         self.v = vent("ROOM_VENT")
-        self.chip = Chip(script("room_pressure_active_vent"), pins={"d0": self.s},
+        self.chip = Chip(script("room_vents_hold_pressure"), pins={"d0": self.s},
                          network=[self.v])
 
     def p(self, kpa, ticks=8):
@@ -129,7 +129,7 @@ class RoomCo2ActiveVent(unittest.TestCase):
     def setUp(self):
         self.s = gas_sensor(20, 101, RatioCarbonDioxide=0.3)
         self.v = switchable()
-        self.chip = Chip(script("room_co2_below_20pct_active_vent"),
+        self.chip = Chip(script("greenhouse_co2_pressure_vent"),
                          pins={"d0": self.s, "d1": self.v})
 
     def test_low_co2_or_low_pressure_opens(self):
@@ -160,21 +160,21 @@ class ValveHysteresis(unittest.TestCase):
     def test_liquid_temp_valve(self):
         r = analyzer(25)
         v = Device({"On": 0, "PrefabHash": -517628750})
-        chip = Chip(script("liquid_temp_valve"), pins={"d0": r}, network=[v])
+        chip = Chip(script("liquid_valves_open_when_cold"), pins={"d0": r}, network=[v])
         self._cycle(chip, r, [v], [(15, 1), (25, 1), (31, 0), (25, 0), (19, 1)])
 
     def test_pipe_temp_valve(self):
         r = analyzer(20)
         v = Device({"On": 1, "Lock": 0}, prefab=VALVE, name="cold")
         other = Device({"On": 1}, prefab=VALVE, name="hot")
-        chip = Chip(script("pipe_temp_valve"), pins={"d0": r}, network=[v, other])
+        chip = Chip(script("pipe_valves_open_when_cold"), pins={"d0": r}, network=[v, other])
         self._cycle(chip, r, [v], [(20, 0), (5, 1), (20, 1), (31, 0)])
         self.assertEqual(other.fields["On"], 1, "only valves named exactly 'cold' change")
 
     def test_phase_change_temp_valve(self):
         r = Device({"Temperature": 20 + K})
         v = Device({"On": 1, "Lock": 1}, prefab=VALVE, name="cold")
-        chip = Chip(script("phase_change_temp_valve"), pins={"d0": r}, network=[v])
+        chip = Chip(script("phase_change_cooling_valve"), pins={"d0": r}, network=[v])
         self._cycle(chip, r, [v], [(20, 0), (31, 1), (30, 0)])
         self.assertEqual(v.fields["Lock"], 0)
 
@@ -182,7 +182,7 @@ class ValveHysteresis(unittest.TestCase):
 class OnOffControllers(unittest.TestCase):
     def test_pipe_heater_below_20c(self):
         pa, h = analyzer(25), switchable()
-        chip = Chip(script("pipe_heater_below_20c"), pins={"d0": pa, "d1": h})
+        chip = Chip(script("pipe_heater_hold_20c"), pins={"d0": pa, "d1": h})
         chip.run(4); self.assertEqual(h.fields["On"], 0)
         pa.fields["Temperature"] = 15 + K
         chip.run(4); self.assertEqual(h.fields["On"], 1)
@@ -191,14 +191,14 @@ class OnOffControllers(unittest.TestCase):
 
     def test_room_heater_below_20c(self):
         s, h = gas_sensor(15), switchable()
-        chip = Chip(script("room_heater_below_20c"), pins={"d0": s, "d1": h})
+        chip = Chip(script("room_heater_hold_20c"), pins={"d0": s, "d1": h})
         chip.run(4); self.assertEqual(h.fields["On"], 1)
         s.fields["Temperature"] = 21 + K
         chip.run(4); self.assertEqual(h.fields["On"], 0)
 
     def test_gas_sensor_glass_door_30c(self):
         s, d = gas_sensor(31), switchable(Lock=1)
-        chip = Chip(script("gas_sensor_glass_door_30c"), pins={"d0": s, "d1": d})
+        chip = Chip(script("room_door_open_when_hot"), pins={"d0": s, "d1": d})
         chip.run(4)
         self.assertEqual((d.fields["Open"], d.fields["Lock"], d.fields["On"]), (1, 0, 1))
         s.fields["Temperature"] = 30 + K
@@ -209,7 +209,7 @@ class OnOffControllers(unittest.TestCase):
     def test_room_cooler_steamless_vent(self):
         s = gas_sensor(31, RatioSteam=0)
         c, v = switchable(), switchable()
-        chip = Chip(script("room_cooler_steamless_vent"), pins={"d0": s, "d1": c, "d2": v})
+        chip = Chip(script("room_cooler_and_steam_vent"), pins={"d0": s, "d1": c, "d2": v})
         chip.run(4)
         self.assertEqual((c.fields["On"], v.fields["On"], v.fields["Open"]), (1, 1, 1))
         s.fields.update(Temperature=25 + K, RatioSteam=0.1)
@@ -218,7 +218,7 @@ class OnOffControllers(unittest.TestCase):
 
     def test_pipe_pressure_gas_mixer(self):
         pa, m = analyzer(20, 5000, On=0), switchable()
-        chip = Chip(script("pipe_pressure_gas_mixer"), pins={"d0": pa, "d1": m})
+        chip = Chip(script("gas_mixer_stop_at_10mpa"), pins={"d0": pa, "d1": m})
         chip.run(4)
         self.assertEqual((pa.fields["On"], chip.status), (1, 4), "turns analyzer on first")
         chip.run(4); self.assertEqual(m.fields["On"], 1)
@@ -229,21 +229,21 @@ class OnOffControllers(unittest.TestCase):
 
     def test_pipe_volatiles_gas_fuel_generator(self):
         pa, g = analyzer(20, RatioMethane=0), switchable()
-        chip = Chip(script("pipe_volatiles_gas_fuel_generator"), pins={"d0": pa, "d1": g})
+        chip = Chip(script("power_generator_on_methane"), pins={"d0": pa, "d1": g})
         chip.run(4); self.assertEqual(g.fields["On"], 0)
         pa.fields["RatioMethane"] = 0.01
         chip.run(4); self.assertEqual(g.fields["On"], 1)
 
     def test_no_volatiles_valve(self):
         pa, v = analyzer(20, RatioMethane=0.2), switchable()
-        chip = Chip(script("no_volatiles_valve"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("pipe_valve_open_when_methane"), pins={"d0": pa, "d1": v})
         chip.run(4); self.assertEqual(v.fields["On"], 1)   # On while methane present
         pa.fields["RatioMethane"] = 0
         chip.run(4); self.assertEqual(v.fields["On"], 0)
 
     def test_no_volatiles_no_steam_valve(self):
         pa, v = analyzer(20, 50, RatioMethane=0, RatioSteam=0), switchable()
-        chip = Chip(script("no_volatiles_no_steam_valve"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("pipe_valve_open_when_clean"), pins={"d0": pa, "d1": v})
         chip.run(4); self.assertEqual(v.fields["On"], 1)
         pa.fields["RatioSteam"] = 0.01
         chip.run(4); self.assertEqual(v.fields["On"], 0)
@@ -253,7 +253,7 @@ class OnOffControllers(unittest.TestCase):
     def test_volatiles_purge_valve(self):
         pa = analyzer(20, RatioMethane=0.5, RatioOxygen=0.1)
         v = switchable()
-        chip = Chip(script("volatiles_purge_valve"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("pipe_methane_purge_valve"), pins={"d0": pa, "d1": v})
         chip.run(4); self.assertEqual(v.fields["On"], 1)   # 0.1 < 0.33 * 0.5
         pa.fields["RatioOxygen"] = 0.2
         chip.run(4); self.assertEqual(v.fields["On"], 0)
@@ -261,7 +261,7 @@ class OnOffControllers(unittest.TestCase):
     def test_volatiles_purge_active_vent(self):
         pa = analyzer(20, RatioMethane=0.5, RatioOxygen=0.1)
         v = switchable(Mode=1)
-        chip = Chip(script("volatiles_purge_active_vent"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("pipe_methane_purge_vent"), pins={"d0": pa, "d1": v})
         chip.run(4)
         self.assertEqual((v.fields["Mode"], v.fields["On"], v.fields["Open"]), (0, 1, 1))
         pa.fields["RatioOxygen"] = 0.4
@@ -270,7 +270,7 @@ class OnOffControllers(unittest.TestCase):
     def test_large_battery_mean_gas_generator(self):
         gen = switchable()
         bats = [Device({"Ratio": r}, prefab="StructureBatteryLarge") for r in (0.2, 0.3)]
-        chip = Chip(script("large_battery_mean_gas_generator"), pins={"d0": gen}, network=bats)
+        chip = Chip(script("power_generator_on_low_battery"), pins={"d0": gen}, network=bats)
         chip.run(4); self.assertEqual(gen.fields["On"], 1)  # mean 0.25 < 0.30
         bats[0].fields["Ratio"] = 0.5
         chip.run(4); self.assertEqual(gen.fields["On"], 0)
@@ -279,7 +279,7 @@ class OnOffControllers(unittest.TestCase):
 
     def test_air_conditioner_25c(self):
         ac = switchable(Setting=0, Mode=0)
-        chip = Chip(script("air_conditioner_25c"), housing=ac)
+        chip = Chip(script("air_conditioner_hold_25c"), housing=ac)
         chip.run(4)
         self.assertAlmostEqual(ac.fields["Setting"], 25 + K)
         self.assertEqual((ac.fields["Mode"], ac.fields["On"]), (1, 1))
@@ -291,7 +291,7 @@ class VentFillControllers(unittest.TestCase):
     def test_liquid_pipe_fill_percent_active_vent(self):
         pa = Device({"Volume": 100, "VolumeOfLiquid": 30})
         v = switchable(Mode=1)
-        chip = Chip(script("liquid_pipe_fill_percent_active_vent"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("liquid_pipe_top_up_vent"), pins={"d0": pa, "d1": v})
         chip.run(4)
         self.assertEqual((v.fields["Mode"], v.fields["On"], v.fields["Open"]), (0, 1, 1))
         pa.fields["VolumeOfLiquid"] = 60
@@ -299,7 +299,7 @@ class VentFillControllers(unittest.TestCase):
 
     def test_pipe_half_full_active_vent(self):
         pa, v = analyzer(20, 40), switchable()
-        chip = Chip(script("pipe_half_full_active_vent"), pins={"d0": pa, "d1": v})
+        chip = Chip(script("pipe_vent_fill_to_half"), pins={"d0": pa, "d1": v})
         for kpa, want in [(40, 1), (52, 1), (56, 0), (52, 0), (49, 1)]:
             pa.fields["Pressure"] = kpa
             chip.run(4)
@@ -311,7 +311,7 @@ class SafetyAndUtility(unittest.TestCase):
         pa = analyzer(20, 1000)
         pad = Device({"RatioMethane": 1.0, "On": 0})
         valve = switchable(Lock=1)
-        chip = Chip(script("landingpad_volatiles_pressure_valve"),
+        chip = Chip(script("landing_pad_methane_unload"),
                     pins={"d0": pa, "d1": pad, "d2": valve})
         chip.run(4)
         self.assertEqual((pad.fields["On"], valve.fields["On"], valve.fields["Lock"],
@@ -330,7 +330,7 @@ class SafetyAndUtility(unittest.TestCase):
     def test_hardsuit_helmet_manual_close_is_respected(self):
         suit = Device({"TemperatureExternal": 20 + K, "PressureExternal": 100})
         helmet = Device({"Open": 0, "Lock": 0})
-        chip = Chip(script("hardsuit_helmet_temp_pressure_open"), pins={"d0": helmet},
+        chip = Chip(script("suit_helmet_auto_open"), pins={"d0": helmet},
                     housing=suit)
         chip.run(4); self.assertEqual(helmet.fields["Open"], 1)
         helmet.fields["Open"] = 0                    # player closes it
@@ -346,7 +346,7 @@ class SafetyAndUtility(unittest.TestCase):
         hrs = Device({"On": 0, "Mode": 0, "Setting": 0})
         mins = Device({"On": 0, "Mode": 0, "Setting": 0})
         day = Device({"Horizontal": 97.5})          # floors to 97 deg -> 06:28 (4 min/deg)
-        chip = Chip(script("led_display_hms_clock"), pins={"d0": hrs, "d1": mins, "d3": day})
+        chip = Chip(script("display_clock_from_sun"), pins={"d0": hrs, "d1": mins, "d3": day})
         chip.run(4)
         self.assertEqual(hrs.fields["Mode"], 10)
         self.assertEqual(hrs.fields["Setting"], ord("0") * 256 + ord("6"))
@@ -357,7 +357,7 @@ class SafetyAndUtility(unittest.TestCase):
         reader = Device({"Pressure": 5, "Error": 0})
         valve, vnt, outlet = switchable(), switchable(), switchable()
         led = Device({"On": 0, "Color": 0})
-        chip = Chip(script("purge_valve"), pins={"d0": lever, "d1": reader, "d2": valve,
+        chip = Chip(script("liquid_pipe_purge_lever"), pins={"d0": lever, "d1": reader, "d2": valve,
                                                  "d3": vnt, "d4": outlet, "d5": led})
         chip.run(4)
         self.assertEqual([valve.fields["On"], vnt.fields["On"], outlet.fields["On"],
@@ -372,7 +372,7 @@ class SafetyAndUtility(unittest.TestCase):
     def test_dual_analyzer_furnace_pulse(self):
         liq, gas = Device({"Temperature": 90 + K}), Device({"Temperature": 20 + K})
         valve, furnace = switchable(), Device({"Activate": 0})
-        chip = Chip(script("dual_analyzer_furnace_pulse"),
+        chip = Chip(script("furnace_pulse_when_pipes_cold"),
                     pins={"d0": liq, "d1": gas, "d2": valve, "d3": furnace})
         chip.run(5)
         self.assertEqual(furnace.writes_of("Activate")[:2], [1, 0])
@@ -384,7 +384,7 @@ class SafetyAndUtility(unittest.TestCase):
         valve = switchable()
         furnace = Device({"Temperature": 50 + K, "On": 0, "Activate": 0, "Lock": 0,
                           "SettingInput": 0, "SettingOutput": 0})
-        chip = Chip(script("pipe_furnace_valve_below_20c"),
+        chip = Chip(script("furnace_heat_pipe_below_20c"),
                     pins={"d0": pa, "d1": valve, "d2": furnace})
         chip.run(4)
         self.assertEqual([valve.fields["On"], furnace.fields["On"], furnace.fields["Activate"],

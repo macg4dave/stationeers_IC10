@@ -1,0 +1,126 @@
+# liquid_pipe_purge_lever
+# Category: Controller
+# Status: Functional
+#
+# Purpose: When the lever is ON, purge anything detected by the Liquid Pipe Analyzer
+#          (treat ANY pipe pressure as "something present": liquid and/or gas).
+#
+# Device registers:
+#   d0 = Logic Switch (Lever)   [Open]
+#   d1 = Liquid Pipe Analyzer   [Pressure]
+#   d2 = Liquid Digital Valve   [On]
+#   d3 = Active Vent            [On]
+#   d4 = Active Liquid Outlet   [On]
+#   d5 = LED                    [On/Color]
+#
+# Tuning:
+#   MIN_PRESSURE_KPA = minimum Pressure (kPa) to treat as "has anything" (gas or liquid)
+
+alias lever d0
+alias liquid_read d1
+alias liquid_valve d2
+alias vent d3
+alias outlet d4
+alias led d5
+
+alias vol r0
+alias lever_on r1
+alias desired_on r2
+alias cond r3
+alias current_on r4
+
+alias liquid_err r5
+alias has_contents r6
+alias led_on r7
+alias led_color r8
+alias current_open r9
+
+define MIN_PRESSURE_KPA 0.001
+define COLOR_GREEN 2
+define COLOR_RED 4
+define COLOR_YELLOW 5
+
+wait_devices:
+yield
+bdns d0 wait_devices
+bdns d1 wait_devices
+bdns d2 wait_devices
+bdns d3 wait_devices
+bdns d4 wait_devices
+bdns d5 wait_devices
+
+main:
+l lever_on lever Open
+move has_contents 0
+
+# If analyzer error => treat as empty.
+l liquid_err liquid_read Error
+beqz liquid_err read_pressure
+j decide_purge
+read_pressure:
+l vol liquid_read Pressure
+slt has_contents MIN_PRESSURE_KPA vol   # pressure > MIN? (anything present)
+decide_purge:
+
+# Purge output only when lever is ON and pipe has contents.
+mul desired_on lever_on has_contents
+
+# LED: Yellow=contents+OFF, Red=contents+ON, Green=empty+ON, Off=empty+OFF
+move led_on 0
+move led_color 0
+
+beqz has_contents led_empty
+move led_on 1
+beqz lever_on led_yellow
+move led_color COLOR_RED
+j led_done
+led_yellow:
+move led_color COLOR_YELLOW
+j led_done
+
+led_empty:
+beqz lever_on led_done
+move led_on 1
+move led_color COLOR_GREEN
+
+led_done:
+
+# avoid redundant writes (less network spam)
+l current_on liquid_valve On
+sne cond desired_on current_on
+beqz cond skip_valve
+s liquid_valve On desired_on
+skip_valve:
+
+l current_on vent On
+l current_open vent Open
+sne cond desired_on current_open
+bnez cond write_vent
+sne cond desired_on current_on
+beqz cond skip_vent
+write_vent:
+s vent Open desired_on
+s vent On desired_on
+skip_vent:
+
+l current_on outlet On
+sne cond desired_on current_on
+beqz cond skip_outlet
+s outlet On desired_on
+skip_outlet:
+
+l current_on led On
+sne cond led_on current_on
+beqz cond skip_led_on
+s led On led_on
+skip_led_on:
+
+beqz led_on skip_led_color
+l current_on led Color
+sne cond led_color current_on
+beqz cond skip_led_color
+s led Color led_color
+skip_led_color:
+
+yield
+j main

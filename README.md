@@ -239,8 +239,8 @@ python tools/autolathe_profile_emit.py free_ingots
 ```
 
 - Output:
-  - `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_stock.<profile>.ic10`
-  - `modular scripts/AutolatheVendStock/autolathe_vend_stock_worker_logistics.<profile>.ic10`
+  - `modular scripts/autolathe_restock_vending/autolathe_restock_worker_stock.<profile>.ic10`
+  - `modular scripts/autolathe_restock_vending/autolathe_restock_worker_logistics.<profile>.ic10`
 
 - Profile data lives in:
   - `catalog/recipes/Autolathe/profiles/index.json`

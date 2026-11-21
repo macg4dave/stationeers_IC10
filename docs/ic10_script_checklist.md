@@ -86,7 +86,7 @@ thresholds; limitations; troubleshooting; Status.
 
 Document orientation, invert, offset and fine-shift constants with a calibration order;
 say clearly that the time is derived from the sun angle (whole-degree resolution =
-4 game minutes in `led_display_hms_clock`).
+4 game minutes in `display_clock_from_sun`).
 
 ## 13. Modular features
 

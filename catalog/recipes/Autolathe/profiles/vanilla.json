@@ -5,10 +5,10 @@
   "producer": "Autolathe",
   "baseProfile": null,
   "supportedScripts": [
-    "modular scripts/AutolatheVendStock"
+    "modular scripts/autolathe_restock_vending"
   ],
   "notes": [
-    "Default profile for AutolatheVendStock.",
+    "Default profile for autolathe_restock_vending.",
     "Matches the current tracked output list and logistics mapping in the shipped vanilla worker files."
   ],
   "recipeOverrides": [],

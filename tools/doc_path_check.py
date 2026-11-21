@@ -5,7 +5,7 @@ It ignores placeholders/wildcards/URLs and command snippets.
 
 Two kinds of reference are checked:
 - repo-rooted paths (`scripts/...`, `docs/...`, `tools/...`, ...)
-- doc-relative entries such as `pipe_temp_valve/` or `active_vent.md`, resolved
+- doc-relative entries such as `pipe_valves_open_when_cold/` or `active_vent.md`, resolved
   against the folder of the doc that mentions them (this is how the script and
   playbook indexes list their entries)
 

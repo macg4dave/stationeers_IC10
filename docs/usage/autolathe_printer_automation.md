@@ -55,7 +55,7 @@ Important hash rule:
 
 - `Required[...]` is keyed by **reagent hash**, not ingot/item hash
 - if you want to request an ingot from a vending machine, first read `Required[reagent]`, then map that reagent to the ingot item hash you want to request
-- example verified during `AutolatheVendStock` debugging:
+- example verified during `autolathe_restock_vending` debugging:
   - `Stellite` reagent hash = `-500544800`
   - `Ingot (Stellite)` item hash = `-1897868623`
   - `Required[-1897868623]` is wrong and can leave a sorter/feed request stuck active
@@ -174,8 +174,8 @@ Practical example for Autolathe:
 - vanilla default files stay unchanged
 - optional profile files such as `free_ingots.json` define the tracked outputs and logistics mapping
 - generated variants such as
-  `autolathe_vend_stock_worker_stock.free_ingots.ic10` and
-  `autolathe_vend_stock_worker_logistics.free_ingots.ic10`
+  `autolathe_restock_worker_stock.free_ingots.ic10` and
+  `autolathe_restock_worker_logistics.free_ingots.ic10`
   are only used when the module README/setup explicitly says so
 - if a mod source file provides only prefab names/time/energy (example: `catalog/mods/Freeingots/autolathe.xml`),
   that is still enough to document new outputs and to add any items whose hashes are already known elsewhere in the repo
@@ -196,7 +196,7 @@ Useful follow-up work here would be (proposals, not yet in the repo):
 - a small player-facing single-machine Autolathe batch script under `scripts/`
 - producer recipe expansion beyond `Autolathe` in `catalog/recipes/`
 
-`modular scripts/AutolatheVendStock/` already covers the single-machine case with a
+`modular scripts/autolathe_restock_vending/` already covers the single-machine case with a
 logistics worker, feeder and shared-memory ingot requests. A next step would be letting
 several machine workers share one Vending Machine by serialising ingot requests.
 

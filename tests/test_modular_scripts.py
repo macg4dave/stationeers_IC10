@@ -24,7 +24,7 @@ class PotatoHarvieActuator(unittest.TestCase):
         self.lit = Device({"On": 0})
         self.ctype = Device({"Setting": 1})
         self.slot0 = Device({"Setting": 1 | 8})        # occupied + healthy, no daylight
-        self.chip = Chip(script(f"{MOD}/PotatoHarvieTest/potato_harvie_test_worker_actuator.ic10"),
+        self.chip = Chip(script(f"{MOD}/farm_potato_grower/farm_potato_worker_actuator.ic10"),
                          pins={"d0": self.hv, "d1": self.lit, "d2": self.ctype, "d3": self.slot0},
                          network=[self.hv])
 
@@ -57,7 +57,7 @@ class SatTraderTrackMaster(unittest.TestCase):
         self.dishw, self.alertw = housing(on=1), housing(on=1)
         self.ctok, self.ctype = Device({"Setting": 0}), Device({"Setting": 0})
         self.dial, self.led = Device({"Setting": 2}), Device({"Setting": 0, "On": 0})
-        self.chip = Chip(script(f"{MOD}/SatTraderTrack/sat_trader_track_master.ic10"),
+        self.chip = Chip(script(f"{MOD}/trader_dish_auto_land/trader_dish_master.ic10"),
                          pins={"d0": self.dishw, "d1": self.alertw, "d2": self.ctok,
                                "d3": self.ctype, "d4": self.dial, "d5": self.led})
 
@@ -94,7 +94,7 @@ class SatTraderTrackDish(unittest.TestCase):
         self.sel = Device({"Setting": sel})
         pins = {"d0": self.d, "d1": self.dl, "d3": self.sel,
                 "d4": Device({"Open": 0}), "d5": Device({"Setting": 0, "Color": 0})}
-        return Chip(script(f"{MOD}/SatTraderTrack/sat_trader_track_worker_dish.ic10"), pins=pins)
+        return Chip(script(f"{MOD}/trader_dish_auto_land/trader_dish_worker_dish.ic10"), pins=pins)
 
     def sweep(self, sel):
         self.make(sel).run(60)
@@ -112,7 +112,7 @@ class IngotPrinterMaster(unittest.TestCase):
         sel = housing("selector_worker", setting=-654790771)
         fin = housing("finstd_worker")
         s0, s1 = memory("slot0"), memory("slot1")
-        chip = Chip(script(f"{MOD}/ingot_printer/ingot_printer_master.ic10"),
+        chip = Chip(script(f"{MOD}/autolathe_ingot_printer/autolathe_ingot_printer_master.ic10"),
                     network=[sel, fin, s0, s1])
         chip.run(3)
         self.assertEqual((s0.fields["Setting"], chip.status), (-654790771, -654790771))
@@ -137,7 +137,7 @@ class AutolatheVendStockHandshake(unittest.TestCase):
                             "ExportCount": 0})
         self.stack = Device({"On": 0, "Mode": 1, "Setting": 1, "ExportCount": 0})
         net = list(self.mem.values())
-        d = f"{MOD}/AutolatheVendStock/autolathe_vend_stock_"
+        d = f"{MOD}/autolathe_restock_vending/autolathe_restock_"
         self.stock = Chip(script(d + "worker_stock.ic10"), pins={"d0": self.vend}, network=net)
         self.machine = Chip(script(d + "worker_machine.ic10"),
                             pins={"d0": self.mach, "d1": self.stack}, network=net)

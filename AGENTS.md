@@ -74,8 +74,9 @@ instruction, LogicType, Mode value or device capability.
   The tests use `@known_defect("Dn")` for defects not yet fixed.
 - One defect per commit; say *why* in the commit and in the script README
   ("Change history"). Keep the author's `Status` label unchanged.
-- Do not rename folders, device names (`HASH("...")`), pins or status codes: players
-  have these wired in-game. If a contract must change, update every script, `README.md`
+- Script names follow `<where it lives>_<what it does>` (old names: `docs/renames.md`).
+  Do not rename folders, device names (`HASH("...")`), pins or status codes unless the
+  user asks: players have these wired in-game. If a contract must change, update every script, `README.md`
   and `Setup.md` that uses it in the same commit and call it out.
 - Prefer the smallest correct change. Do not restyle working code.
 - Re-run `python tools/check_all.py`; report results as **static**, **simulated** or

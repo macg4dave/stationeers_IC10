@@ -1,4 +1,4 @@
-"""Emit AutolatheVendStock IC10 worker variants from a curated profile.
+"""Emit autolathe_restock_vending IC10 worker variants from a curated profile.
 
 Usage:
   python tools/autolathe_profile_emit.py free_ingots
@@ -15,7 +15,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_INDEX_PATH = ROOT / "catalog" / "recipes" / "Autolathe" / "profiles" / "index.json"
-MODULE_DIR = ROOT / "modular scripts" / "AutolatheVendStock"
+MODULE_DIR = ROOT / "modular scripts" / "autolathe_restock_vending"
 
 
 def _load_json(path: Path) -> Any:
@@ -254,8 +254,8 @@ def _emit_logistics_worker(profile: dict[str, Any]) -> str:
 def render_profile(profile: dict[str, Any]) -> dict[Path, str]:
     profile_id = profile["id"]
     return {
-        MODULE_DIR / f"autolathe_vend_stock_worker_stock.{profile_id}.ic10": _emit_stock_worker(profile),
-        MODULE_DIR / f"autolathe_vend_stock_worker_logistics.{profile_id}.ic10": _emit_logistics_worker(profile),
+        MODULE_DIR / f"autolathe_restock_worker_stock.{profile_id}.ic10": _emit_stock_worker(profile),
+        MODULE_DIR / f"autolathe_restock_worker_logistics.{profile_id}.ic10": _emit_logistics_worker(profile),
     }
 
 
@@ -289,7 +289,7 @@ def check_profiles(profiles: dict[str, dict[str, Any]], wanted: list[str]) -> in
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Emit AutolatheVendStock worker variants")
+    parser = argparse.ArgumentParser(description="Emit autolathe_restock_vending worker variants")
     parser.add_argument("profile_ids", nargs="*", help="Profile id(s) to emit, e.g. free_ingots")
     parser.add_argument("--all", action="store_true", help="Emit worker variants for all profiles")
     parser.add_argument("--check", action="store_true",

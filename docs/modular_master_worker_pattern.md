@@ -41,9 +41,9 @@ Only publish a token if a worker actually reads it; otherwise a plain value chan
 Give every shared slot a single owning chip. When two chips write the same slot, each
 one's decision can be undone by the other a tick later. Lessons from this repo:
 
-- AutolatheVendStock `slot3` (prep readiness) was also written by the machine worker,
+- autolathe_restock_vending `slot3` (prep readiness) was also written by the machine worker,
   with an inverted test, which skipped writing the recipe (fixed 2026-11, audit D7).
-- ingot_printer `slot0` is written by both the master and `finstd_worker`; it works
+- autolathe_ingot_printer `slot0` is written by both the master and `finstd_worker`; it works
   because both copy the same selector value, but the ownership is fragile.
 
 If a second writer is unavoidable, document which value each chip writes and when.

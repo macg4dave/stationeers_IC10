@@ -1,0 +1,77 @@
+# pipe_methane_purge_vent
+# Category: Controller
+# Status: Functional
+#
+# Purpose: If the pipe contains Methane, turn an Active Vent on until
+#          Oxygen ratio is >= 33%.
+#
+# Device registers:
+#   d0 = Pipe Analyzer (gas pipe)
+#   d1 = Active Vent   (connected to the same pipe network)
+#
+# Notes:
+# - Pipe Analyzer ratios are 0..1 (mass percent / 100).
+# - We treat very small values as "not present" to avoid float noise.
+# - The script forces the vent to Mode=Outward (0) and keeps Open matched to On.
+
+alias pa d0
+alias vent d1
+
+alias vol r0
+alias o2 r1
+alias cond r2
+alias desired_on r3
+alias current_on r4
+alias current_mode r5
+alias current_open r6
+
+# Treat values <= EPS as "not present" (covers tiny floating noise)
+define EPS 0.000001
+
+# Oxygen target ratio (33%)
+define O2_TARGET 0.33
+
+# Active Vent Mode: 0 = Outward
+define MODE_OUTWARD 0
+
+wait:
+yield
+bdns d0 wait
+bdns d1 wait
+
+# Ensure vent is set to outward mode (only write if needed)
+l current_mode vent Mode
+sne cond current_mode MODE_OUTWARD
+beqz cond mode_ok
+s vent Mode MODE_OUTWARD
+mode_ok:
+
+main:
+# Read current gas composition
+l vol pa RatioMethane
+l o2 pa RatioOxygen
+
+# Default to OFF
+move desired_on 0
+
+# If methane is present AND oxygen < 33% => vent ON
+sgt cond vol EPS
+beqz cond decide
+slt cond o2 O2_TARGET
+select desired_on cond 1 0
+
+decide:
+# avoid redundant writes (and network spam): only set when it changes
+l current_on vent On
+l current_open vent Open
+sne cond desired_on current_open
+bnez cond write_state
+sne cond desired_on current_on
+beqz cond skip_write
+write_state:
+s vent Open desired_on
+s vent On desired_on
+skip_write:
+
+yield
+j main

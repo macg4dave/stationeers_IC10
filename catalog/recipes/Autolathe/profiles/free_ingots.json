@@ -5,7 +5,7 @@
   "producer": "Autolathe",
   "baseProfile": "vanilla",
   "supportedScripts": [
-    "modular scripts/AutolatheVendStock"
+    "modular scripts/autolathe_restock_vending"
   ],
   "notes": [
     "Opt-in profile for setups using the Free Ingots mod.",
@@ -16,7 +16,7 @@
     "All 17 mod ingot item hashes are now known authoritatively in this repo.",
     "The missing mod ingot hashes were derived consistently as signed CRC32 of the prefab/item name, which matches the already verified Stationeers ingot hashes in this repo.",
     "Not every consumer has to emit all 17 ingots immediately; keep paste-limit impact in mind for shipped IC10 variants.",
-    "For AutolatheVendStock, paste the .free_ingots worker variants and leave the other worker files unchanged."
+    "For autolathe_restock_vending, paste the .free_ingots worker variants and leave the other worker files unchanged."
   ],
   "recipeOverrides": [
     {
