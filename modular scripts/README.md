@@ -14,7 +14,6 @@ need several independent loops. Each feature folder contains (old folder names: 
 | `autolathe_restock_vending/` | Keeps a Vending Machine stocked from one Autolathe; feeds ingots | 7 (+2 Free Ingots variants) | stock → machine → prep handshake, worker restart, feeder requests once |
 | `autolathe_ingot_printer/` | Multi-Autolathe ingot printer for the Free Ingots mod | 5 | master slot sync |
 | `farm_potato_grower/` | Potato grow loop: Hydroponics + Harvie(s) + Grow Light | 4 | actuator light cycle, harvest |
-| `trader_dish_auto_land/` | Trader tracking with medium → large dish handoff and auto-land | 4 | master tokens, dish sweep |
 | `_template/` | Starter master / worker / setup-guard files | — | lint + run only |
 
 `autolathe_restock_vending` `*.free_ingots.ic10` files are generated:

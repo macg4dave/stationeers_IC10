@@ -45,6 +45,6 @@ names, pins (`d0..d5`) and status codes are the same as before.
 | `AutolatheVendStock` | `autolathe_restock_vending` | `autolathe_vend_stock_` -> `autolathe_restock_` | One Autolathe keeps a Vending Machine stocked |
 | `ingot_printer` | `autolathe_ingot_printer` | `ingot_printer_` -> `autolathe_ingot_printer_` | Free Ingots mod: Autolathes print low ingots |
 | `PotatoHarvieTest` | `farm_potato_grower` | `potato_harvie_test_` -> `farm_potato_` | Hydroponics + Harvie + Grow Light potato farm |
-| `SatTraderTrack` | `trader_dish_auto_land` | `sat_trader_track_` -> `trader_dish_` | Satellite dishes find a trader and land it |
+| `SatTraderTrack` | *(removed)* | — | Replaced by the single-chip `scripts/trader_dish_auto_land/` (new design) |
 
 `autolathe_ingot_printer_worker_finstd` is now `autolathe_ingot_printer_worker_final_stacker`.

@@ -52,61 +52,6 @@ class PotatoHarvieActuator(unittest.TestCase):
         self.assertTrue(all(g >= 5 for g in gaps), f"cooldown between pulses: {gaps}")
 
 
-class SatTraderTrackMaster(unittest.TestCase):
-    def setUp(self):
-        self.dishw, self.alertw = housing(on=1), housing(on=1)
-        self.ctok, self.ctype = Device({"Setting": 0}), Device({"Setting": 0})
-        self.dial, self.led = Device({"Setting": 2}), Device({"Setting": 0, "On": 0})
-        self.chip = Chip(script(f"{MOD}/trader_dish_auto_land/trader_dish_master.ic10"),
-                         pins={"d0": self.dishw, "d1": self.alertw, "d2": self.ctok,
-                               "d3": self.ctype, "d4": self.dial, "d5": self.led})
-
-    def test_dial_change_publishes_token(self):
-        self.chip.run(3)
-        self.assertEqual((self.ctype.fields["Setting"], self.ctok.fields["Setting"]), (2, 1))
-        self.assertEqual((self.led.fields["Setting"], self.chip.status), (2, 1))
-        self.chip.run(5)
-        self.assertEqual(self.ctok.fields["Setting"], 1, "no new token without a change")
-
-    def test_reenables_dish_worker(self):
-        self.chip.run(3)
-        self.dishw.fields["On"] = 0
-        self.chip.run(3)
-        self.assertEqual(self.dishw.fields["On"], 1)
-
-    def test_no_redundant_worker_writes(self):
-        self.chip.run(10)
-        self.assertEqual(self.dishw.writes_of("On"), [], "worker already on: no writes")
-
-
-def dish(**f):
-    base = {"On": 1, "Setting": 0, "Horizontal": 0, "Vertical": 0, "Idle": 1,
-            "InterrogationProgress": 0, "SignalStrength": 0, "ContactTypeId": 0,
-            "SignalID": 0, "BestContactFilter": 0, "MinimumWattsToContact": 0,
-            "WattsReachingContact": 0, "Activate": 0}
-    base.update(f)
-    return Device(base)
-
-
-class SatTraderTrackDish(unittest.TestCase):
-    def make(self, sel):
-        self.d, self.dl = dish(), dish(On=0)
-        self.sel = Device({"Setting": sel})
-        pins = {"d0": self.d, "d1": self.dl, "d3": self.sel,
-                "d4": Device({"Open": 0}), "d5": Device({"Setting": 0, "Color": 0})}
-        return Chip(script(f"{MOD}/trader_dish_auto_land/trader_dish_worker_dish.ic10"), pins=pins)
-
-    def sweep(self, sel):
-        self.make(sel).run(60)
-        return sorted(set(self.d.writes_of("Horizontal")))
-
-    def test_typed_mode_sweeps_when_no_signal(self):
-        self.assertGreater(len(self.sweep(sel=3)), 3)
-
-    def test_any_mode_sweeps_when_no_signal(self):
-        self.assertGreater(len(self.sweep(sel=0)), 3, "dish must keep sweeping in 'any' mode")
-
-
 class IngotPrinterMaster(unittest.TestCase):
     def test_copies_selector_pick_into_slot0(self):
         sel = housing("selector_worker", setting=-654790771)

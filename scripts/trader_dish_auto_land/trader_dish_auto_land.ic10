@@ -1,0 +1,128 @@
+# trader_dish_auto_land - scan sky, lock on (SignalStrength = deg, smaller is
+# closer), interrogate at full power, lever on => Activate again = call down.
+# d0=Satellite Dish  d1=Dial type filter 0=any  d2=Lever  d3=LED (optional x3)
+# db=phase*100+ContactTypeId: 1 scan 2 lock 3 interrogate 4 done 5 landing; 900=no dish
+# d0 dish r0 h r1 v r2 sig r3 best r4 step r5 id r6 k r7 t r8 bh r9 bv r10 phase r11 last
+define SCAN_W 5000
+define MAX_W 10000
+reset:
+jal show
+bdns d0 reset
+s d0 BestContactFilter -1
+s d0 Setting SCAN_W
+move r10 1
+scan:
+add r0 r0 30
+blt r0 360 scan_go
+add r1 r1 20
+mod r1 r1 100
+scan_go:
+jal probe
+bltz r2 scan
+l r5 d0 SignalID
+beq r5 r11 scan
+bdns d1 lock
+l r6 d1 Setting
+beqz r6 lock
+l r7 d0 ContactTypeId
+bne r7 r6 scan
+lock:
+s d0 BestContactFilter r5
+move r10 2
+move r3 r2
+div r4 r2 2
+climb:
+ble r3 2 locked
+blt r4 0.5 locked
+move r8 r0
+move r9 r1
+move r6 0
+try:
+move r0 r8
+move r1 r9
+mod r12 r6 2
+select r12 r12 -1 1
+mul r7 r4 r12
+bge r6 2 try_v
+mul r12 r1 0.0174533
+sin r12 r12
+max r12 r12 0.2
+div r7 r7 r12
+add r0 r0 r7
+j try_go
+try_v:
+add r1 r1 r7
+try_go:
+jal probe
+bltz r2 next
+bge r2 r3 next
+move r3 r2
+j climb
+next:
+add r6 r6 1
+blt r6 4 try
+move r0 r8
+move r1 r9
+div r4 r4 2
+j climb
+locked:
+move r10 3
+s d0 Setting MAX_W
+l r7 d0 Activate
+bnez r7 interrogate
+s d0 Activate 1
+move r13 600   # give up after 600 s
+interrogate:
+jal show
+sleep 1
+sub r13 r13 1
+blez r13 finish
+l r7 d0 InterrogationProgress
+bge r7 1 done
+l r2 d0 SignalStrength
+bltz r2 reset
+bgt r2 6 lock
+j interrogate
+done:
+move r10 4
+bdns d2 finish
+l r7 d2 Open
+beqz r7 finish
+s d0 Activate 1
+move r10 5
+finish:
+move r11 r5
+jal show
+sleep 5
+j reset
+probe:
+bgez r1 v_ok
+mul r1 r1 -1
+add r0 r0 180
+v_ok:
+add r0 r0 360
+mod r0 r0 360
+min r1 r1 90
+s d0 Horizontal r0
+s d0 Vertical r1
+wait_idle:
+yield
+bdns d0 wait_idle
+l r7 d0 Idle
+beqz r7 wait_idle
+sleep 1
+l r2 d0 SignalStrength
+show:
+yield
+move r7 900
+bdns d0 show_db
+mul r7 r10 100
+l r12 d0 ContactTypeId
+max r12 r12 0
+add r7 r7 r12
+show_db:
+s db Setting r7
+bdns d3 shown
+s d3 Setting r2
+shown:
+j ra

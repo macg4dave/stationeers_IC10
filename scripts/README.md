@@ -77,8 +77,9 @@ in `tests/test_standalone_scripts.py` passes (simulated, not an in-game test).
 | `suit_helmet_auto_open/` | Helmet opens in safe air (4–45 °C, 80–150 kPa), respects a manual close | db + pin | yes |
 | `display_clock_from_sun/` | 24 h clock on two LED Displays from a Daylight Sensor | Pins | yes |
 | `vending_export_exact_count/` | Exports an exact item count; gives up if the item runs out | Pins | timeout only |
+| `trader_dish_auto_land/` | One dish finds a trader, locks on, interrogates, calls it down (**Experimental**, new design) | Pins | yes (simulated dish) |
 
-All scripts carry the author's **Functional** label from before the 2026-11-21 remake.
+All scripts except `trader_dish_auto_land` carry the author's **Functional** label from before the 2026-11-21 remake.
 They have not yet been re-tested in-game; see `docs/engineering_audit.md` for the list.
 
 ## Naming and batch targeting

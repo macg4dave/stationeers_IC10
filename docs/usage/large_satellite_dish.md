@@ -1,32 +1,33 @@
-# Large Satellite Dish setup checklist
+# Satellite Dish setup checklist (small / medium / large)
 
-## What scripts usually read
+Script: `scripts/trader_dish_auto_land/`.
 
-- `Power` (0/1)
-- `Error` (0/1)
-- `Idle` (0/1)
-- `SignalID`, `SignalStrength`
+## Signal model (current game, 2026, from community write-ups; not yet confirmed here)
 
-## What scripts usually write
+- `SignalStrength` = angle in **degrees** between where the dish points and the
+  contact. **Smaller is closer**; about 2° counts as locked. `-1` = nothing visible.
+  Older wiki text ("negative value, larger is better") describes the pre-2026 behaviour.
+- A contact is visible only while `WattsReachingContact` ≥ its minimum, so more dish
+  power (`Setting`, watts) means contacts are visible from further off-axis.
+- `Vertical` 0 = straight up, 90 = horizon. Horizontal steps matter less near straight up.
 
-- `Horizontal`, `Vertical`
-- Sometimes `BestContactFilter`
+## What scripts read
 
-## Minimum to see it move / detect signals
+- `Idle` (1 = not moving: wait for it before trusting signal outputs)
+- `SignalStrength`, `SignalID`, `ContactTypeId`
+- `InterrogationProgress` (0..1), `Activate` (1 while interrogating)
+- `MinimumWattsToContact`, `WattsReachingContact` (`-1` = no data)
 
-- Powered and connected to the data network
-- Wait for `Idle = 1` before trusting signal outputs
-- After moving the dish, consider a short delay (e.g. ~1 second) before checking `SignalID`/`SignalStrength`
+## What scripts write
 
-## Common gotchas
+- `Horizontal`, `Vertical`, `Setting` (watts)
+- `BestContactFilter` = a `SignalID` to track only that contact, `-1` to release
+- `Activate` 1: start interrogation; after `InterrogationProgress` = 1, call the trader down
+  (community scripts; confirm in-game)
+- `TargetPadIndex`: landing pad for the call-down (mapping to pads is unclear)
 
-- While the dish is moving (`Idle = 0`), many outputs are meaningless (often `-1`).
-- `SignalStrength` is often negative; "bigger is better":
-  - Example: `-10` is stronger than `-50`.
-- If `Error = 1`, fix the in-game error state first; scripts often stop doing anything when errored.
+## Gotchas
 
-## Extra fields some scripts use
-
-- `MinimumWattsToContact` can be `-1` (treat as "no data / ignore").
-- `BestContactFilter` is often used as a "lock to this contact" filter:
-  - Use `-1` to clear/unlock in many builds.
+- While the dish moves (`Idle = 0`), signal outputs are meaningless.
+- Pressing `Activate` while interrogating stops the interrogation. Read `Activate` first.
+- If `Error = 1`, fix the in-game error first.

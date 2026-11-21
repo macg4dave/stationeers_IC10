@@ -84,7 +84,7 @@ Rows marked Fixed/Changed were addressed in the 2026-11-21 remake (§12).
 | S4 | `pipe_methane_purge_valve` | on analyzer error it jumps to `wait` and leaves the valve as it was | decide: hold or force closed | low — **Fixed 2026-11-21:** valve forced closed on error. |
 | S5 | `furnace_pulse_when_pipes_cold`, `furnace_heat_pipe_below_20c` | rely on Advanced Furnace `Activate` semantics (pulse vs latched) not documented in catalog | confirm in-game which one the furnace expects | low |
 | S6 | `air_conditioner_hold_25c` | forces `Mode = 1`; catalog lists Mode 0 Idle / 1 Active (may be a status) | confirm writing Mode is needed | low |
-| S7 | `trader_dish_auto_land` setup guard | large dish prefab = `HASH("Large_Satellite_Dish")` (a wiki title) | if the guard always shows `97` with `dish_l` present, the hash is wrong; the guard only reports, workers still run | low — **Changed 2026-11-21:** now `HASH("StructureLargeSatelliteDish")` (best guess) — still confirm in-game. |
+| S7 | `trader_dish_auto_land` setup guard | large dish prefab = `HASH("Large_Satellite_Dish")` (a wiki title) | if the guard always shows `97` with `dish_l` present, the hash is wrong; the guard only reports, workers still run | low — **Moot 2026-11-21:** the multi-chip trader system was replaced (§13). |
 | S8 | `liquid_valves_open_when_cold` | prefab `-517628750` not reproducible from a known name | reported Functional; keep | info |
 | S9 | 15 standalone scripts | no `bdns` inside the main loop (only in the wait loop) | removing a device mid-run halts the chip; adding the guard is one line per pin | low — **Fixed 2026-11-21:** every standalone script re-checks its pins in the loop. |
 
@@ -186,7 +186,7 @@ needs an in-game re-test; the column says what to look at first.
 | autolathe_restock_vending (7 + 2 generated) | D7; feeder S2; headers | pass | handshake, restart, feeder | **full restock cycle** |
 | autolathe_ingot_printer (5) | renamed, headers | pass | master | — |
 | farm_potato_grower (4) | D4; headers | pass | actuator | **light cycle, harvest** |
-| trader_dish_auto_land (4) | D5, D6, S7; headers | pass | master, dish | **dial 0 sweep; guard status** |
+| trader_dish_auto_land (now 1 chip in `scripts/`) | redesigned (§13) | pass | simulated dish, 160 random runs | **everything: see its README** |
 | templates | literal defines | pass | run only | — |
 
 ## 10. In-game test list (priority order)
@@ -196,7 +196,8 @@ needs an in-game re-test; the column says what to look at first.
    printing (machine `120` → `121`/`122`, prep `154` → `155`); the feeder fetches one
    ingot stack at a time (S2).
 3. `farm_potato_grower`: Grow Light follows the light window; Harvie plants and harvests.
-4. `trader_dish_auto_land`: dial `0` sweeps; `setup_guard` shows `1`, not `97` (S7).
+4. `trader_dish_auto_land`: LED shows degrees falling to ≤ 2 while locking; interrogation
+   completes; lever on calls the trader down (assumptions listed in its README).
 5. `suit_helmet_auto_open`: opens in safe air; stays closed after you close it.
 6. `vending_export_exact_count`: a normal export is still exact; an absent item gives
    status `2` after ~20 s instead of hanging.
@@ -235,4 +236,29 @@ re-tested in-game. What changed:
 - **Multi-chip systems:** feeder request gap (S2), trader guard hash (S7), header
   comments. The larger simplifications in §6 were left alone: they would change wiring.
 - **Tests:** 68 scenarios (8 new for the remake); `check_all` passes.
+
+## 13. Trader dish redesign (2026-11-21)
+
+The owner reported that the trader system never worked. D5/D6/S7 above describe the old
+four-chip `SatTraderTrack` design. It was replaced by the single chip
+`scripts/trader_dish_auto_land/`.
+
+- **Likely root cause:** the old dish worker (and `docs/usage/large_satellite_dish.md`)
+  treated `SignalStrength` as "negative, larger is better", as on the older wiki. Current
+  community write-ups (stationeering.substack.com, Mar–Apr 2026: "Signal-Domain Contact
+  Acquisition", "Trade I/II") describe it as the angle in degrees to the contact,
+  smaller = closer, lock at about 2°. The old sweep therefore moved away from contacts.
+  The old design also needed four chips, two Logic Memories and a dish hand-off between
+  two dishes.
+- **New design:** raster scan, then coordinate descent on `SignalStrength`, with horizontal
+  steps scaled by 1/sin(Vertical) and steps allowed over straight up. Then `Activate` to
+  interrogate at `MAX_W`, re-lock on drift, 600 s give-up, and `Activate` again to call
+  down when the lever is on. Status is `phase*100 + ContactTypeId`.
+- **Simulation:** `tests/test_trader_dish.py` uses a fake dish whose `SignalStrength` is
+  the true angle to a contact. In a Monte Carlo of 160 random contacts at visibility
+  radii 15–40°, 159 were found and called (median about 85 s). The one miss was at a 15°
+  radius: a scan-grid gap that more `SCAN_W` closes.
+- **Unverified assumptions** (in the script README): SignalStrength units and sign;
+  Vertical 0 = straight up; `Activate` after interrogation calls down; `ContactTypeId`
+  values; `MAX_W` enough for large/exotic traders.
 
