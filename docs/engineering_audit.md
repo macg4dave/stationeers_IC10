@@ -72,19 +72,21 @@ through the documented memory/housing contracts.
 Also: three `define` chains replaced with literals (cannot verify the game resolves
 them; literals are equivalent either way).
 
-## 5. Suspected defects and risks (not changed — need in-game evidence)
+## 5. Suspected defects and risks
+
+Rows marked Fixed/Changed were addressed in the 2026-11-21 remake (§12).
 
 | ID | Where | Observation | Suggested check / change | Priority |
 | --- | --- | --- | --- | --- |
-| S1 | `vending_export_exact_count` | waits forever if the item is not stocked; request memory is cleared first, so the request is lost | in-game: request an absent item. Fix would add a timeout | medium |
-| S2 | `autolathe_restock_vending` feeder | writes `RequestHash` every tick until the ingot reaches the sorter; may dispense several stacks in transit | watch a refill in-game; if over-dispensing, request once per `ImportCount` change | medium |
-| S3 | `gas_mixer_stop_at_10mpa`, `room_door_open_when_hot` | single threshold, no deadband | can chatter at the threshold; add a band if users see flapping | low |
-| S4 | `pipe_methane_purge_valve` | on analyzer error it jumps to `wait` and leaves the valve as it was | decide: hold or force closed | low |
+| S1 | `vending_export_exact_count` | waits forever if the item is not stocked; request memory is cleared first, so the request is lost | in-game: request an absent item. Fix would add a timeout | medium — **Fixed 2026-11-21:** 20 s timeout, partial stack returned, status 2. |
+| S2 | `autolathe_restock_vending` feeder | writes `RequestHash` every tick until the ingot reaches the sorter; may dispense several stacks in transit | watch a refill in-game; if over-dispensing, request once per `ImportCount` change | medium — **Fixed 2026-11-21:** one request per `REQUEST_GAP_TICKS`. |
+| S3 | `gas_mixer_stop_at_10mpa`, `room_door_open_when_hot` | single threshold, no deadband | can chatter at the threshold; add a band if users see flapping | low — **Fixed 2026-11-21:** bands added (and to every other single-threshold script). |
+| S4 | `pipe_methane_purge_valve` | on analyzer error it jumps to `wait` and leaves the valve as it was | decide: hold or force closed | low — **Fixed 2026-11-21:** valve forced closed on error. |
 | S5 | `furnace_pulse_when_pipes_cold`, `furnace_heat_pipe_below_20c` | rely on Advanced Furnace `Activate` semantics (pulse vs latched) not documented in catalog | confirm in-game which one the furnace expects | low |
 | S6 | `air_conditioner_hold_25c` | forces `Mode = 1`; catalog lists Mode 0 Idle / 1 Active (may be a status) | confirm writing Mode is needed | low |
-| S7 | `trader_dish_auto_land` setup guard | large dish prefab = `HASH("Large_Satellite_Dish")` (a wiki title) | if the guard always shows `97` with `dish_l` present, the hash is wrong; the guard only reports, workers still run | low |
+| S7 | `trader_dish_auto_land` setup guard | large dish prefab = `HASH("Large_Satellite_Dish")` (a wiki title) | if the guard always shows `97` with `dish_l` present, the hash is wrong; the guard only reports, workers still run | low — **Changed 2026-11-21:** now `HASH("StructureLargeSatelliteDish")` (best guess) — still confirm in-game. |
 | S8 | `liquid_valves_open_when_cold` | prefab `-517628750` not reproducible from a known name | reported Functional; keep | info |
-| S9 | 15 standalone scripts | no `bdns` inside the main loop (only in the wait loop) | removing a device mid-run halts the chip; adding the guard is one line per pin | low |
+| S9 | 15 standalone scripts | no `bdns` inside the main loop (only in the wait loop) | removing a device mid-run halts the chip; adding the guard is one line per pin | low — **Fixed 2026-11-21:** every standalone script re-checks its pins in the loop. |
 
 ## 6. Design review (questionable or unnecessary complexity)
 
@@ -146,60 +148,66 @@ guard, trader_dish_auto_land landing worker — they only get the lint and run c
 
 ## 9. Per-script results
 
-Status = author's label (unchanged). Static = `check_all` lint/size. Sim = scenario.
+Status = author's label (unchanged: all **Functional**). Static = lint + paste limits.
+Sim = behaviour scenario. Every script was remade on 2026-11-21 (§12), so every one
+needs an in-game re-test; the column says what to look at first.
 
-| Script | Change in this audit | Static | Sim | In-game test needed |
+| Script | Changes (audit + remake) | Static | Sim | Check first in-game |
 | --- | --- | --- | --- | --- |
-| room_vents_swap_air_when_hot | D3 cold-start fix | pass | pass | yes (cold start) |
-| air_conditioner_hold_25c | — | pass | pass | no |
-| furnace_pulse_when_pipes_cold | — | pass | pass | no (S5 optional) |
-| room_door_open_when_hot | — | pass | pass | no |
-| suit_helmet_auto_open | — | pass | pass | no |
-| landing_pad_methane_unload | — | pass | pass | no |
-| power_generator_on_low_battery | — | pass | pass | no |
-| display_clock_from_sun | — | pass | pass | no |
-| liquid_pipe_top_up_vent | — | pass | pass | no |
-| liquid_valves_open_when_cold | — | pass | pass | no |
-| pipe_valve_open_when_clean | — | pass | pass | no |
-| pipe_valve_open_when_methane | — | pass | pass | no |
-| phase_change_cooling_valve | — | pass | pass | no |
-| furnace_heat_pipe_below_20c | — | pass | pass | no (S5 optional) |
-| pipe_vent_fill_to_half | — | pass | pass | no |
-| pipe_heater_hold_20c | — | pass | pass | no |
-| pipe_vents_fill_to_10mpa | — | pass | pass | no |
-| gas_mixer_stop_at_10mpa | — | pass | pass | no |
-| pipe_sort_hot_cold_with_pump | D1 pump fix; README default corrected | pass | pass | **yes** (pump stops ~10.25 MPa) |
-| pipe_valves_open_when_cold | — | pass | pass | no |
-| power_generator_on_methane | — | pass | pass | no |
-| liquid_pipe_purge_lever | — | pass | pass | no |
-| greenhouse_co2_pressure_vent | D2; literal `VENT_MODE` | pass | pass | yes (quick sanity) |
-| room_cooler_and_steam_vent | — | pass | pass | no |
-| room_heater_hold_20c | — | pass | pass | no |
-| room_vents_hold_pressure | D2 | pass | pass | yes (quick sanity) |
-| vending_export_exact_count | — | pass | run only | S1 |
-| pipe_methane_purge_vent | — | pass | pass | no |
-| pipe_methane_purge_valve | — | pass | pass | no (S4 decision) |
-| autolathe_restock_vending (7 + 2 generated) | D7 machine worker | pass | handshake, restart | **yes** (full restock cycle) |
-| autolathe_ingot_printer (5) | — | pass | master | no |
-| farm_potato_grower (4) | D4 actuator | pass | actuator | **yes** (light cycle, harvest) |
-| trader_dish_auto_land (4) | D5 master, D6 dish | pass | master, dish | **yes** (dial 0 sweep; S7 status) |
-| templates | literal defines | pass | run only | no |
+| room_heater_hold_20c | 20/22 °C band, no-reading → off | pass | pass | heater cycles once across 20–22 °C |
+| pipe_heater_hold_20c | 20/22 °C band, empty pipe → off | pass | pass | same |
+| air_conditioner_hold_25c | tidy only | pass | pass | AC holds 25 °C (S6) |
+| room_cooler_and_steam_vent | cooler 28/30 °C band, steam band | pass | pass | cooler and vent both switch |
+| room_door_open_when_hot | 28/30 °C band | pass | pass | door opens > 30, closes < 28 |
+| furnace_heat_pipe_below_20c | 20/22 °C band, error → off, subroutine | pass | pass | heating starts and stops (S5) |
+| furnace_pulse_when_pipes_cold | CHECK 1/2 no longer need the unused pin | pass | pass | pulse lights the furnace (S5) |
+| pipe_valves_open_when_cold | unlock + 10 s re-send | pass | pass | `cold` valves follow temperature |
+| liquid_valves_open_when_cold | start-up close, re-send | pass | pass | valves react at all (S8 hash) |
+| phase_change_cooling_valve | 28/30 °C band, re-send | pass | pass | `cold` valves open > 30 °C |
+| pipe_sort_hot_cold_with_pump | D1; error → pump off | pass | pass | **pump stops at ~10.25 MPa** |
+| room_vents_hold_pressure | D2; one fill/exhaust routine | pass | pass | 90–120 kPa cycle |
+| room_vents_swap_air_when_hot | D3; 28/30 °C band | pass | pass | **cold start turns vents off** |
+| pipe_vents_fill_to_10mpa | error → off, kPa settings | pass | pass | fills and stops at 10 MPa |
+| pipe_vent_fill_to_half | tidy | pass | pass | — |
+| greenhouse_co2_pressure_vent | D2; CO2 20/22 % band | pass | pass | tops up and stops |
+| liquid_pipe_top_up_vent | 50/55 % band, zero-volume guard | pass | pass | vent stops above 55 % |
+| gas_mixer_stop_at_10mpa | 9.5/10 MPa band | pass | pass | mixer restarts below 9.5 MPa |
+| pipe_valve_open_when_methane | error → closed | pass | pass | — |
+| pipe_valve_open_when_clean | error → closed | pass | pass | — |
+| pipe_methane_purge_valve | error → closed (S4) | pass | pass | — |
+| pipe_methane_purge_vent | error → off, Mode each loop | pass | pass | — |
+| power_generator_on_methane | tidy | pass | pass | — |
+| landing_pad_methane_unload | 19 MPa re-arm, single status write | pass | pass | cutoff re-arms below 19 MPa |
+| liquid_pipe_purge_lever | tidy, status | pass | pass | LED colours |
+| power_generator_on_low_battery | **30/80 % band (behaviour change)** | pass | pass | charges to 80 % |
+| suit_helmet_auto_open | rewritten, same rules | pass | pass | **manual close is respected** |
+| display_clock_from_sun | shared digit routine | pass | pass | digits unchanged |
+| vending_export_exact_count | timeout (S1), status | pass | timeout | **normal export still exact** |
+| autolathe_restock_vending (7 + 2 generated) | D7; feeder S2; headers | pass | handshake, restart, feeder | **full restock cycle** |
+| autolathe_ingot_printer (5) | renamed, headers | pass | master | — |
+| farm_potato_grower (4) | D4; headers | pass | actuator | **light cycle, harvest** |
+| trader_dish_auto_land (4) | D5, D6, S7; headers | pass | master, dish | **dial 0 sweep; guard status** |
+| templates | literal defines | pass | run only | — |
 
 ## 10. In-game test list (priority order)
 
 1. `pipe_sort_hot_cold_with_pump`: pump stops above ~10.25 MPa and restarts below 9.75 MPa.
-2. `autolathe_restock_vending`: empty one stocked item; the Autolathe gets the right
-   `RecipeHash` before it starts (machine worker `120` → `121`/`122`, prep `154` → `155`).
-3. `farm_potato_grower`: Grow Light on for the light window, off for dark; Harvie plants
-   and harvests.
-4. `trader_dish_auto_land`: dial `0` — the dish sweeps; dial `> 0` unchanged; note
-   `setup_guard` status (S7).
-5. `room_vents_swap_air_when_hot`: start the chip in a cold room with vents running — they stop.
-6. Room pressure scripts: normal behaviour around 90–120 kPa unchanged.
+2. `autolathe_restock_vending`: empty one stocked item; the right recipe is set before
+   printing (machine `120` → `121`/`122`, prep `154` → `155`); the feeder fetches one
+   ingot stack at a time (S2).
+3. `farm_potato_grower`: Grow Light follows the light window; Harvie plants and harvests.
+4. `trader_dish_auto_land`: dial `0` sweeps; `setup_guard` shows `1`, not `97` (S7).
+5. `suit_helmet_auto_open`: opens in safe air; stays closed after you close it.
+6. `vending_export_exact_count`: a normal export is still exact; an absent item gives
+   status `2` after ~20 s instead of hanging.
+7. `room_vents_swap_air_when_hot`: cold start with vents running — they stop.
+8. `power_generator_on_low_battery`: runs from < 30 % to > 80 %.
+9. Everything else: one on/off cycle across its band; the housing shows the status
+   number from its README.
 
 ## 11. Remaining technical debt
 
-- S1–S9 above.
+- S5, S6, S8 above (need in-game answers); S7 needs confirmation.
 - `wiki_recipe_import.py` cannot fetch the live wiki; give it the XML path too.
 - 16 catalog devices were not in the November export (list in `catalog/README.md`
   workflow); several entries are still `best_guess` (Landingpad outputs, dishes,
@@ -207,3 +215,24 @@ Status = author's label (unchanged). Static = `check_all` lint/size. Sim = scena
 - Root file `.tmp_vending_export_source.html` is a stray saved wiki page under git;
   nothing references it. Candidate for removal (left for the owner).
 - Modular simplifications in §6 are optional and would change in-game wiring.
+
+## 12. Remake and rename (2026-11-21)
+
+The owner asked for every script to be renamed and refined; all scripts will be
+re-tested in-game. What changed:
+
+- **Names:** `<where it lives>_<what it does>`; table in `docs/renames.md`. In-game
+  device names, IC Housing names, pins and status codes were not changed.
+- **Single-chip scripts (all 29):** hysteresis bands on every on/off threshold; pins
+  re-checked in the main loop; faults/no reading drive outputs to their safe state;
+  status on the housing `Setting` (except chips that live in a device, where `db` is
+  the device); read-before-write throughout; READMEs rewritten to one layout.
+- **Behaviour changes worth knowing:** generator charges to 80 % (was: off at 30 %);
+  thresholds that used to flip at one value now have a 2 °C / 5 % / 0.5 MPa band;
+  `pipe_vents_fill_to_10mpa` and `pipe_methane_purge_*` stop on analyzer error;
+  `vending_export_exact_count` gives up after 20 s; the trader guard checks a different
+  large-dish hash.
+- **Multi-chip systems:** feeder request gap (S2), trader guard hash (S7), header
+  comments. The larger simplifications in §6 were left alone: they would change wiring.
+- **Tests:** 68 scenarios (8 new for the remake); `check_all` passes.
+
