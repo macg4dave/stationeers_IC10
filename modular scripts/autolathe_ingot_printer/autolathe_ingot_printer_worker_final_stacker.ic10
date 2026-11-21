@@ -1,3 +1,5 @@
+# autolathe_ingot_printer_worker_final_stacker - routes finished ingots
+# d0=end-of-line Stacker (finstd)
 alias stk d0
 alias n1 d1
 alias n2 d2

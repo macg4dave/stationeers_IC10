@@ -1,3 +1,5 @@
+# autolathe_restock_setup_guard - checks names, clears shared memories once
+# d0=Autolathe | db Setting: 1 ok, 91..98 setup error (see README)
 alias mach d0
 alias n1 d1
 alias n2 d2

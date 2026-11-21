@@ -186,5 +186,27 @@ class AutolatheVendStockHandshake(unittest.TestCase):
         self.assertEqual(self.m("slot4"), 0, "restarted worker must not leave slot4 stuck")
 
 
+class AutolatheFeederRequestsOnce(unittest.TestCase):
+    """S2: the feeder used to write RequestHash every tick while an ingot travelled."""
+
+    def test_one_request_per_gap(self):
+        need = -1301215609                            # Ingot (Iron)
+        slot2 = memory("slot2", need)
+        sort = Device({"On": 0, "Mode": 0, "Output": 0},
+                      slots=[{"Occupied": 0, "OccupantHash": 0}, {"Occupied": 0},
+                             {"Occupied": 0}])
+        vend = Device({"On": 0, "RequestHash": 0})
+        chip = Chip(script(f"{MOD}/autolathe_restock_vending/"
+                           "autolathe_restock_worker_logistics_feeder.ic10"),
+                    pins={"d0": sort, "d1": vend}, network=[slot2])
+        chip.run(8)
+        self.assertEqual(vend.writes_of("RequestHash"), [need], "one request, then wait")
+        chip.run(12)
+        self.assertEqual(len(vend.writes_of("RequestHash")), 2, "asks again after the gap")
+        sort.slots[0].update(Occupied=1, OccupantHash=need)   # ingot arrived
+        chip.run(2)
+        self.assertEqual(sort.fields["Output"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

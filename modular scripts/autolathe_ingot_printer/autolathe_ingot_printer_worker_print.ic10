@@ -1,3 +1,5 @@
+# autolathe_ingot_printer_worker_print - sets every printer Autolathe's recipe
+# d0=one Autolathe named printer
 alias mach d0
 alias n1 d1
 alias n2 d2

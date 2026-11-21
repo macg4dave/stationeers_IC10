@@ -1,4 +1,4 @@
-# farm_potato_worker_actuator
+# farm_potato_worker_actuator - Grow Light cycle, plant, harvest
 # d0=hv d1=lit d2=ctype d3=slot0 d4=n4 d5=n5
 alias hv d0
 alias lit d1

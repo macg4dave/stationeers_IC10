@@ -1,3 +1,5 @@
+# autolathe_ingot_printer_worker_selector - picks the low ingot to print
+# d0=finished-goods Vending Machine
 alias vend d0
 alias n1 d1
 alias n2 d2

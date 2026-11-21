@@ -1,7 +1,7 @@
 # Modular scripts
 
 Multi-chip IC10 systems (master + workers) for jobs that do not fit one chip or that
-need several independent loops. Each feature folder contains:
+need several independent loops. Each feature folder contains (old folder names: `docs/renames.md`):
 
 - `<feature>_master.ic10`, `<feature>_worker_<task>.ic10`, often a `_setup_guard`
 - `README.md` — wiring, shared-memory contract, status-code tables
@@ -11,7 +11,7 @@ need several independent loops. Each feature folder contains:
 
 | Feature | What it does | Chips | Sim coverage |
 | --- | --- | --- | --- |
-| `autolathe_restock_vending/` | Keeps a Vending Machine stocked from one Autolathe; feeds ingots | 7 (+2 Free Ingots variants) | stock → machine → prep handshake, worker restart |
+| `autolathe_restock_vending/` | Keeps a Vending Machine stocked from one Autolathe; feeds ingots | 7 (+2 Free Ingots variants) | stock → machine → prep handshake, worker restart, feeder requests once |
 | `autolathe_ingot_printer/` | Multi-Autolathe ingot printer for the Free Ingots mod | 5 | master slot sync |
 | `farm_potato_grower/` | Potato grow loop: Hydroponics + Harvie(s) + Grow Light | 4 | actuator light cycle, harvest |
 | `trader_dish_auto_land/` | Trader tracking with medium → large dish handoff and auto-land | 4 | master tokens, dish sweep |

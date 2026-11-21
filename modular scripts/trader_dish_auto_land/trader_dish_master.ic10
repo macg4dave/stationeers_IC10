@@ -1,4 +1,4 @@
-# trader_dish_master
+# trader_dish_master - trader dial -> selected trader type
 # d0=dishw d1=alertw d2=ctok d3=ctype d4=dial d5=typeled
 alias dishw d0
 alias alertw d1

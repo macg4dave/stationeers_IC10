@@ -1,4 +1,4 @@
-# trader_dish_setup_guard
+# trader_dish_setup_guard - checks wiring/names, clears cmd memories once
 # d0=dishw d1=alertw d2=ctok d3=ctype d4=dial d5=typeled
 alias dishw d0
 alias alertw d1
@@ -11,7 +11,7 @@ alias inited r1
 define HASH_SKIP -1
 define EXPECTED_DIAL 554524804
 define MED -449434216
-define LRG HASH("Large_Satellite_Dish")
+define LRG HASH("StructureLargeSatelliteDish")
 define MEDNAME HASH("dish_m")
 define LRGNAME HASH("dish_l")
 init:

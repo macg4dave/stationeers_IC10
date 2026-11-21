@@ -76,7 +76,7 @@ Set these exact names (case-sensitive):
 Internal prefab/name tokens referenced by the scripts:
 
 - `Landingpad_DataConnectionPiece`
-- `Large_Satellite_Dish`
+- `StructureLargeSatelliteDish` (large-dish prefab used by the setup guard; best guess from the game's prefab naming, replaced the wiki title `Large_Satellite_Dish` on 2026-11-21. If the guard shows `97` while `dish_l` is built and named, this hash is the cause; the workers do not depend on it.)
 
 ## Shared memory contract
 
@@ -141,6 +141,7 @@ Internal prefab/name tokens referenced by the scripts:
 
 ## Change history
 
+- 2026-11-21: renamed from `SatTraderTrack` (file prefix `sat_trader_track_` -> `trader_dish_`). The setup guard's large-dish prefab is now `HASH("StructureLargeSatelliteDish")` instead of the wiki title `Large_Satellite_Dish` (S7, best guess). In-game names unchanged.
 - 2026-11 (master): the master tested `cur` before loading it, so its "re-enable
   dish_worker" check used last loop's `cmd_type` value. It now reads
   `dish_worker` `On` first: a disabled dish worker is switched back on, and an

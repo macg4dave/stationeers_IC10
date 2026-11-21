@@ -1,3 +1,5 @@
+# autolathe_ingot_printer_master - keeps the workers on, shows overall state
+# d0..d5 unused (workers found by IC Housing name)
 alias n0 d0
 alias n1 d1
 alias n2 d2

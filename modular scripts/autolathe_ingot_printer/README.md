@@ -242,3 +242,7 @@ Priority behavior:
 - The compact build keeps the chip count low by using one selector worker instead of one stock worker per ingot.
 - The module now tracks all 17 Free Ingots outputs currently described by the profile metadata.
 - The missing mod ingot hashes were derived consistently as signed CRC32 of the prefab/item name, which matches the already verified Stationeers ingot hashes in this repo.
+
+## Change history
+
+- 2026-11-21: renamed from `ingot_printer` (file prefix `ingot_printer_` -> `autolathe_ingot_printer_`; `worker_finstd` -> `worker_final_stacker`). Chips got short header comments. In-game names (`finstd_worker`, `printer`, `autostd` ...) unchanged.

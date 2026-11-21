@@ -1,4 +1,4 @@
-# trader_dish_worker_landing
+# trader_dish_worker_landing - pad online gate + landing alerts
 # d0=med d1=large d2=typeled d3=stepled d4=n4 d5=n5
 alias dish d0
 alias dishL d1

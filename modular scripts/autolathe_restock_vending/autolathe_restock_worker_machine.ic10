@@ -1,3 +1,5 @@
+# autolathe_restock_worker_machine - runs one print job (cmd_type/slot0)
+# d0=Autolathe d1=Stacker (batch size = its Setting)
 alias mach d0
 alias stack d1
 alias n2 d2

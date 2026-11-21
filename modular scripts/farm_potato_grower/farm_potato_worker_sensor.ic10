@@ -1,4 +1,4 @@
-# farm_potato_worker_sensor
+# farm_potato_worker_sensor - plant + daylight state -> memories
 # d0=hydro d1=slot0 d2=slot1 d3=slot2 d4=day d5=n5
 alias hydro d0
 alias slot0 d1

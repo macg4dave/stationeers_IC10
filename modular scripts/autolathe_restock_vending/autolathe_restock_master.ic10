@@ -1,3 +1,5 @@
+# autolathe_restock_master - keeps the workers on, shows overall state
+# d0..d5 unused | db Setting: 1 ready 2 printing 3 restocking 43..47 missing
 alias n0 d0
 alias n1 d1
 alias n2 d2

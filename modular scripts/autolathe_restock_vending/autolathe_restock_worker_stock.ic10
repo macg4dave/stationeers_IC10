@@ -1,3 +1,5 @@
+# autolathe_restock_worker_stock - finds a missing product, queues a job
+# d0=finished-goods Vending Machine
 alias vend d0
 alias n1 d1
 alias n2 d2

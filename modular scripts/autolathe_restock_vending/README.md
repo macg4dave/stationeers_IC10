@@ -293,6 +293,7 @@ Current limitation:
 
 ## Change history
 
+- 2026-11-21: renamed from `AutolatheVendStock` (file prefix `autolathe_vend_stock_` -> `autolathe_restock_`). The logistics feeder now asks the ingot vending machine once and waits `REQUEST_GAP_TICKS` (10 ticks, ~5 s) before asking again; before, it wrote `RequestHash` every tick while an ingot was in transit and could dispense extra stacks (S2). Chips got short header comments; in-game names unchanged.
 - 2026-11 (machine worker): the "Autolathe already prepared" check was inverted.
   When the machine was on, idle and closed but its `RecipeHash` did **not** match
   `slot0`, the machine worker set `slot3 = 1` (ready). `machine_prep_worker` then

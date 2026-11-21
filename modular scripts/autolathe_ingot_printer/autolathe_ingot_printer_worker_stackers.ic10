@@ -1,3 +1,5 @@
+# autolathe_ingot_printer_worker_stackers - holds autostd stackers at a size
+# d0=one Stacker named autostd
 alias stk d0
 alias n1 d1
 alias n2 d2

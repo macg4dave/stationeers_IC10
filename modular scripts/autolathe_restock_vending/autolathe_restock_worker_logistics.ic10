@@ -1,3 +1,5 @@
+# autolathe_restock_worker_logistics - picks the ingot the Autolathe needs
+# d2=Autolathe | writes slot2 = ingot hash to fetch (0 = none)
 alias n0 d0
 alias n1 d1
 alias mach d2

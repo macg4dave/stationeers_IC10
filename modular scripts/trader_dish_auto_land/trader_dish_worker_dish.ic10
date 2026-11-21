@@ -1,4 +1,4 @@
-# trader_dish_worker_dish
+# trader_dish_worker_dish - sweeps, interrogates and lands traders
 alias dish d0
 alias dishL d1
 alias selm d3

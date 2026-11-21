@@ -1,4 +1,4 @@
-# farm_potato_setup_guard
+# farm_potato_setup_guard - checks wiring, clears memories once
 # d0=sensw d1=actw d2=ctok d3=ctype d4=lev d5=n5
 alias sensw d0
 alias actw d1

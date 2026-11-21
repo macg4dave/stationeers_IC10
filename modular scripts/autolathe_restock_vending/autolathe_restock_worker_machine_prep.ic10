@@ -1,3 +1,5 @@
+# autolathe_restock_worker_machine_prep - sets the recipe before a job
+# d0=Autolathe | sets slot3=1 when the Autolathe is ready
 alias mach d0
 alias n1 d1
 alias n2 d2

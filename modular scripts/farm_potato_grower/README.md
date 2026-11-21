@@ -161,6 +161,7 @@ Set these exact names (case-sensitive):
 
 ## Change history
 
+- 2026-11-21: renamed from `PotatoHarvieTest` (file prefix `potato_harvie_test_` -> `farm_potato_`). In-game names unchanged.
 - 2026-11: fixed the actuator light/dark cycle. Two branches used `brlt`/`brge`
   (relative jumps) with label targets, which jumped ~60 lines forward into the
   "mode off" tail. In practice the Grow Light was switched off every loop and the

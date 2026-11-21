@@ -37,7 +37,7 @@ Set these exact names (case-sensitive):
 Internal prefab/name tokens referenced by the scripts:
 
 - `Landingpad_DataConnectionPiece`
-- `Large_Satellite_Dish`
+- `StructureLargeSatelliteDish` (large-dish prefab used by the setup guard; best guess from the game's prefab naming, replaced the wiki title `Large_Satellite_Dish` on 2026-11-21. If the guard shows `97` while `dish_l` is built and named, this hash is the cause; the workers do not depend on it.)
 
 ## Setup steps
 
