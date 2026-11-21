@@ -1,54 +1,55 @@
 # pipe_heater_hold_20c
 
-## Purpose
+Keeps a pipe warm: a **Pipe Heater** turns on when a **Pipe Analyzer** reads below 20 °C and off again above 22 °C.
 
-Read a **Pipe Analyzer** and turn a **Pipe Heater** **ON** when pipe temperature is below **20°C**.
+*Previously called `pipe_heater_below_20c`.*
 
-If the pipe is **20°C or warmer**, the script turns the heater **OFF**.
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Pipe Heater |
 
-Required:
+## What it does
 
-- Pipe Analyzer
-- Pipe Heater
+- Below 20 °C: heater ON.
+- Above 22 °C: heater OFF.
+- 20–22 °C: holds.
+- Analyzer `Error`, empty pipe or unplugged device: heater OFF, status 9.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Device registers
+## Settings
 
-- `d0` = Pipe Analyzer
-- `d1` = Pipe Heater
+Edit the `define` lines at the top of `pipe_heater_hold_20c.ic10`.
 
-## Usage
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `HEAT_ON_BELOW_C` | `20` | Heater on below this (°C) |
+| `HEAT_OFF_ABOVE_C` | `22` | Heater off above this (°C) |
 
-1. Place the Pipe Analyzer on the pipe network you want to monitor.
-2. Place the Pipe Heater on the pipe network you want to heat.
-3. Make sure both devices are powered and on the same data network as the IC Housing.
-4. (Recommended) Rename devices so they are easy to assign:
-   - Pipe Analyzer: `pipe_heat_1_read`
-   - Pipe Heater: `pipe_heat_1_heater`
-5. In the IC Housing, assign:
-   - `d0` = `pipe_heat_1_read`
-   - `d1` = `pipe_heat_1_heater`
-6. Paste `pipe_heater_hold_20c.ic10` into the in-game IC editor and run it.
+## Status (IC Housing `Setting`)
 
-## Tuning
+| Value | Meaning |
+| --- | --- |
+| `0` | heater off |
+| `1` | heater on |
+| `9` | fault or device missing |
 
-Edit the constants at the top of `pipe_heater_hold_20c.ic10`:
+## Setup
 
-- `HEAT_ON_BELOW_C` (°C): heater is forced **ON** when `tempC < HEAT_ON_BELOW_C`
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_heater_hold_20c.ic10` into the chip and run it.
 
-Temperature notes:
+## Notes
 
-- Pipe Analyzer `Temperature` is reported in Kelvin (K).
-- The script converts to Celsius using $C = K - 273.15$.
-- If the Pipe Analyzer reports `Error != 0`, the heater is forced **OFF**.
+- Device notes: `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_heater.md`
 
-## In-game setup notes
+## Change history
 
-- See `docs/usage/pipe_analyzer.md` for Pipe Analyzer setup and reading gotchas.
-- See `docs/usage/pipe_heater.md` for Pipe Heater setup notes.
-- This script only toggles `On` on the heater.
+- 2026-11-21: remade and renamed. Added the 2 °C band and the empty-pipe check; status on the housing.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

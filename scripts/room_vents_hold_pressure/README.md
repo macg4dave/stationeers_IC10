@@ -1,99 +1,60 @@
 # room_vents_hold_pressure
 
-## Purpose
+Uses **Active Vents named `ROOM_VENT`** to keep a room between 90 and 120 kPa: blowing air in when it is low, pulling it out when it is high.
 
-Reads a **Gas Sensor** for room pressure and batch-drives a **named group of Active Vents on the same data network**:
+*Previously called `room_pressure_active_vent`.*
 
-- If **Pressure < 90 kPa** → set vent to **Intake** mode and turn it **On**
-- If **Pressure > 120 kPa** → set vent to **Exhaust** mode and turn it **On**
-- Otherwise (90–120 kPa) → keep the current state (see below)
+## Pins
 
-The check runs every **1 second** when idle.
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Sensor (in the room) |
 
-While the vents are actively changing pressure, the script sets `Lock = 1` and keeps them
-locked until the room reaches the opposite threshold:
+**Network devices:** Active Vents named exactly `ROOM_VENT`, connected to a supply/exhaust pipe. The IC Housing must be on the same data network as the named devices.
 
-- Intake continues until **HIGH_PRESSURE_KPA**
-- Exhaust continues until **LOW_PRESSURE_KPA**
+## What it does
 
-Then it turns the vent off and unlocks it.
+- Below 90 kPa: vents Outward (pipe → room) with a 120 kPa limit, until the room reaches 120 kPa.
+- Above 120 kPa: vents Inward (room → pipe) with a 90 kPa limit, until the room is down to 90 kPa.
+- In between: vents OFF.
+- Re-applies the running state every ~6 s (Mode, then a tick later Setting).
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-This script also includes a small timing workaround for some builds: it writes vent
-`Mode`, waits **one tick** (`yield`), then writes the main setpoint/state fields.
+## Settings
 
-While active, it periodically re-applies the batch vent configuration so testing is easy
-even if a vent gets bumped out of sync.
+Edit the `define` lines at the top of `room_vents_hold_pressure.ic10`.
 
-## Devices
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `LOW_KPA` | `90` | Start filling below (kPa) |
+| `HIGH_KPA` | `120` | Start exhausting above (kPa) |
+| `REAPPLY_TICKS` | `12` | Ticks between re-applies |
 
-Required:
+## Status (IC Housing `Setting`)
 
-- 1× Gas Sensor
-- 1+ × Active Vent on the same data network
+| Value | Meaning |
+| --- | --- |
+| `0` | idle |
+| `1` | filling |
+| `2` | exhausting |
+| `9` | sensor missing |
 
-## Device registers
+## Setup
 
-- `d0` = Gas Sensor
-
-Suggested in-game names (optional):
-
-- Gas Sensor: `room_sensor_1`
-- Active Vents: rename every controlled vent exactly to `ROOM_VENT`
-
-## Tuning
-
-Edit the `define` constants at the top of `room_vents_hold_pressure.ic10`:
-
-- `LOW_PRESSURE_KPA` (default `90`)
-- `HIGH_PRESSURE_KPA` (default `120`)
-- `LOOP_SLEEP_S` (default `1`)
-- `REAPPLY_TICKS` (default `12`)
-- `VENT_NAME_HASH` (default `HASH("ROOM_VENT")`)
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `room_vents_hold_pressure.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
 
 ## Notes
 
-- Pressure is in **kPa** (Gas Sensor `Pressure`, wiki: "In kPa").
-- 2026-11: removed an old "looks like Pa" guess that divided readings above 2,000 by
-  1000. It made a >2 MPa room look like 2 kPa and switched the vents to *intake*.
-- The script batch-targets Active Vents using:
-  - prefab hash `-1129453144` (`StructureActiveVent`)
-  - exact name hash `HASH("ROOM_VENT")`
-- Rename every vent you want controlled to exactly `ROOM_VENT`.
-- Active Vent `Mode` values:
-  - `0` = Outward (pipe → room) — pressurize / “intake”
-  - `1` = Inward (room → pipe) — depressurize / “exhaust”
-  - If your vent moves gas in the wrong direction, swap `MODE_OUTWARD` and
-    `MODE_INWARD` in the script. Some builds/mod setups appear to invert this.
+- Device notes: `docs/usage/active_vent.md`, `docs/usage/gas_sensor.md`
 
-The script sets these Active Vent parameters (after setting `Mode`; changing `Mode`
-can reset the vent's extra pressure-limit fields to defaults):
+## Change history
 
-- `Setting` to the target room pressure in **kPa**
-- `Open` to `1`
-- `On` to `1`
+- 2026-11-21: remade and renamed. Shorter loop (one fill/exhaust routine); status on the housing.
+- 2026-11: removed a "looks like Pa, divide by 1000" guess that made a room above 2 MPa look nearly empty.
 
-It intentionally does **not** force `PressureExternal` / `PressureInternal`.
-For this manual-style controller, those fields are left at the vent's mode defaults.
+## Status
 
-Troubleshooting if it “does nothing”:
-
-- Make sure every Active Vent you want controlled is on the **same data network** as the IC.
-- Make sure every target vent is named exactly `ROOM_VENT`.
-- IC10 batch writes (`sb`/`sbn`) use the device **Prefab Hash**, not the item hash.
-- `Power` is not a command you can force from IC10; it reflects whether the vent has real
-  electrical power. If `Power = 0`, check the vent's cable/power network first.
-- If you inspect a manually working vent and see values like `PressureExternal = 0`,
-  `PressureInternal = 50662.5`, `Setting = 50`, that points to `Setting` being the useful
-  control target for this script while the other pressure fields are left alone.
-- For **intake/pressurize** (Mode `0`, pipe → room): ensure the pipe network pressure is
-  above your target room pressure (e.g. > `LOW_PRESSURE_KPA`).
-- For **exhaust/depressurize** (Mode `1`, room → pipe): ensure the pipe network has
-  somewhere for gas to go (tank/storage/active vent to space) and isn't already maxed.
-- Unrelated Active Vents on the same network will be ignored unless they also use the exact
-  name `ROOM_VENT`.
-- If pressure changes in the **wrong direction**, swap the `MODE_OUTWARD` /
-  `MODE_INWARD` constant values in `room_vents_hold_pressure.ic10`.
-- Ensure the vent face is inside the room you want to pressurize.
-- Double-check chip device assignments: `d0` is the Gas Sensor.
-
-Status: **Functional**
+Functional (author's label from before the remake; re-test in-game).

@@ -1,82 +1,58 @@
 # vending_export_exact_count
 
-## Purpose
+Exports an exact number of one item from a **Vending Machine**, using a Stacker to count and a Sorter to send the right amount out and the rest back.
 
-Exports an exact quantity of one item from a **Vending Machine** by using a **Stacker**
-and **Sorter** as a small item-routing chain.
+*Previously called `vending_machine_export`.*
 
-This is based on the Stationeers wiki guide, with two practical updates for current
-behavior:
+## Pins
 
-- the **Sorter** is configured to **Mode 2 (Logic)** so IC10 `Output` writes control
-  each routed stack reliably
-- the script does **not** rely on a Vending Machine `ClearMemory` parameter, because
-  the current local catalog does not document that field for this device
+| Pin | Device |
+| --- | --- |
+| `d0` | Vending Machine |
+| `d1` | Stacker |
+| `d2` | Sorter |
+| `d3` | Logic Memory: item hash |
+| `d4` | Logic Memory: count |
 
-## Devices
+## What it does
 
-Required:
+- Write the item's hash to d3, then the count to d4. The count resets to 0 when the job starts.
+- Items leave through Sorter output 0; leftovers go back through output 1.
+- If the vending machine stops delivering for 20 s (item ran out or was never there), the job is abandoned and any partial stack is returned.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-- 1× Vending Machine
-- 1× Stacker
-- 1× Sorter
-- 2× Logic Memory
+## Settings
 
-## Device registers
+Edit the `define` lines at the top of `vending_export_exact_count.ic10`.
 
-- `d0` = Vending Machine
-- `d1` = Stacker
-- `d2` = Sorter
-- `d3` = Logic Memory holding requested item hash
-- `d4` = Logic Memory holding requested quantity
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `TIMEOUT_S` | `20` | Give up after this many seconds without a delivery |
+| `SORTER_MODE_LOGIC` | `2` | Sorter Mode used |
+| `STACKER_MODE_MANUAL` | `1` | Stacker Mode used |
+
+## Status (IC Housing `Setting`)
+
+| Value | Meaning |
+| --- | --- |
+| `0` | idle |
+| `1` | exporting |
+| `2` | last job gave up (item ran out) |
 
 ## Setup
 
-1. Connect the **Vending Machine** export to the **Stacker** import with chutes.
-2. Connect the **Stacker** export to the **Sorter** import.
-3. Connect the Sorter **export lane for `Output = 0`** to your destination.
-4. Connect the Sorter **export lane for `Output = 1`** back to the Vending Machine
-   import so leftover items return to storage.
-5. Wire all devices and both Logic Memories to the same data network as the IC.
-6. Paste `vending_export_exact_count.ic10` into the chip.
-
-### Sorter lane orientation
-
-Per the current Sorter docs: when you face the Sorter outputs with the power switch
-on your right:
-
-- `Output = 0` exits **right**
-- `Output = 1` exits **left**
-
-If you physically build it the other way around, swap the chute connections.
-
-## Usage
-
-1. Write the target item hash into `d3` Logic Memory `Setting`.
-2. Write the desired quantity into `d4` Logic Memory `Setting`.
-3. The script accepts the request by resetting the quantity memory to `0`.
-4. Requested items go to the main export lane; leftovers in the Stacker are sent back
-   to the Vending Machine.
-
-### Request protocol
-
-- `d3` = item hash request channel
-- `d4` = quantity request channel
-- `d4 == 0` means idle or request accepted
-- `d4 > 0` means a pending request still has not been accepted
-
-Tip: write the hash first, then the quantity second.
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `vending_export_exact_count.ic10` into the chip and run it.
 
 ## Notes
 
-- The **Vending Machine stores up to 100 individual stacks** and does **not** merge
-  them internally. Lots of tiny partial stacks will fill it quickly.
-- If the Vending Machine does **not** contain enough of the requested item, this script
-  waits for more stock instead of failing fast.
-- A restock chute/inlet back into the Vending Machine is handy so you can refill it
-  without rebuilding the export chain.
-- See `docs/usage/sorter.md` for the important Sorter mode/orientation details.
+- Device notes: `docs/usage/sorter.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Fixed a hang: asking for an item the machine did not have waited forever (and the request was already cleared). Added the timeout and status.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

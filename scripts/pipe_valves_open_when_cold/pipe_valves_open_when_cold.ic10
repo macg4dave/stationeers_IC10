@@ -1,64 +1,49 @@
-# pipe_valves_open_when_cold
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Control a Pipe Digital Valve based on Pipe Analyzer temperature.
-#
-# Device registers:
-#   d0 = Pipe Analyzer
-#   (Pipe Digital Valves named "cold" on this data network are controlled)
-#
-# Notes:
-# - Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - Hysteresis (Schmitt trigger style):
-#     * OPEN  when tempC < TEMP_OPEN_BELOW_C
-#     * CLOSE when tempC > TEMP_CLOSE_ABOVE_C
-#     * otherwise leave valve state unchanged
+# pipe_valves_open_when_cold - open every valve named "cold" when the pipe is cold
+# d0=Pipe Analyzer. Pipe Digital Valves named exactly cold on the data network.
+# OPEN below 10C, CLOSE above 30C, holds in between (starts closed).
+# Re-sends the state every ~10 s so newly built valves join in.
+# db Setting: 0=closed 1=open 9=analyzer missing/fault
 
-alias pipe_read d0
+alias pipe d0
+alias tc r0
+alias want r1
+alias sent r2
+alias ticks r3
+alias cur r4
 
-alias tempC r0
-alias cond r1
-alias desired_on r2
-alias last_written_on r3
-alias valve_hash r4
-alias valve_name_hash r5
+define OPEN_BELOW_C 10
+define CLOSE_ABOVE_C 30
+define VALVE_HASH -1280984102
+define VALVE_NAME HASH("cold")
+define RESEND_TICKS 20
 
-define KELVIN_TO_C 273.15
-define TEMP_OPEN_BELOW_C 10
-define TEMP_CLOSE_ABOVE_C 30
-define PIPE_VALVE_HASH -1280984102
-define PIPE_VALVE_NAME_HASH HASH("cold")
+move sent -1
 
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-
-move valve_hash PIPE_VALVE_HASH
-move valve_name_hash PIPE_VALVE_NAME_HASH
-move desired_on 0
-move last_written_on -1
+bdns pipe wait
 
 main:
-l tempC pipe_read Temperature
-sub tempC tempC KELVIN_TO_C
-
-# default: keep previous desired valve state (hysteresis hold zone)
-
-# if tempC < TEMP_OPEN_BELOW_C => open valve
-slt cond tempC TEMP_OPEN_BELOW_C
-select desired_on cond 1 desired_on
-
-# if tempC > TEMP_CLOSE_ABOVE_C => close valve
-slt cond TEMP_CLOSE_ABOVE_C tempC
-select desired_on cond 0 desired_on
-
-# avoid redundant writes (and network spam): only set when it changes
-sne cond desired_on last_written_on
-beqz cond skip_write
-sbn valve_hash valve_name_hash On desired_on
-move last_written_on desired_on
-skip_write:
-
 yield
+bdns pipe wait
+l cur pipe Error
+bnez cur wait
+l tc pipe Temperature
+blez tc wait
+sub tc tc 273.15
+slt cur tc OPEN_BELOW_C
+select want cur 1 want
+sgt cur tc CLOSE_ABOVE_C
+select want cur 0 want
+sub ticks ticks 1
+bne want sent send
+bgtz ticks report
+send:
+sbn VALVE_HASH VALVE_NAME Lock 0
+sbn VALVE_HASH VALVE_NAME On want
+move sent want
+move ticks RESEND_TICKS
+report:
+s db Setting want
 j main

@@ -1,45 +1,55 @@
 # power_generator_on_methane
 
-Turns a **Gas Fuel Generator** on when a connected **Pipe Analyzer** reports **any Methane** in the pipe.
+Runs a **Gas Fuel Generator** only while its fuel pipe has methane in it.
 
-- ON condition: `RatioMethane > EPS`
-- OFF condition: `RatioMethane <= EPS`
-- Fail-safe: if the Pipe Analyzer reports `Error != 0`, generator is forced OFF
-- Analyzer startup: if the Pipe Analyzer is toggled OFF, the script turns it ON and waits a tick before reading
+*Previously called `pipe_volatiles_gas_fuel_generator`.*
 
-## Device mapping
+## Pins
 
-- `d0` = Pipe Analyzer
-- `d1` = Gas Fuel Generator
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer (fuel pipe) |
+| `d1` | Gas Fuel Generator |
 
-## In-game setup
+## What it does
 
-1. Place an IC Housing with this script.
-2. Wire the IC Housing, Pipe Analyzer, and Gas Fuel Generator to the same data network.
-3. Set `d0` to the Pipe Analyzer that watches the generator fuel line.
-4. Set `d1` to the Gas Fuel Generator.
-5. Ensure the Pipe Analyzer is powered and working.
-6. Ensure the Gas Fuel Generator has valid gas supply and the usual room requirements to run.
+- Generator ON while `RatioMethane` > 0.
+- OFF when there is none, or on analyzer `Error`.
+- Analyzer switched off: the script switches it on.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-If you still get a runtime line error, double-check that:
+## Settings
 
-- `d0` is really a **Pipe Analyzer**
-- `d1` is really a **Gas Fuel Generator**
-- both devices are on the same data network as the IC Housing
+Edit the `define` lines at the top of `power_generator_on_methane.ic10`.
 
-## Tuning constants
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `EPS` | `0.000001` | Ratio counted as "no methane" |
 
-In `power_generator_on_methane.ic10`:
+## Status (IC Housing `Setting`)
 
-- `EPS` (default `0.000001`) — values above this count as “Methane present”
+| Value | Meaning |
+| --- | --- |
+| `0` | generator off |
+| `1` | generator on |
+| `3` | analyzer error |
+| `4` | analyzer was off |
+| `9` | device missing |
 
-Increase `EPS` if you want to ignore tiny floating-point noise near zero.
+## Setup
+
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `power_generator_on_methane.ic10` into the chip and run it.
+
+## Notes
+
+- Device notes: `docs/usage/pipe_analyzer.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Shorter; pins checked in the loop. Behaviour unchanged.
 
 ## Status
 
-- Functional
-- Writes `db Setting` as quick status:
-  - `0` = generator target OFF
-  - `1` = generator target ON
-  - `3` = analyzer fault/error forced OFF
-  - `4` = analyzer was OFF; script turned it ON and is waiting
+Functional (author's label from before the remake; re-test in-game).

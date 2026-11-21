@@ -1,40 +1,58 @@
 # liquid_pipe_top_up_vent
 
-## Purpose
+Runs an **Active Vent** while a liquid pipe is less than half full.
 
-Turn on an **Active Vent** when a **Liquid Pipe Analyzer** reports the pipe is below a configurable liquid fill percentage.
+*Previously called `liquid_pipe_fill_percent_active_vent`.*
 
-## Devices
+## Pins
 
-- **Required**
-  - Liquid Pipe Analyzer
-  - Active Vent
+| Pin | Device |
+| --- | --- |
+| `d0` | Liquid Pipe Analyzer |
+| `d1` | Active Vent |
 
-## Device registers
+## What it does
 
-- `d0` = Liquid Pipe Analyzer
-- `d1` = Active Vent
+- Fill % = `VolumeOfLiquid` / `Volume`.
+- Below 50 %: vent ON + Open.
+- Above 55 %: vent OFF.
+- In between: holds.
+- Vent kept in `VENT_MODE`; locked after each change if `VENT_LOCK` = 1.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Usage
+## Settings
 
-1. Place and connect the Liquid Pipe Analyzer to the liquid pipe network you want to monitor.
-2. Place the Active Vent and connect it to power and the gas network it should control.
-3. Assign devices:
-   - `d0` → Liquid Pipe Analyzer
-   - `d1` → Active Vent
-4. Set `LIQUID_THRESHOLD_PERCENT` in the script (default 50).
-5. Set `VENT_MODE` in the script (0 = Outward/exhaust, 1 = Inward/intake; confirm in UI).
-6. Set the vent's `Setting` in-game to the pressure target you want. This script controls
-  `Mode`, `Open`, and `On`, but it does not write `Setting`.
-7. (Optional) Set `VENT_LOCK` to `1` if you want the vent locked after updates.
-8. Paste `liquid_pipe_top_up_vent.ic10` into an IC chip and run it.
+Edit the `define` lines at the top of `liquid_pipe_top_up_vent.ic10`.
 
-## Tuning
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `ON_BELOW_PCT` | `50` | Start below (%) |
+| `OFF_ABOVE_PCT` | `55` | Stop above (%) |
+| `VENT_MODE` | `0` | 0 = Outward, 1 = Inward |
+| `VENT_LOCK` | `0` | 1 = lock the vent after changes |
 
-- `LIQUID_THRESHOLD_PERCENT` — Liquid fill percentage ($0$–$100$) below which the vent turns on.
-- `VENT_MODE` — `0` for Outward (exhaust) or `1` for Inward (intake).
-- `VENT_LOCK` — `0` to leave the vent unlocked, `1` to lock after updates.
+## Status (IC Housing `Setting`)
+
+| Value | Meaning |
+| --- | --- |
+| `0` | vent off |
+| `1` | vent on |
+| `9` | device missing or pipe volume 0 |
+
+## Setup
+
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `liquid_pipe_top_up_vent.ic10` into the chip and run it.
+
+## Notes
+
+- Device notes: `docs/usage/active_vent.md`, `docs/usage/liquid_pipe_analyzer.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Added the 50–55 % band (it used to flip at exactly 50 %); guards against a zero pipe volume; status on the housing.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

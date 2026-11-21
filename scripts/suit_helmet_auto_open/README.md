@@ -1,70 +1,49 @@
 # suit_helmet_auto_open
 
-## Purpose
+Opens your **Hardsuit Helmet** in safe air and closes it the moment the air is not safe. If you close it yourself, it stays closed.
 
-Automatically open the **Hardsuit Helmet** visor when the **outside atmosphere around the suit** is both:
+*Previously called `hardsuit_helmet_temp_pressure_open`.*
 
-- between **4°C** and **45°C**
-- between **80 kPa** and **150 kPa**
+## Pins
 
-If either condition is not met, the script closes the helmet.
+| Pin | Device |
+| --- | --- |
+| `db` | Hardsuit (the chip goes in the suit) |
+| `d0` | Hardsuit Helmet |
 
-## Devices
+## What it does
 
-Required:
+- Safe = outside 4–45 °C **and** 80–150 kPa.
+- Safe: opens the helmet once.
+- If you close it after it opened, it stays closed until the air goes unsafe and safe again, or you open it yourself.
+- Unsafe: closes immediately.
+- Checks once a second.
 
-- 1× Hardsuit with processor slot
-- 1× Hardsuit Helmet
-- 1× IC10 chip installed in the Hardsuit processor slot
+## Settings
 
-## Device registers
+Edit the `define` lines at the top of `suit_helmet_auto_open.ic10`.
 
-When this script runs inside a **Hardsuit** IC10 chip:
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `MIN_C` | `4` |  |
+| `MAX_C` | `45` |  |
+| `MIN_KPA` | `80` |  |
+| `MAX_KPA` | `150` |  |
 
-- `db` = Hardsuit interface
-- `d0` = attached Hardsuit Helmet interface
+## Setup
 
-You do **not** manually wire `db` or `d0`; the suit provides them automatically.
-
-## Usage
-
-1. Wear a Hardsuit and attach a Hardsuit Helmet.
-2. Insert an IC10 chip into the Hardsuit processor slot.
-3. Paste `suit_helmet_auto_open.ic10` into that chip.
-4. Run the script.
-
-The visor will:
-
-- **open** only when external `Temperature` is between `4°C` and `45°C`
-- **open** only when external `Pressure` is between `80 kPa` and `150 kPa`
-- **close** otherwise
-- **close again** if it was open and either reading later drops below the threshold
-- **stay closed** if you manually close it after auto-open, until conditions go unsafe and
-  become safe again or you manually reopen it
-
-## Tuning
-
-Edit the constants at the top of `suit_helmet_auto_open.ic10`:
-
-- `TEMP_OPEN_AT_OR_ABOVE_C` — minimum external temperature in **°C** required to open
-- `TEMP_OPEN_AT_OR_BELOW_C` — maximum external temperature in **°C** allowed to stay open
-- `PRESSURE_OPEN_AT_OR_ABOVE_KPA` — minimum external pressure in **kPa** required to open
-- `PRESSURE_OPEN_AT_OR_BELOW_KPA` — maximum external pressure in **kPa** allowed to stay open
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. Put an IC10 chip in the device's own IC slot.
+3. Paste `suit_helmet_auto_open.ic10` into the chip and run it.
 
 ## Notes
 
-- Hardsuit `TemperatureExternal` is reported in Kelvin, so the script converts it using:
-  $C = K - 273.15$
-- Hardsuit `PressureExternal` is compared as **kPa**.
-- The script reevaluates temperature and pressure every cycle, so it will reopen or re-close
-  the helmet as conditions move inside or outside the safe range.
-- A manual close while conditions are still safe becomes a temporary override latch.
-- That latch clears automatically after conditions leave the safe range, or if you manually
-  reopen the helmet.
-- The script clears `Lock` only when needed and updates `Open` only when the desired state
-  changes.
-- If the helmet is missing or detached, the script waits until `d0` is available again.
+- No status number: `db` is the suit.
+
+## Change history
+
+- 2026-11-21: remade and renamed. Rewritten to be shorter; only unlocks the helmet when it needs to move it. Behaviour unchanged.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

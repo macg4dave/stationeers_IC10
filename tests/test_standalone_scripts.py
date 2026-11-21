@@ -1,4 +1,4 @@
-﻿"""Behaviour scenarios for scripts/ (simulated, not in-game verified).
+"""Behaviour scenarios for scripts/ (simulated, not in-game verified).
 
 Each test drives a script through the situations its README promises:
 threshold crossings, hysteresis bands, startup state and fault handling.
@@ -175,7 +175,7 @@ class ValveHysteresis(unittest.TestCase):
         r = Device({"Temperature": 20 + K})
         v = Device({"On": 1, "Lock": 1}, prefab=VALVE, name="cold")
         chip = Chip(script("phase_change_cooling_valve"), pins={"d0": r}, network=[v])
-        self._cycle(chip, r, [v], [(20, 0), (31, 1), (30, 0)])
+        self._cycle(chip, r, [v], [(20, 0), (31, 1), (29, 1), (27, 0), (29, 0)])
         self.assertEqual(v.fields["Lock"], 0)
 
 
@@ -194,17 +194,23 @@ class OnOffControllers(unittest.TestCase):
         chip = Chip(script("room_heater_hold_20c"), pins={"d0": s, "d1": h})
         chip.run(4); self.assertEqual(h.fields["On"], 1)
         s.fields["Temperature"] = 21 + K
+        chip.run(4); self.assertEqual(h.fields["On"], 1, "20..22C band holds")
+        s.fields["Temperature"] = 23 + K
         chip.run(4); self.assertEqual(h.fields["On"], 0)
+        s.fields["Temperature"] = 0
+        chip.run(4); self.assertEqual((h.fields["On"], chip.status), (0, 9), "no reading")
 
     def test_gas_sensor_glass_door_30c(self):
         s, d = gas_sensor(31), switchable(Lock=1)
         chip = Chip(script("room_door_open_when_hot"), pins={"d0": s, "d1": d})
         chip.run(4)
         self.assertEqual((d.fields["Open"], d.fields["Lock"], d.fields["On"]), (1, 0, 1))
-        s.fields["Temperature"] = 30 + K
-        chip.run(4); self.assertEqual(d.fields["Open"], 1, "exactly 30C holds state")
         s.fields["Temperature"] = 29 + K
+        chip.run(4); self.assertEqual(d.fields["Open"], 1, "28..30C band holds state")
+        s.fields["Temperature"] = 27 + K
         chip.run(4); self.assertEqual(d.fields["Open"], 0)
+        s.fields["Temperature"] = 29 + K
+        chip.run(4); self.assertEqual(d.fields["Open"], 0, "band holds closed too")
 
     def test_room_cooler_steamless_vent(self):
         s = gas_sensor(31, RatioSteam=0)
@@ -220,10 +226,14 @@ class OnOffControllers(unittest.TestCase):
         pa, m = analyzer(20, 5000, On=0), switchable()
         chip = Chip(script("gas_mixer_stop_at_10mpa"), pins={"d0": pa, "d1": m})
         chip.run(4)
-        self.assertEqual((pa.fields["On"], chip.status), (1, 4), "turns analyzer on first")
-        chip.run(4); self.assertEqual(m.fields["On"], 1)
+        self.assertEqual(pa.writes_of("On"), [1], "turns the analyzer on first")
+        self.assertEqual(m.fields["On"], 1)
         pa.fields["Pressure"] = 10001
         chip.run(4); self.assertEqual(m.fields["On"], 0)
+        pa.fields["Pressure"] = 9700
+        chip.run(4); self.assertEqual(m.fields["On"], 0, "9.5..10 MPa band holds off")
+        pa.fields["Pressure"] = 9400
+        chip.run(4); self.assertEqual(m.fields["On"], 1)
         pa.fields.update(Pressure=100, Error=1)
         chip.run(4); self.assertEqual((m.fields["On"], chip.status), (0, 3))
 
@@ -273,7 +283,12 @@ class OnOffControllers(unittest.TestCase):
         chip = Chip(script("power_generator_on_low_battery"), pins={"d0": gen}, network=bats)
         chip.run(4); self.assertEqual(gen.fields["On"], 1)  # mean 0.25 < 0.30
         bats[0].fields["Ratio"] = 0.5
+        chip.run(4); self.assertEqual(gen.fields["On"], 1, "keeps charging until 80%")
+        for b in bats:
+            b.fields["Ratio"] = 0.85
         chip.run(4); self.assertEqual(gen.fields["On"], 0)
+        bats[0].fields["Ratio"] = 0.5
+        chip.run(4); self.assertEqual(gen.fields["On"], 0, "30..80% band holds off")
         chip.network.clear()
         chip.run(4); self.assertEqual(gen.fields["On"], 0, "no batteries: fail-safe OFF")
 
@@ -396,6 +411,87 @@ class SafetyAndUtility(unittest.TestCase):
         chip.run(4)
         self.assertEqual([valve.fields["On"], furnace.fields["On"], furnace.fields["Activate"]],
                          [0, 0, 0])
+
+
+class RefinedBehaviour(unittest.TestCase):
+    """Behaviour added in the 2026-11-21 remake (bands, faults, timeouts)."""
+
+    def test_pipe_heater_band(self):
+        pa, h = analyzer(15), switchable()
+        chip = Chip(script("pipe_heater_hold_20c"), pins={"d0": pa, "d1": h})
+        for c, want in [(15, 1), (21, 1), (23, 0), (21, 0), (19, 1)]:
+            pa.fields["Temperature"] = c + K
+            chip.run(4)
+            self.assertEqual(h.fields["On"], want, f"{c}C")
+
+    def test_cooler_band_and_vent_steam_band(self):
+        s = gas_sensor(31, RatioSteam=0)
+        c, v = switchable(), switchable()
+        chip = Chip(script("room_cooler_and_steam_vent"), pins={"d0": s, "d1": c, "d2": v})
+        chip.run(4)
+        self.assertEqual(chip.status, 3)
+        s.fields.update(Temperature=29 + K, RatioSteam=0.0005)
+        chip.run(4)
+        self.assertEqual((c.fields["On"], v.fields["On"]), (1, 1), "both inside their bands")
+        s.fields.update(Temperature=27 + K, RatioSteam=0.002)
+        chip.run(4)
+        self.assertEqual((c.fields["On"], v.fields["On"], chip.status), (0, 0, 0))
+
+    def test_methane_purge_valve_closes_on_error(self):
+        pa = analyzer(20, RatioMethane=0.5, RatioOxygen=0.1)
+        v = switchable()
+        chip = Chip(script("pipe_methane_purge_valve"), pins={"d0": pa, "d1": v})
+        chip.run(4); self.assertEqual(v.fields["On"], 1)
+        pa.fields["Error"] = 1
+        chip.run(4); self.assertEqual((v.fields["On"], chip.status), (0, 9))
+
+    def test_pump_stops_on_analyzer_error(self):
+        pa = analyzer(20, 5000)
+        hot, cold, pump = switchable(), switchable(), switchable(Setting=1)
+        chip = Chip(script("pipe_sort_hot_cold_with_pump"),
+                    pins={"d0": pa, "d1": hot, "d2": cold, "d3": pump})
+        chip.run(4); self.assertEqual(pump.fields["On"], 1)
+        pa.fields["Error"] = 1
+        chip.run(4); self.assertEqual((pump.fields["On"], chip.status), (0, 9))
+
+    def test_landing_pad_pressure_cutoff_rearms_below_19_mpa(self):
+        pa = analyzer(20, 21000)
+        pad, valve = Device({"RatioMethane": 1.0, "On": 0}), switchable()
+        chip = Chip(script("landing_pad_methane_unload"),
+                    pins={"d0": pa, "d1": pad, "d2": valve})
+        chip.run(4); self.assertEqual(chip.status, 30)
+        pa.fields["Pressure"] = 19500
+        chip.run(4); self.assertEqual((pad.fields["On"], chip.status), (0, 30))
+        pa.fields["Pressure"] = 18000
+        chip.run(4); self.assertEqual((pad.fields["On"], chip.status), (1, 10))
+
+    def test_liquid_valves_start_closed_and_resend(self):
+        r = analyzer(25)
+        v = Device({"On": 1, "PrefabHash": -517628750})
+        chip = Chip(script("liquid_valves_open_when_cold"), pins={"d0": r}, network=[v])
+        chip.run(4)
+        self.assertEqual(v.fields["On"], 0, "in-band start closes valves left open")
+        v.fields["On"] = 1                           # a valve that missed the write
+        chip.run(30)
+        self.assertEqual(v.fields["On"], 0, "periodic resend corrects it")
+
+    def test_vending_export_gives_up_when_item_never_arrives(self):
+        vend = Device({"On": 0, "RequestHash": 0},
+                      slots=[{"Occupied": 0}, {"Occupied": 0}])
+        stk = Device({"On": 0, "Mode": 0, "ClearMemory": 0, "Setting": 0, "Output": 0},
+                     slots=[{"Occupied": 0}, {"Occupied": 0},
+                            {"Quantity": 0, "MaxQuantity": 50}])
+        sort = Device({"On": 0, "Mode": 0, "ClearMemory": 0, "Output": 0,
+                       "ImportCount": 0},
+                      slots=[{"Occupied": 0}, {"Occupied": 0}, {"Occupied": 0}])
+        mh, mc = Device({"Setting": 12345}), Device({"Setting": 10})
+        chip = Chip(script("vending_export_exact_count"),
+                    pins={"d0": vend, "d1": stk, "d2": sort, "d3": mh, "d4": mc})
+        chip.run(10)
+        self.assertEqual((chip.status, mc.fields["Setting"]), (1, 0), "job started")
+        self.assertEqual(vend.fields["RequestHash"], 12345)
+        chip.run(60)
+        self.assertEqual(chip.status, 2, "gave up after the timeout instead of hanging")
 
 
 if __name__ == "__main__":

@@ -1,45 +1,58 @@
 # gas_mixer_stop_at_10mpa
 
-Turns a **Gas Mixer** on while a connected **Pipe Analyzer** reports **10 MPa or less** of pressure, and turns it off above that limit.
+Stops a **Gas Mixer** when its output pipe reaches 10 MPa and restarts it when the pressure drops.
 
-- ON condition: `Pressure <= MAX_PRESSURE_KPA`
-- OFF condition: `Pressure > MAX_PRESSURE_KPA`
-- Fail-safe: if the Pipe Analyzer reports `Error != 0`, the mixer is forced OFF
-- Analyzer startup: if the Pipe Analyzer is toggled OFF, the script turns it ON and waits a tick before reading
+*Previously called `pipe_pressure_gas_mixer`.*
 
-## Device mapping
+## Pins
 
-- `d0` = Pipe Analyzer
-- `d1` = Gas Mixer
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer (mixer output pipe) |
+| `d1` | Gas Mixer |
 
-## In-game setup
+## What it does
 
-1. Place an IC Housing with this script.
-2. Wire the IC Housing, Pipe Analyzer, and Gas Mixer to the same data network.
-3. Set `d0` to the Pipe Analyzer that watches the gas line feeding your mixer.
-4. Set `d1` to the Gas Mixer you want to control.
-5. Ensure the Pipe Analyzer is powered and working.
-6. Ensure the Gas Mixer is connected to the pipe network you want to regulate.
+- Above 10 MPa: mixer OFF.
+- Below 9.5 MPa: mixer ON.
+- In between: holds.
+- Analyzer switched off: the script switches it on (mixer OFF meanwhile).
+- Analyzer `Error`: mixer OFF.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-If you still get a runtime line error, double-check that:
+## Settings
 
-- `d0` is really a **Pipe Analyzer**
-- `d1` is really a **Gas Mixer**
-- both devices are on the same data network as the IC Housing
+Edit the `define` lines at the top of `gas_mixer_stop_at_10mpa.ic10`.
 
-## Tuning constants
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `STOP_ABOVE_KPA` | `10000` | Stop above (kPa) |
+| `RESUME_BELOW_KPA` | `9500` | Restart below (kPa) |
 
-In `gas_mixer_stop_at_10mpa.ic10`:
+## Status (IC Housing `Setting`)
 
-- `MAX_PRESSURE_KPA` (default `10000`) — maximum pipe pressure in **kPa** allowed before the Gas Mixer is turned OFF
+| Value | Meaning |
+| --- | --- |
+| `0` | mixer off |
+| `1` | mixer on |
+| `3` | analyzer error |
+| `4` | analyzer was off |
+| `9` | device missing |
 
-Reminder: **10 MPa = 10000 kPa**.
+## Setup
+
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `gas_mixer_stop_at_10mpa.ic10` into the chip and run it.
+
+## Notes
+
+- Device notes: `docs/usage/pipe_analyzer.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Added the 9.5–10 MPa band (it used to flip at exactly 10 MPa).
 
 ## Status
 
-- Functional
-- Writes `db Setting` as quick status:
-  - `0` = mixer target OFF
-  - `1` = mixer target ON
-  - `3` = analyzer fault/error forced OFF
-  - `4` = analyzer was OFF; script turned it ON and is waiting
+Functional (author's label from before the remake; re-test in-game).

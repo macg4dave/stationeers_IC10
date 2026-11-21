@@ -3,76 +3,83 @@
 Single-chip, paste-ready Stationeers IC10 programs. Each lives in its own folder:
 
 - `scripts/<name>/<name>.ic10` — paste this into the in-game IC chip
-- `scripts/<name>/README.md` — devices, `d0..d5` mapping, settings, tuning
+- `scripts/<name>/README.md` — pins, settings, status codes, setup
 
-Multi-chip systems live in `modular scripts/` instead.
+Names follow `<where it lives>_<what it does>`. Old names are listed in
+`docs/renames.md`. Multi-chip systems live in `modular scripts/`.
 
-## Script index
+## Conventions every script follows
 
-**Pins** = devices are assigned to `d0..d5` in the IC Housing.
-**Names** = devices are found on the data network by prefab + exact name (`sbn`/`lbn`),
-so you must rename them in-game exactly as the README says.
+- **Bands, not single thresholds:** on/off switching has a gap (e.g. on below 20 °C,
+  off above 22 °C) so devices do not flicker at the trigger point.
+- **Pins checked every loop:** unplug a device and the chip waits instead of halting.
+- **Faults switch outputs off:** analyzer `Error` or no reading → the controlled device
+  goes to its safe state (see each README for the exact rule).
+- **Status on the IC Housing:** the housing's `Setting` shows a number; each README has
+  the table (`9` always means "device missing or bad reading").
+- **Writes only on change:** devices are read first and only written when different.
 
-Status is the author's in-game status label (unchanged by tooling).
-**Sim** = behaviour scenario in `tests/test_standalone_scripts.py` passes
-(simulated only; it does not replace an in-game test).
+**Pins** = devices assigned to `d0..d5` in the IC Housing. **Names** = devices found on
+the network by type + exact name, so rename them in-game exactly as the README says.
+**Prefab** = every device of that type on the network. **Sim** = a behaviour scenario
+in `tests/test_standalone_scripts.py` passes (simulated, not an in-game test).
 
-### Temperature control
+### Heating and cooling
 
-| Script | What it does | Targeting | Status | Sim |
-| --- | --- | --- | --- | --- |
-| `air_conditioner_hold_25c/` | Runs an Air Conditioner at a 25°C target (chip inside the AC) | db | Functional | yes |
-| `pipe_heater_hold_20c/` | Pipe Heater on below 20°C (Pipe Analyzer); off on analyzer error | Pins | Functional | yes |
-| `room_heater_hold_20c/` | Wall Heater on below 20°C (Gas Sensor) | Pins | Functional | yes |
-| `room_cooler_and_steam_vent/` | Wall Cooler above 30°C; Active Vent on while no steam | Pins | Functional | yes |
-| `furnace_heat_pipe_below_20c/` | Below 20°C: valve + Advanced Furnace on, input/output 5; furnace >100°C stops input | Pins | Functional | yes |
-| `furnace_pulse_when_pipes_cold/` | Gas <30°C or liquid <80°C: pulse Advanced Furnace and valve every ~30 s | Pins | Functional | yes |
-| `room_door_open_when_hot/` | Opens a Glass Door above 30°C, closes below | Pins | Functional | yes |
+| Script | What it does | Targeting | Sim |
+| --- | --- | --- | --- |
+| `room_heater_hold_20c/` | Wall Heater on below 20 °C, off above 22 °C | Pins | yes |
+| `pipe_heater_hold_20c/` | Pipe Heater on below 20 °C, off above 22 °C | Pins | yes |
+| `air_conditioner_hold_25c/` | Air Conditioner kept on at a 25 °C target (chip in the AC) | db | yes |
+| `room_cooler_and_steam_vent/` | Wall Cooler above 30 °C; Active Vent runs while there is no steam | Pins | yes |
+| `room_door_open_when_hot/` | Glass Door opens above 30 °C, closes below 28 °C | Pins | yes |
+| `furnace_heat_pipe_below_20c/` | Advanced Furnace heats a pipe below 20 °C; pauses input when the furnace passes 100 °C | Pins | yes |
+| `furnace_pulse_when_pipes_cold/` | Gas < 30 °C or liquid < 80 °C: valve + furnace `Activate` pulse every 30 s | Pins | yes |
 
-### Temperature-routed valves (one family: same pattern, different sensor/targets)
+### Valves driven by temperature
 
-| Script | What it does | Targeting | Status | Sim |
-| --- | --- | --- | --- | --- |
-| `pipe_valves_open_when_cold/` | Valves named `cold`: open <10°C, close >30°C | Names | Functional | yes |
-| `liquid_valves_open_when_cold/` | All Liquid Digital Valves: open <20°C, close >30°C | Prefab | Functional | yes |
-| `phase_change_cooling_valve/` | Valves named `cold`: open above 30°C | Names | Functional | yes |
-| `pipe_sort_hot_cold_with_pump/` | Routes `cold`/`hot` valves with hysteresis; pump holds ~10 MPa (fixed 2026-11) | Pins | Functional | yes |
+| Script | What it does | Targeting | Sim |
+| --- | --- | --- | --- |
+| `pipe_valves_open_when_cold/` | Valves named `cold`: open below 10 °C, close above 30 °C | Names | yes |
+| `liquid_valves_open_when_cold/` | Every Liquid Digital Valve: open below 20 °C, close above 30 °C | Prefab | yes |
+| `phase_change_cooling_valve/` | Valves named `cold`: open above 30 °C, close below 28 °C | Names | yes |
+| `pipe_sort_hot_cold_with_pump/` | Hot/cold valves by temperature; pump holds ~10 MPa | Pins | yes |
 
-### Pressure and atmosphere
+### Pressure and air
 
-| Script | What it does | Targeting | Status | Sim |
-| --- | --- | --- | --- | --- |
-| `room_vents_hold_pressure/` | Room <90 kPa intake, >120 kPa exhaust (vents named `ROOM_VENT`) (fixed 2026-11) | Names | Functional | yes |
-| `pipe_vents_fill_to_10mpa/` | Fills a pipe to 10 MPa with vents named `PIPE_VENT` | Names | Functional | yes |
-| `room_vents_swap_air_when_hot/` | Above 30°C: vents `IN` blow in, vents `OUT` pull out; below: all off (fixed 2026-11) | Names | Functional | yes |
-| `greenhouse_co2_pressure_vent/` | Vent on when CO2 <20% or room <100 kPa (fixed 2026-11) | Pins | Functional | yes |
-| `pipe_vent_fill_to_half/` | Vent on below 50 kPa, off above 55 kPa | Pins | Functional | yes |
-| `liquid_pipe_top_up_vent/` | Vent on while liquid volume <50% of pipe volume | Pins | Functional | yes |
-| `gas_mixer_stop_at_10mpa/` | Gas Mixer off above 10 MPa | Pins | Functional | yes |
+| Script | What it does | Targeting | Sim |
+| --- | --- | --- | --- |
+| `room_vents_hold_pressure/` | Vents named `ROOM_VENT` keep a room between 90 and 120 kPa | Names | yes |
+| `room_vents_swap_air_when_hot/` | Above 30 °C vents `IN` blow in and `OUT` pull out; off below 28 °C | Names | yes |
+| `pipe_vents_fill_to_10mpa/` | Vents named `PIPE_VENT` fill a pipe to 10 MPa | Names | yes |
+| `pipe_vent_fill_to_half/` | Vent fills a pipe to 50–55 kPa | Pins | yes |
+| `greenhouse_co2_pressure_vent/` | Vent tops up a room when CO2 < 20 % or pressure < 100 kPa | Pins | yes |
+| `liquid_pipe_top_up_vent/` | Vent runs while a liquid pipe is under 50 % full | Pins | yes |
+| `gas_mixer_stop_at_10mpa/` | Gas Mixer off above 10 MPa, back on below 9.5 MPa | Pins | yes |
 
-### Methane (formerly "volatiles") handling
+### Methane and fuel
 
-The folder names keep the old "volatiles" wording so existing installs and links keep
-working; the scripts read the current `RatioMethane` LogicType.
+| Script | What it does | Targeting | Sim |
+| --- | --- | --- | --- |
+| `pipe_valve_open_when_methane/` | Valve open only while the pipe has methane | Pins | yes |
+| `pipe_valve_open_when_clean/` | Valve open only with no methane, no steam and > 1 kPa | Pins | yes |
+| `pipe_methane_purge_valve/` | Valve purges while O2 < 33 % of the methane | Pins | yes |
+| `pipe_methane_purge_vent/` | Vent purges while methane is present and O2 < 33 % | Pins | yes |
+| `power_generator_on_methane/` | Gas Fuel Generator runs while its fuel pipe has methane | Pins | yes |
+| `landing_pad_methane_unload/` | Unloads ≥ 99.9 % methane from a landing pad; 20 MPa cutoff; override | Pins | yes |
+| `liquid_pipe_purge_lever/` | Lever empties a liquid pipe; LED shows the state | Pins | yes |
 
-| Script | What it does | Targeting | Status | Sim |
-| --- | --- | --- | --- | --- |
-| `pipe_valve_open_when_methane/` | Valve on while any methane is present, off when none | Pins | Functional | yes |
-| `pipe_valve_open_when_clean/` | Valve on only with no methane, no steam and >1 kPa | Pins | Functional | yes |
-| `pipe_methane_purge_valve/` | Valve on while methane present and O2 < 33% of methane | Pins | Functional | yes |
-| `pipe_methane_purge_vent/` | Vent on while methane present and O2 < 33% | Pins | Functional | yes |
-| `power_generator_on_methane/` | Gas Fuel Generator on while any methane is present | Pins | Functional | yes |
-| `landing_pad_methane_unload/` | Landingpad Gas Output + valve on at ~100% methane; 20 MPa cutoff; override | Pins | Functional | yes |
-| `liquid_pipe_purge_lever/` | Lever-armed purge of a liquid pipe (valve, vent, outlet) with LED status | Pins | Functional | yes |
+### Power, suit, display, logistics
 
-### Power, suits, displays, logistics
+| Script | What it does | Targeting | Sim |
+| --- | --- | --- | --- |
+| `power_generator_on_low_battery/` | Generator on below 30 % average large-battery charge, off above 80 % | Prefab | yes |
+| `suit_helmet_auto_open/` | Helmet opens in safe air (4–45 °C, 80–150 kPa), respects a manual close | db + pin | yes |
+| `display_clock_from_sun/` | 24 h clock on two LED Displays from a Daylight Sensor | Pins | yes |
+| `vending_export_exact_count/` | Exports an exact item count; gives up if the item runs out | Pins | timeout only |
 
-| Script | What it does | Targeting | Status | Sim |
-| --- | --- | --- | --- | --- |
-| `power_generator_on_low_battery/` | Generator on when mean Large Battery charge <30% | Prefab | Functional | yes |
-| `suit_helmet_auto_open/` | Opens the helmet in safe air (4–45°C, 80–150 kPa); respects manual close | db + pin | Functional | yes |
-| `display_clock_from_sun/` | Hours and minutes on two LED Displays from a Daylight Sensor (no seconds) | Pins | Functional | yes |
-| `vending_export_exact_count/` | Exports an exact item count via Stacker + Sorter return loop | Pins | Functional | no |
+All scripts carry the author's **Functional** label from before the 2026-11-21 remake.
+They have not yet been re-tested in-game; see `docs/engineering_audit.md` for the list.
 
 ## Naming and batch targeting
 

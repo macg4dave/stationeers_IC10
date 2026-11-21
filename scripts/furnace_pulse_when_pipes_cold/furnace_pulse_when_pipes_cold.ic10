@@ -1,111 +1,66 @@
-# furnace_pulse_when_pipes_cold
-# Category: Controller | Status: Functional
-# d0=Liquid Pipe Analyzer, d1=Pipe Analyzer, d2=Pipe Digital Valve, d3=Adv Furnace
-# If (gasC<30C) OR (liqC<80C): valve ON; furnace Activate=1 for PULSE_TICKS; then OFF.
-# Timing uses yield ticks (defaults assume ~2 ticks/s).
+# furnace_pulse_when_pipes_cold - pulse an Advanced Furnace when pipes are cold
+# d0=Liquid Pipe Analyzer  d1=Pipe Analyzer (gas)  d2=Pipe Digital Valve
+# d3=Advanced Furnace
+# Every CYCLE_S: if gas < 30C OR liquid < 80C, valve ON and furnace Activate=1
+# for PULSE_TICKS, then both OFF. Otherwise valve OFF, Activate 0.
+# CHECK: 0=both analyzers, 1=gas only (d0 unused), 2=liquid only (d1 unused)
+# db Setting: 0=warm, idle 1=cold, pulsed 9=device missing
 
-alias liquid_read d0
-alias gas_read d1
-alias pipe_valve d2
-alias furnace d3
-alias liqC r0
-alias gasC r1
-alias cond r2
-alias low_any r3
-alias ticks r5
-alias current_on r6
-alias desired_on r7
-define KELVIN_TO_C 273.15
-define CHECK_TYPE 0
-define LOOP_TICKS 60
+alias liquid d0
+alias gas d1
+alias valve d2
+alias furn d3
+alias tc r0
+alias cold r1
+alias cur r2
+alias n r3
+
+define CHECK 0
+define GAS_COLD_C 30
+define LIQUID_COLD_C 80
 define PULSE_TICKS 2
-define REMAIN_TICKS 58
-
-wait_devices:
-yield
-bdns d0 wait_devices
-bdns d1 wait_devices
-bdns d2 wait_devices
-bdns d3 wait_devices
+define CYCLE_S 30
 
 main:
-# check selected temperature source(s)
-move low_any 0
-# --- gas/air check (skip when CHECK_TYPE == 2) ---
-seq cond CHECK_TYPE 2
-bnez cond gas_skip
-l gasC gas_read Temperature
-sub gasC gasC KELVIN_TO_C
-slt cond gasC 30
-or low_any low_any cond
-j gas_done
-gas_skip:
-move gasC 0
-gas_done:
-# --- liquid check (skip when CHECK_TYPE == 1) ---
-seq cond CHECK_TYPE 1
-bnez cond liq_skip
-l liqC liquid_read Temperature
-sub liqC liqC KELVIN_TO_C
-slt cond liqC 80
-or low_any low_any cond
-j liq_done
-liq_skip:
-move liqC 0
-liq_done:
-
-# If condition not met -> ensure devices are OFF
-beqz low_any no_on
-
-# turn valve ON (avoid redundant writes)
-l current_on pipe_valve On
-move desired_on 1
-sne cond desired_on current_on
-beqz cond valve_on_done
-s pipe_valve On desired_on
-valve_on_done:
-
-# activate furnace (ON)
-s furnace Activate 1
-
-# hold for ~1 second
-move ticks PULSE_TICKS
-pulse_wait:
+s db Setting 9
 yield
-sub ticks ticks 1
-bnez ticks pulse_wait
-
-# stop furnace pulse
-s furnace Activate 0
-
-# turn valve OFF (avoid redundant writes)
-l current_on pipe_valve On
-move desired_on 0
-sne cond desired_on current_on
-beqz cond valve_off_done_pulse
-s pipe_valve On desired_on
-valve_off_done_pulse:
-
-# wait remainder so the full cycle is ~30 seconds
-move ticks REMAIN_TICKS
-j delay
-
-no_on:
-# turn valve OFF (avoid redundant writes)
-l current_on pipe_valve On
-move desired_on 0
-sne cond desired_on current_on
-beqz cond valve_off_done
-s pipe_valve On desired_on
-valve_off_done:
-
-# ensure furnace is OFF
-s furnace Activate 0
-
-move ticks LOOP_TICKS
-
-delay:
+bdns valve main
+bdns furn main
+move cold 0
+beq CHECK 2 liquid_chk
+bdns gas main
+l tc gas Temperature
+sub tc tc 273.15
+slt cur tc GAS_COLD_C
+or cold cold cur
+liquid_chk:
+beq CHECK 1 decide
+bdns liquid main
+l tc liquid Temperature
+sub tc tc 273.15
+slt cur tc LIQUID_COLD_C
+or cold cold cur
+decide:
+s db Setting cold
+beqz cold all_off
+l cur valve On
+bnez cur v_on
+s valve On 1
+v_on:
+s furn Activate 1
+move n PULSE_TICKS
+pulse:
 yield
-sub ticks ticks 1
-bnez ticks delay
+sub n n 1
+bgtz n pulse
+all_off:
+l cur furn Activate
+beqz cur f_off
+s furn Activate 0
+f_off:
+l cur valve On
+beqz cur rest
+s valve On 0
+rest:
+sleep CYCLE_S
 j main

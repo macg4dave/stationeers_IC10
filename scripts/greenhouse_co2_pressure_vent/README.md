@@ -1,80 +1,57 @@
 # greenhouse_co2_pressure_vent
 
-## Purpose
+Tops up a greenhouse from a CO2-rich pipe: an **Active Vent** runs when CO2 is low or the room pressure is low.
 
-Read a **Gas Sensor** and open an **Active Vent** when room **CO2** is below **20%**.
+*Previously called `room_co2_below_20pct_active_vent`.*
 
-The vent opens when either of these is true:
+## Pins
 
-- room CO2 is below **20%**
-- room pressure is below **100 kPa**
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Sensor (in the room) |
+| `d1` | Active Vent |
 
-This means low pressure can still turn the vent on even if CO2 is already above **20%**.
+## What it does
 
-If neither condition is true, the script closes the vent and turns it **OFF**.
+- Vent ON + Open while CO2 < 20 % **or** room < 100 kPa.
+- Vent OFF once CO2 > 22 % **and** room ≥ 100 kPa.
+- The vent is kept in `VENT_MODE` with `Setting` = 100 kPa, so it never pushes the room above 100 kPa.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Devices
+## Settings
 
-Required:
+Edit the `define` lines at the top of `greenhouse_co2_pressure_vent.ic10`.
 
-- Gas Sensor
-- Active Vent
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `CO2_LOW` | `0.20` | Start below this CO2 ratio |
+| `CO2_OK` | `0.22` | Stop above this CO2 ratio |
+| `ROOM_KPA` | `100` | Minimum room pressure and the vent's limit (kPa) |
+| `VENT_MODE` | `0` | 0 = Outward (pipe → room), 1 = Inward |
 
-## Device registers
+## Status (IC Housing `Setting`)
 
-- `d0` = Gas Sensor
-- `d1` = Active Vent
+| Value | Meaning |
+| --- | --- |
+| `0` | vent off |
+| `1` | vent on |
+| `9` | device missing |
 
-## Usage
+## Setup
 
-1. Place a Gas Sensor in the room you want to monitor.
-2. Place an Active Vent connected to the atmosphere / pipe setup you want to control.
-3. Make sure both devices are powered and on the same data network as the IC Housing.
-4. Edit the `VENT_MODE` constant in the script if you want a different airflow direction.
-5. You do not need to set the vent **Mode** or **Setting** manually; this script writes both.
-6. (Recommended) Rename devices so they are easy to assign:
-   - Gas Sensor: `room_co2_sensor_1`
-   - Active Vent: `room_co2_vent_1`
-7. In the IC Housing, assign:
-   - `d0` = `room_co2_sensor_1`
-   - `d1` = `room_co2_vent_1`
-8. Paste `greenhouse_co2_pressure_vent.ic10` into the in-game IC editor and run it.
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `greenhouse_co2_pressure_vent.ic10` into the chip and run it.
 
-## Tuning
+## Notes
 
-Edit the constant at the top of `greenhouse_co2_pressure_vent.ic10`:
+- Device notes: `docs/usage/active_vent.md`, `docs/usage/gas_sensor.md`
 
-- `CO2_OPEN_BELOW_RATIO`: vent is forced **ON/Open** when
-  `RatioCarbonDioxide < CO2_OPEN_BELOW_RATIO`
-- `MIN_ROOM_PRESSURE_KPA`: the script writes this value to vent `Setting`, and
-   low room pressure turns the vent **ON/Open** when `Pressure < MIN_ROOM_PRESSURE_KPA`
-- `VENT_MODE`: vent `Mode` written by the script
-  - `MODE_OUTWARD` = `0`
-  - `MODE_INWARD` = `1`
-  - swap these if your build uses the opposite mapping
+## Change history
 
-Ratio notes:
-
-- Gas Sensor `RatioCarbonDioxide` is reported as a value from `0.0` to `1.0`.
-- `0.20` means **20% CO2**.
-- The threshold is strict: exactly `0.20` keeps the vent **OFF/closed**.
-
-Pressure notes:
-
-- Gas Sensor `Pressure` is read as kPa (wiki: "In kPa").
-- With the default setting, pressure below **100 kPa** forces the vent **ON/open**.
-- 2026-11: removed an old "looks like Pa" guess (divide by 1000 above 2,000) that
-  made a >2 MPa room look like low pressure and opened the vent.
-
-## In-game setup notes
-
-- See `docs/usage/gas_sensor.md` for Gas Sensor reading gotchas.
-- See `docs/usage/active_vent.md` for Active Vent setup notes.
-- The script clears vent `Lock` before applying changes.
-- This script writes vent `Mode`, `Setting`, `Open`, and `On`.
-- For airflow to happen, the vent still needs power and a valid pipe/room setup.
-- If the vent moves gas the wrong way, change `VENT_MODE` in the script.
+- 2026-11-21: remade and renamed. Added the 20–22 % CO2 band; dropped the Gas Sensor prefab check; status on the housing.
+- 2026-11: removed the "divide by 1000" pressure guess.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

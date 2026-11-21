@@ -1,74 +1,41 @@
-# pipe_methane_purge_valve
-# Category: Controller
-# Status: Functional
-#
-# Purpose: If the pipe contains Methane, turn a Pipe Digital Valve on until
-#          Oxygen ratio is >= 33% of Methane ratio.
-#
-# Device registers:
-#   d0 = Pipe Analyzer      (gas pipe)
-#   d1 = Pipe Digital Valve (connected to the same pipe network)
-#
-# Notes:
-# - Pipe Analyzer ratios are 0..1 (mass percent / 100).
-# - We treat very small values as "not present" to avoid float noise.
+# pipe_methane_purge_valve - purge methane through a valve until O2 catches up
+# d0=Pipe Analyzer  d1=Pipe Digital Valve
+# Valve ON while methane is present AND RatioOxygen < 33% of RatioMethane.
+# Otherwise, or on analyzer Error, valve OFF.
+# db Setting: 0=closed 1=purging 9=fault/device missing
 
-alias pa d0
+alias pipe d0
 alias valve d1
-
-alias vol r0
+alias ch4 r0
 alias o2 r1
-alias cond r2
-alias desired_on r3
-alias current_on r4
-alias o2_target r5
-alias pa_hash r6
-alias pa_error r7
+alias want r2
+alias cur r3
 
-# Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
-
-# Oxygen target as a fraction of current methane ratio (33%)
-define O2_PER_VOL 0.33
-
-# Pipe Analyzer prefab hash from catalog/devices/Pipe_Analyzer.json
-define PIPE_ANALYZER_HASH 435685051
+define O2_PER_CH4 0.33
 
 wait:
+s db Setting 9
 yield
-bdns d0 wait
-bdns d1 wait
+bdns pipe wait
+bdns valve wait
 
 main:
-bdns d0 wait
-bdns d1 wait
-l pa_hash pa PrefabHash
-bne pa_hash PIPE_ANALYZER_HASH wait
-l pa_error pa Error
-bnez pa_error wait
-
-# Read current gas composition
-l vol pa RatioMethane
-l o2 pa RatioOxygen
-
-# Default to OFF
-move desired_on 0
-
-# If methane is present AND oxygen < (33% of methane) => valve ON
-sgt cond vol EPS
-beqz cond decide
-move o2_target O2_PER_VOL
-mul o2_target vol o2_target
-slt cond o2 o2_target
-select desired_on cond 1 0
-
-decide:
-# avoid redundant writes (and network spam): only set when it changes
-l current_on valve On
-sne cond desired_on current_on
-beqz cond skip_write
-s valve On desired_on
-skip_write:
-
 yield
+bdns pipe wait
+bdns valve wait
+move want 0
+l cur pipe Error
+bnez cur apply
+l ch4 pipe RatioMethane
+ble ch4 EPS apply
+l o2 pipe RatioOxygen
+mul ch4 ch4 O2_PER_CH4
+slt want o2 ch4
+apply:
+select cur cur 9 want
+s db Setting cur
+l cur valve On
+beq cur want main
+s valve On want
 j main

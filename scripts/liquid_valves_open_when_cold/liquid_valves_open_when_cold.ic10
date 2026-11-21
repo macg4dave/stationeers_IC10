@@ -1,60 +1,46 @@
-# liquid_valves_open_when_cold
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Control all network Liquid Digital Valves
-# based on Liquid Pipe Analyzer temperature.
-#
-# Device registers:
-#   d0 = Liquid Pipe Analyzer
-#
-# Notes:
-# - Liquid Pipe Analyzer Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - Hysteresis (Schmitt trigger style):
-#     * OPEN  when tempC < TEMP_OPEN_BELOW_C
-#     * CLOSE when tempC > TEMP_CLOSE_ABOVE_C
-#     * otherwise leave valve state unchanged
+# liquid_valves_open_when_cold - open ALL Liquid Digital Valves when liquid is cold
+# d0=Liquid Pipe Analyzer. Every Liquid Digital Valve on the data network is driven.
+# OPEN below 20C, CLOSE above 30C, holds in between (starts closed).
+# Re-sends the state every ~10 s so newly built valves join in.
+# db Setting: 0=closed 1=open 9=analyzer missing/no reading
 
-alias liquid_read d0
+alias liquid d0
+alias tc r0
+alias want r1
+alias sent r2
+alias ticks r3
+alias cur r4
 
-alias tempC r0
-alias cond r1
-alias desired_on r2
-alias valve_state r3
+define OPEN_BELOW_C 20
+define CLOSE_ABOVE_C 30
+# Liquid Digital Valve prefab hash, from the working original script
+define VALVE_HASH -517628750
+define RESEND_TICKS 20
 
-define KELVIN_TO_C 273.15
-define TEMP_OPEN_BELOW_C 20
-define TEMP_CLOSE_ABOVE_C 30
-define LIQUID_VALVE_PREFAB_HASH -517628750
+move sent -1
 
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-
-# startup default command state: closed
-move valve_state 0
+bdns liquid wait
 
 main:
-l tempC liquid_read Temperature
-sub tempC tempC KELVIN_TO_C
-
-# default: keep previously commanded valve state
-move desired_on valve_state
-
-# if tempC < TEMP_OPEN_BELOW_C => open valve
-slt cond tempC TEMP_OPEN_BELOW_C
-select desired_on cond 1 desired_on
-
-# if tempC > TEMP_CLOSE_ABOVE_C => close valve
-slt cond TEMP_CLOSE_ABOVE_C tempC
-select desired_on cond 0 desired_on
-
-# avoid redundant writes (and network spam): only set when it changes
-sne cond desired_on valve_state
-beqz cond skip_write
-move valve_state desired_on
-sb LIQUID_VALVE_PREFAB_HASH On desired_on
-skip_write:
-
 yield
+bdns liquid wait
+l tc liquid Temperature
+blez tc wait
+sub tc tc 273.15
+slt cur tc OPEN_BELOW_C
+select want cur 1 want
+sgt cur tc CLOSE_ABOVE_C
+select want cur 0 want
+sub ticks ticks 1
+bne want sent send
+bgtz ticks report
+send:
+sb VALVE_HASH On want
+move sent want
+move ticks RESEND_TICKS
+report:
+s db Setting want
 j main

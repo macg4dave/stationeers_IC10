@@ -1,51 +1,53 @@
 # pipe_valve_open_when_clean
 
-Opens a **Pipe Digital Valve** only when the connected **Pipe Analyzer** reports **no Methane** and **no Steam**.
+Opens a **Pipe Digital Valve** only when the gas has no methane and no steam, e.g. to let clean air through.
 
-## Purpose
+*Previously called `no_volatiles_no_steam_valve`.*
 
-Useful as a clean-gas-only gate: if either Methane or Steam is present in the pipe, the valve stays closed.
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Pipe Digital Valve |
 
-Required:
+## What it does
 
-- 1× Pipe Analyzer
-- 1× Pipe Digital Valve
-- 1× IC Housing + IC10 chip (or equivalent)
+- Valve ON while methane ≈ 0, steam ≈ 0 and pressure > 1 kPa.
+- Anything else, or analyzer `Error`: valve OFF.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Device registers
+## Settings
 
-- `d0` = Pipe Analyzer
-- `d1` = Pipe Digital Valve
+Edit the `define` lines at the top of `pipe_valve_open_when_clean.ic10`.
 
-## How it works
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `EPS` | `0.000001` | Ratio counted as "none" |
+| `MIN_KPA` | `1` | Minimum pressure to open (kPa) |
 
-Every tick it reads:
+## Status (IC Housing `Setting`)
 
-- `RatioMethane` (from the Pipe Analyzer)
-- `RatioSteam` (from the Pipe Analyzer)
-- `Pressure` (from the Pipe Analyzer, in kPa)
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | fault or device missing |
 
-Then it sets the valve:
+## Setup
 
-- `On = 1` if both ratios are $\le \text{EPS}$ **and** `Pressure > MIN_PRESSURE`
-- `On = 0` otherwise
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_valve_open_when_clean.ic10` into the chip and run it.
 
-`EPS` is a tiny tolerance to avoid floating-point “almost zero” values keeping the valve closed.
+## Notes
 
-## Tuning
+- Device notes: `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_digital_valve.md`
 
-In `pipe_valve_open_when_clean.ic10`:
+## Change history
 
-- `EPS` (default `0.000001`)
-  - Increase if you see tiny non-zero readings when the pipe is “effectively clean”.
-  - Decrease if you need stricter filtering.
-
-- `MIN_PRESSURE` (default `1.0` kPa)
-  - Increase if you only want the valve to open when the line is more “pressurized”.
-  - Decrease if you just want to block opening on near-vacuum / empty pipe.
+- 2026-11-21: remade and renamed. Valve closes on analyzer error; status on the housing.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

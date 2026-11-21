@@ -1,37 +1,36 @@
-# Close a Pipe Digital Valve when NO Methane is present
-# d0 = Pipe Analyzer
-# d1 = Pipe Digital Valve
+# pipe_valve_open_when_methane - valve open only while the pipe has methane
+# d0=Pipe Analyzer  d1=Pipe Digital Valve
+# Valve ON while RatioMethane > 0 (above float noise), OFF when there is none.
+# Analyzer Error => valve OFF.
+# db Setting: 0=closed 1=open 9=fault/device missing
 
-alias pa d0
+alias pipe d0
 alias valve d1
+alias ch4 r0
+alias want r1
+alias cur r2
 
-alias vol r0
-alias vol_hi r1
-
-alias current_on r2
-alias cond r3
-
-# Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
 
 wait:
+s db Setting 9
 yield
-bdns d0 wait
-bdns d1 wait
+bdns pipe wait
+bdns valve wait
 
-loop:
+main:
 yield
-
-l vol pa RatioMethane
-
-# vol_hi = 1 if vol > EPS, else 0
-sgt vol_hi vol EPS
-
-# Close valve when methane is not present
-# (On = 1 only when methane is present)
-l current_on valve On
-sne cond vol_hi current_on
-beqz cond skip_write
-s valve On vol_hi
-skip_write:
-j loop
+bdns pipe wait
+bdns valve wait
+move want 0
+l cur pipe Error
+bnez cur apply
+l ch4 pipe RatioMethane
+sgt want ch4 EPS
+apply:
+select cur cur 9 want
+s db Setting cur
+l cur valve On
+beq cur want main
+s valve On want
+j main

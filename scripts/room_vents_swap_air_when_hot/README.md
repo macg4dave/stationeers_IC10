@@ -1,75 +1,61 @@
 # room_vents_swap_air_when_hot
 
-**Purpose:**
-Sets one group of Active Vents to intake (inward) and another group to exhaust (outward)
-based on exact device name matches using `HASH()` + `sbn`, gated by room temperature.
+When a room gets hot, swaps its air: **vents named `IN`** blow fresh gas in while **vents named `OUT`** pull room air out.
 
-## Devices
+*Previously called `active_vent_dual_sets`.*
 
-- **Required:** Gas Sensor (room), Active Vents on the same data network as the IC
-- **Optional:** None
+## Pins
 
-## Device registers
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Sensor (in the room) |
 
-- `d0` = Gas Sensor (room)
+**Network devices:** Active Vents named exactly `IN` (supply pipe side) and `OUT` (exhaust pipe side). The IC Housing must be on the same data network as the named devices.
 
-## Batch / hashes
+## What it does
 
-- Active Vent prefab hash: `HASH("StructureActiveVent")` = `-1129453144`
-- Intake group name hash (exact match): `HASH("IN")`
-- Exhaust group name hash (exact match): `HASH("OUT")`
+- Above 30 °C: `IN` vents Outward (pipe → room, limit 60 MPa), `OUT` vents Inward (room → pipe, limit 0 kPa), all on and locked.
+- Below 28 °C: both groups OFF, closed, unlocked.
+- 28–30 °C: holds.
+- At start-up it always applies a known state; while running it re-applies every ~60 s.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-> **Important:** IC10 batch writes use the device **Prefab Hash**, not item hash.
-> For Active Vents, use `-1129453144` (`StructureActiveVent`), not item hash `-842048328`.
-> **Important:** `sbn` matches **exact** name hashes only. It does **not** match substrings.
-> To target a group, rename **every** intake vent to the exact same name (e.g. `IN`), and
-> **every** exhaust vent to another exact name (e.g. `OUT`). If you want different words,
-> update the `IN_NAME_HASH` / `OUT_NAME_HASH` defines in the script.
+## Settings
 
-## Usage
+Edit the `define` lines at the top of `room_vents_swap_air_when_hot.ic10`.
 
-1. Rename all intake vents to `IN` and all exhaust vents to `OUT` (or update the hash
-   constants in the script to match your chosen names).
-2. Connect a Gas Sensor to the room you want to control and assign it to `d0`.
-3. Paste `room_vents_swap_air_when_hot.ic10` into the IC and connect it to the same data network
-   as the vents.
-4. Power the IC. The vents turn on when temperature is $\ge 30\,^{\circ}\mathrm{C}$ and
-   turn off when it drops below $30\,^{\circ}\mathrm{C}$.
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `ON_ABOVE_C` | `30` | Start swapping above (°C) |
+| `OFF_BELOW_C` | `28` | Stop below (°C) |
+| `IN_SETTING_KPA` | `60000` | IN vents' pressure limit |
+| `OUT_SETTING_KPA` | `0` | OUT vents' pressure limit |
+| `LOOP_SLEEP_S` | `2` | Seconds between checks |
 
-## Tuning
+## Status (IC Housing `Setting`)
 
-- `TEMP_THRESHOLD_C`: temperature threshold in °C.
-- `MODE_OUTWARD` / `MODE_INWARD`: swap values if your vents behave opposite of expected.
-- `INTAKE_SETTING_KPA`: intake-group vent `Setting` target while ON.
-- `EXHAUST_SETTING_KPA`: exhaust-group vent `Setting` target while ON.
-- `LOOP_SLEEP_S`: polling interval for temperature (and minimum time between state changes).
-- `REAPPLY_TICKS`: while vents are ON, how often to re-apply vent settings (reduces spam vs. every loop).
+| Value | Meaning |
+| --- | --- |
+| `0` | off |
+| `1` | swapping |
+| `9` | sensor missing or no reading |
+
+## Setup
+
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `room_vents_swap_air_when_hot.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
 
 ## Notes
 
-- Repo guidance now treats **`Setting` as the main pressure target** for most Active Vent
-  controllers.
-- `PressureExternal` / `PressureInternal` are advanced limit fields; overriding them can
-  accidentally block flow if you do not specifically want regulator/back-pressure behavior.
-- If you are building a simple/manual-style vent controller, prefer:
-  - set `Mode`
-  - wait one tick (`yield`)
-  - set `Setting`
-  - set `Open = 1`
-  - set `On = 1`
-- This script now follows that pattern:
-  - intake group writes `Mode = Outward`, `Setting = INTAKE_SETTING_KPA`, `Open = 1`, `On = 1`
-  - exhaust group writes `Mode = Inward`, `Setting = EXHAUST_SETTING_KPA`, `Open = 1`, `On = 1`
-- If you inspect a manually working vent and see values like `PressureExternal = 0`,
-  `PressureInternal = 50662.5`, `Setting = 50`, that is a good hint that `Setting` is the
-  useful control target while the extra pressure-limit fields are best left alone.
-
-## Status
-
-Functional
+- Device notes: `docs/usage/active_vent.md`
 
 ## Change history
 
-- 2026-11: on a cold start the script now turns both groups **OFF**. Before, it
-  assumed they were already off, so vents left running from an earlier session kept
-  running until the room first warmed past the threshold.
+- 2026-11-21: remade and renamed. Added the 28–30 °C band; checks every 2 s instead of 5 s; status on the housing.
+- 2026-11: on a cold start both groups are switched off (before, vents left running kept running).
+
+## Status
+
+Functional (author's label from before the remake; re-test in-game).

@@ -1,76 +1,47 @@
-# room_door_open_when_hot
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - Read a Gas Sensor temperature.
-# - If temperature is above 30C, open a Glass Door.
-# - If temperature is below 30C, close the Glass Door.
-# - At exactly 30C, keep the current door state.
-#
-# Device registers:
-#   d0 = Gas Sensor
-#   d1 = Glass Door
-#
-# Notes:
-# - Gas Sensor Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - The script forces the door On and clears Lock if needed.
+# room_door_open_when_hot - Glass Door opens when the room is hot
+# d0=Gas Sensor (room)  d1=Glass Door
+# Door OPEN above 30C, CLOSED below 28C, holds in between.
+# Keeps the door powered (On=1) and unlocked so it can move.
+# db Setting: 0=closed 1=open 9=device missing/no reading
 
 alias sensor d0
 alias door d1
+alias tc r0
+alias want r1
+alias cur r2
 
-alias tempC r0
-alias cond r1
-alias desired_open r2
-alias current_open r3
-alias sensor_hash r4
-alias current_lock r5
-alias current_on r6
+define OPEN_ABOVE_C 30
+define CLOSE_BELOW_C 28
 
-define KELVIN_TO_C 273.15
-define TEMP_OPEN_ABOVE_C 30
-
-# Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
-define GAS_SENSOR_HASH -1252983604
-
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-bdns d1 wait_devices
+bdns sensor wait
+bdns door wait
+l want door Open
 
 main:
-bdns d0 wait_devices
-bdns d1 wait_devices
-l sensor_hash sensor PrefabHash
-bne sensor_hash GAS_SENSOR_HASH wait_devices
-
-l tempC sensor Temperature
-sub tempC tempC KELVIN_TO_C
-
-l current_open door Open
-move desired_open current_open
-
-# open when tempC > TEMP_OPEN_ABOVE_C
-slt cond TEMP_OPEN_ABOVE_C tempC
-select desired_open cond 1 desired_open
-# close when tempC < TEMP_OPEN_ABOVE_C
-slt cond tempC TEMP_OPEN_ABOVE_C
-select desired_open cond 0 desired_open
-
-l current_lock door Lock
-beqz current_lock check_on
-s door Lock 0
-
-check_on:
-l current_on door On
-bnez current_on check_write
-s door On 1
-
-check_write:
-sne cond desired_open current_open
-beqz cond done
-s door Open desired_open
-
-done:
 yield
+bdns sensor wait
+bdns door wait
+l tc sensor Temperature
+blez tc wait
+sub tc tc 273.15
+sgt cur tc OPEN_ABOVE_C
+select want cur 1 want
+slt cur tc CLOSE_BELOW_C
+select want cur 0 want
+l cur door Lock
+beqz cur unlocked
+s door Lock 0
+unlocked:
+l cur door On
+bnez cur powered
+s door On 1
+powered:
+l cur door Open
+beq cur want report
+s door Open want
+report:
+s db Setting want
 j main

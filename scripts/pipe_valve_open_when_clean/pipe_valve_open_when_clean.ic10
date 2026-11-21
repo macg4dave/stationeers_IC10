@@ -1,55 +1,41 @@
-# Open a Pipe Digital Valve when NO Methane and NO Steam are present
-# d0 = Pipe Analyzer
-# d1 = Pipe Digital Valve
+# pipe_valve_open_when_clean - valve open only with no methane and no steam
+# d0=Pipe Analyzer  d1=Pipe Digital Valve
+# Valve ON while RatioMethane and RatioSteam are both ~0 and pressure > 1 kPa.
+# Anything else, or analyzer Error => valve OFF.
+# db Setting: 0=closed 1=open 9=fault/device missing
 
-alias pa d0
+alias pipe d0
 alias valve d1
+alias val r0
+alias want r1
+alias cur r2
 
-alias vol r0
-alias stm r1
-alias pres r2
-
-alias vol_hi r3
-alias stm_hi r4
-alias any_hi r5
-alias open r6
-alias pres_ok r7
-
-alias current_on r8
-alias cond2 r9
-
-# Treat values <= EPS as "not present" (covers tiny floating noise)
 define EPS 0.000001
-
-# Require at least some pressure before opening (kPa)
-define MIN_PRESSURE 1.0
+define MIN_KPA 1
 
 wait:
+s db Setting 9
 yield
-bdns d0 wait
-bdns d1 wait
+bdns pipe wait
+bdns valve wait
 
-loop:
+main:
 yield
-
-l vol pa RatioMethane
-l stm pa RatioSteam
-l pres pa Pressure
-
-sgt pres_ok pres MIN_PRESSURE
-
-# open = 1 if vol <= EPS and stm <= EPS, else 0
-sgt vol_hi vol EPS
-sgt stm_hi stm EPS
-or any_hi vol_hi stm_hi
-seqz open any_hi
-
-# Also require pressure > MIN_PRESSURE
-and open open pres_ok
-
-l current_on valve On
-sne cond2 open current_on
-beqz cond2 skip_write
-s valve On open
-skip_write:
-j loop
+bdns pipe wait
+bdns valve wait
+move want 0
+l cur pipe Error
+bnez cur apply
+l val pipe Pressure
+ble val MIN_KPA apply
+l val pipe RatioMethane
+bgt val EPS apply
+l val pipe RatioSteam
+sle want val EPS
+apply:
+select cur cur 9 want
+s db Setting cur
+l cur valve On
+beq cur want main
+s valve On want
+j main

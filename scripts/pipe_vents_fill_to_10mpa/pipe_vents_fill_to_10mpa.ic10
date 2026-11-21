@@ -1,67 +1,64 @@
-# pipe_vents_fill_to_10mpa (batch)
+# pipe_vents_fill_to_10mpa - Active Vents fill a pipe to 10 MPa
+# d0=Pipe Analyzer. Active Vents named exactly PIPE_VENT on the network.
+# Below 9.9 MPa: vents pull room gas into the pipe (Inward, limit 10 MPa).
+# At 10 MPa: vents OFF until the pipe drops below 9.9 MPa again.
+# Analyzer Error => vents OFF. Re-applies the filling state every ~6 s.
+# db Setting: 0=idle 1=filling 9=analyzer missing/fault
+
 alias pipe d0
-alias p r0
-alias cond r1
-alias state r2
-alias target r3
-alias low r4
-alias ticks r5
-define STATE_IDLE 0
-define STATE_FILL 1
-define TARGET_PRESSURE_MPA 10
-define HYSTERESIS_KPA 100
+alias kpa r0
+alias state r1
+alias ticks r2
+alias cur r3
+
+define TARGET_KPA 10000
+define START_BELOW_KPA 9900
+define VENT_HASH -1129453144
+define VENT_NAME HASH("PIPE_VENT")
 define MODE_FILL 1
-define LOOP_SLEEP_S 1
 define REAPPLY_TICKS 12
-define ACTIVE_VENT_PREFAB_HASH -1129453144
-define VENT_NAME_HASH HASH("PIPE_VENT")
+
 wait:
+s db Setting 9
 yield
 bdns pipe wait
-move state STATE_IDLE
-move ticks 0
 j stop
 
 main:
+yield
 bdns pipe wait
-mul target TARGET_PRESSURE_MPA 1000
-sub low target HYSTERESIS_KPA
-l p pipe Pressure
-seq cond state STATE_FILL
-beqz cond decide
-sge cond p target
-bnez cond stop
-sgt cond ticks 0
-beqz cond do_fill
+l cur pipe Error
+bnez cur stop
+l kpa pipe Pressure
+bnez state filling
+blt kpa START_BELOW_KPA fill
+s db Setting 0
+sleep 1
+j main
+
+filling:
+bge kpa TARGET_KPA stop
+s db Setting 1
 sub ticks ticks 1
-yield
-j main
-decide:
-slt cond p low
-bnez cond do_fill
-seq cond state STATE_IDLE
-bnez cond idle
-j stop
-idle:
-sleep LOOP_SLEEP_S
-j main
-do_fill:
-move state STATE_FILL
+bgtz ticks main
+fill:
+move state 1
 move ticks REAPPLY_TICKS
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 0
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Mode MODE_FILL
+s db Setting 1
+sbn VENT_HASH VENT_NAME Lock 0
+sbn VENT_HASH VENT_NAME Mode MODE_FILL
 yield
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Setting target
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Open 1
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH On 1
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 1
-yield
+sbn VENT_HASH VENT_NAME Setting TARGET_KPA
+sbn VENT_HASH VENT_NAME Open 1
+sbn VENT_HASH VENT_NAME On 1
+sbn VENT_HASH VENT_NAME Lock 1
 j main
+
 stop:
-move state STATE_IDLE
-move ticks 0
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Lock 0
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH On 0
-sbn ACTIVE_VENT_PREFAB_HASH VENT_NAME_HASH Open 0
-sleep LOOP_SLEEP_S
+move state 0
+s db Setting 0
+sbn VENT_HASH VENT_NAME Lock 0
+sbn VENT_HASH VENT_NAME On 0
+sbn VENT_HASH VENT_NAME Open 0
+sleep 1
 j main

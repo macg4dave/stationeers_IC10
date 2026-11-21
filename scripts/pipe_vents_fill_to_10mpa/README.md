@@ -1,78 +1,58 @@
 # pipe_vents_fill_to_10mpa
 
-## Purpose
+Uses **Active Vents named `PIPE_VENT`** to pump room gas into a pipe until it reaches 10 MPa.
 
-Reads a **Pipe Analyzer** for gas pipe pressure and batch-drives a **named group of Active Vents on the same data network**:
+*Previously called `pipe_pressure_active_vent`.*
 
-- If pipe pressure is below the configured fill threshold, turn the vent group **ON** in
-  **room → pipe** mode
-- Once the pipe reaches the target pressure, turn the vent group **OFF**
+## Pins
 
-The check runs every **1 second** when idle.
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer (the pipe being filled) |
 
-While active, the script periodically re-applies the batch vent configuration so testing is easy
-even if a vent gets bumped out of sync.
+**Network devices:** Active Vents named exactly `PIPE_VENT`. The IC Housing must be on the same data network as the named devices.
 
-## Devices
+## What it does
 
-Required:
+- Below 9.9 MPa: vents Inward (room → pipe) with a 10 MPa limit.
+- At 10 MPa: vents OFF until it drops below 9.9 MPa.
+- Analyzer `Error`: vents OFF.
+- Re-applies the filling state every ~6 s.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-- 1× Pipe Analyzer
-- 1+ × Active Vent on the same data network
+## Settings
 
-## Device registers
+Edit the `define` lines at the top of `pipe_vents_fill_to_10mpa.ic10`.
 
-- `d0` = Pipe Analyzer
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `TARGET_KPA` | `10000` | Stop at (kPa) |
+| `START_BELOW_KPA` | `9900` | Start again below (kPa) |
+| `MODE_FILL` | `1` | Vent Mode used to fill (1 = Inward) |
 
-Suggested in-game names (optional):
+## Status (IC Housing `Setting`)
 
-- Pipe Analyzer: `pipe_sensor_1`
-- Active Vents: rename every controlled vent exactly to `PIPE_VENT`
+| Value | Meaning |
+| --- | --- |
+| `0` | idle |
+| `1` | filling |
+| `9` | analyzer missing |
 
-## Tuning
+## Setup
 
-Edit the `define` constants at the top of `pipe_vents_fill_to_10mpa.ic10`:
-
-- `TARGET_PRESSURE_MPA` (default `10`)
-- `HYSTERESIS_KPA` (default `100`)
-- `LOOP_SLEEP_S` (default `1`)
-- `REAPPLY_TICKS` (default `12`)
-- `VENT_NAME_HASH` (default `HASH("PIPE_VENT")`)
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_vents_fill_to_10mpa.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
 
 ## Notes
 
-- Pipe Analyzer `Pressure` is already in **kPa**.
-- `TARGET_PRESSURE_MPA` is converted to kPa in the script (`1 MPa = 1000 kPa`).
-- The script batch-targets Active Vents using:
-  - prefab hash `-1129453144` (`StructureActiveVent`)
-  - exact name hash `HASH("PIPE_VENT")`
-- Rename every vent you want controlled to exactly `PIPE_VENT`.
+- Device notes: `docs/usage/active_vent.md`, `docs/usage/pipe_analyzer.md`
 
-The script uses one Active Vent mode constant:
+## Change history
 
-- `MODE_FILL = 1` → Inward (`room → pipe`) in the current repo convention
+- 2026-11-21: remade and renamed. Vents stop on analyzer error; target and restart pressure are now direct kPa settings; status on the housing.
 
-If your build uses the opposite mapping, change `MODE_FILL` to `0`.
+## Status
 
-The script sets these Active Vent parameters (after setting `Mode`; changing `Mode`
-can reset the vent's extra pressure-limit fields to defaults):
-
-- `Setting = target pipe pressure in kPa`
-- `Open = 1`
-- `On = 1`
-
-The real stop condition is still the **Pipe Analyzer pressure**. The vent `Setting` is written
-to match the same target so the vent and analyzer are aiming at the same number.
-
-Troubleshooting if it “does nothing”:
-
-- Make sure every Active Vent you want controlled is on the **same data network** as the IC.
-- Make sure every target vent is named exactly `PIPE_VENT`.
-- Make sure the Pipe Analyzer is powered and connected to the pipe network you want to monitor.
-- This script assumes the vented room is the **gas source** for the pipe.
-  - If the room is near vacuum, `room → pipe` cannot fill the pipe.
-- If pressure keeps flickering near the target, increase `HYSTERESIS_KPA`.
-- If pressure changes in the wrong direction, change `MODE_FILL` in
-  `pipe_vents_fill_to_10mpa.ic10`.
-
-Status: **Functional**
+Functional (author's label from before the remake; re-test in-game).

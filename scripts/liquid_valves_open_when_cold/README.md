@@ -1,49 +1,59 @@
 # liquid_valves_open_when_cold
 
-## Purpose
+Opens **every Liquid Digital Valve** on the network when the liquid is cold, and closes them all when it warms up.
 
-Open/close **all Liquid Digital Valves on the IC network** based on liquid pipe temperature from a **Liquid Pipe Analyzer**, using simple hysteresis (Schmitt-trigger style).
+*Previously called `liquid_temp_valve`.*
 
-## Devices
+## Pins
 
-Required:
+| Pin | Device |
+| --- | --- |
+| `d0` | Liquid Pipe Analyzer |
 
-- Liquid Pipe Analyzer
-- One or more Liquid Digital Valves on the same data network as the IC housing
+**Network devices:** All Liquid Digital Valves on the same data network (no names needed, so **every** one is driven). The IC Housing must be on the same data network as the named devices.
 
-## Device registers
+## What it does
 
-- `d0` = Liquid Pipe Analyzer
+- Below 20 °C: valves OPEN.
+- Above 30 °C: valves CLOSED.
+- 20–30 °C: holds (starts closed).
+- Re-sends the state every ~10 s.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Usage
+## Settings
 
-1. Place the Liquid Pipe Analyzer on the liquid pipe network you want to monitor.
-2. Place one or more Liquid Digital Valves on the liquid pipe network(s) you want to control.
-3. (Recommended) Rename the devices so they’re easy to pick in the IC housing UI:
-   - Liquid Pipe Analyzer: `read_liquid_temp_1`
-4. In the IC housing, assign:
-   - `d0` = `read_liquid_temp_1`
-5. Copy/paste `liquid_valves_open_when_cold.ic10` into the in-game IC editor and run it.
+Edit the `define` lines at the top of `liquid_valves_open_when_cold.ic10`.
 
-## Behavior
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `OPEN_BELOW_C` | `20` | Open below (°C) |
+| `CLOSE_ABOVE_C` | `30` | Close above (°C) |
+| `RESEND_TICKS` | `20` | Ticks between re-sends |
 
-- Reads `d0 Temperature` (Kelvin) and converts to Celsius.
-- Turns all network Liquid Digital Valves **On = 1** when temperature is below **20°C**.
-- Turns all network Liquid Digital Valves **On = 0** when temperature is above **30°C**.
-- Between **20°C** and **30°C** it leaves the valve state unchanged (hysteresis).
+## Status (IC Housing `Setting`)
 
-## Tuning
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | analyzer missing or no reading |
 
-Edit the constants at the top of `liquid_valves_open_when_cold.ic10`:
+## Setup
 
-- `TEMP_OPEN_BELOW_C` (°C): valve is forced **open** when `tempC < TEMP_OPEN_BELOW_C`
-- `TEMP_CLOSE_ABOVE_C` (°C): valve is forced **closed** when `tempC > TEMP_CLOSE_ABOVE_C`
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `liquid_valves_open_when_cold.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
 
-Temperature notes:
+## Notes
 
-- The Liquid Pipe Analyzer reports `Temperature` in Kelvin (K).
-- The script converts to Celsius using: $C = K - 273.15$.
+- The valve prefab hash `-517628750` comes from the original working script; it is not the CRC of `StructureLiquidDigitalValve`. If no valve reacts, that hash is the first thing to check.
+- Device notes: `docs/usage/liquid_pipe_analyzer.md`, `docs/usage/liquid_digital_valve.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Fixed a start-up gap: valves left open from before were not closed until the liquid first went below 20 °C and back above 30 °C. State is now re-sent every ~10 s.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

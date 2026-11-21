@@ -1,97 +1,58 @@
-# liquid_pipe_top_up_vent
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Turn on an Active Vent when liquid volume is below a % of total volume.
-#
-# Device registers:
-#   d0 = Liquid Pipe Analyzer
-#   d1 = Active Vent
-#
-# Notes:
-# - Uses Volume and VolumeOfLiquid from the Liquid Pipe Analyzer.
-# - VENT_MODE: 0 = Outward (exhaust), 1 = Inward (intake). Verify in the device UI.
-# - Active Vents also need Open=1 to flow.
+# liquid_pipe_top_up_vent - Active Vent runs while a liquid pipe is under-filled
+# d0=Liquid Pipe Analyzer  d1=Active Vent
+# Fill % = VolumeOfLiquid / Volume. Vent ON+Open below 50%, OFF above 55%.
+# Vent is kept in VENT_MODE. VENT_LOCK 1 locks the vent after each change.
+# db Setting: 0=vent off 1=vent on 9=device missing/no pipe volume
 
-alias pipe_read d0
+alias pipe d0
 alias vent d1
+alias pct r0
+alias vol r1
+alias want r2
+alias cur r3
+alias cur2 r4
 
-alias volume r0
-alias liquid_volume r1
-alias threshold_volume r2
-alias desired_on r3
-alias current_on r4
-alias cond r5
-alias desired_mode r6
-alias current_mode r7
-alias desired_open r8
-alias current_open r9
-alias needs_change r10
-alias desired_lock r11
-
-define LIQUID_THRESHOLD_PERCENT 50
+define ON_BELOW_PCT 50
+define OFF_ABOVE_PCT 55
+# 0 = Outward, 1 = Inward
 define VENT_MODE 0
 define VENT_LOCK 0
 
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-bdns d1 wait_devices
+bdns pipe wait
+bdns vent wait
+l want vent On
 
 main:
-l volume pipe_read Volume
-l liquid_volume pipe_read VolumeOfLiquid
-mul threshold_volume volume LIQUID_THRESHOLD_PERCENT
-div threshold_volume threshold_volume 100
-
-# desired_on = 1 when liquid_volume < threshold_volume, else 0
-move desired_on 0
-slt cond liquid_volume threshold_volume
-select desired_on cond 1 desired_on
-
-# prepare desired state
-move desired_mode VENT_MODE
-move desired_open desired_on
-move desired_lock VENT_LOCK
-
-# read current state
-l current_mode vent Mode
-l current_open vent Open
-l current_on vent On
-
-# determine if any change is needed
-move needs_change 0
-sne cond desired_mode current_mode
-select needs_change cond 1 needs_change
-sne cond desired_open current_open
-select needs_change cond 1 needs_change
-sne cond desired_on current_on
-select needs_change cond 1 needs_change
-beqz needs_change skip_write
-
-# unlock, apply changes, then optionally lock
-s vent Lock 0
-
-sne cond desired_mode current_mode
-beqz cond skip_mode
-s vent Mode desired_mode
-skip_mode:
-
-sne cond desired_open current_open
-beqz cond skip_open
-s vent Open desired_open
-skip_open:
-
-sne cond desired_on current_on
-beqz cond skip_on
-s vent On desired_on
-skip_on:
-
-beqz desired_lock skip_lock
-s vent Lock 1
-skip_lock:
-
-skip_write:
-
 yield
+bdns pipe wait
+bdns vent wait
+l vol pipe Volume
+blez vol wait
+l pct pipe VolumeOfLiquid
+div pct pct vol
+mul pct pct 100
+slt cur pct ON_BELOW_PCT
+select want cur 1 want
+sgt cur pct OFF_ABOVE_PCT
+select want cur 0 want
+s db Setting want
+l cur vent Mode
+l cur2 vent On
+bne cur VENT_MODE write
+bne cur2 want write
+l cur vent Open
+beq cur want main
+write:
+s vent Lock 0
+l cur vent Mode
+beq cur VENT_MODE mode_ok
+s vent Mode VENT_MODE
+mode_ok:
+s vent Open want
+s vent On want
+beqz VENT_LOCK main
+s vent Lock 1
 j main

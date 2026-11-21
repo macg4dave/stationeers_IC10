@@ -1,49 +1,59 @@
 # pipe_valves_open_when_cold
 
-## Purpose
+Opens every **Pipe Digital Valve named `cold`** when a pipe is cold, and closes them when it warms up.
 
-Open/close a **Pipe Digital Valve** based on pipe temperature from a **Pipe Analyzer**, using simple hysteresis (Schmitt-trigger style).
+*Previously called `pipe_temp_valve`.*
 
-This version controls **all Pipe Digital Valves on the IC housing data network**.
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
 
-Required:
+**Network devices:** Pipe Digital Valves named exactly `cold` (case-sensitive) on the same data network. The IC Housing must be on the same data network as the named devices.
 
-- Pipe Analyzer
-- One or more Pipe Digital Valves on the same data network
+## What it does
 
-## Device registers
+- Below 10 °C: valves OPEN.
+- Above 30 °C: valves CLOSED.
+- 10–30 °C: holds (starts closed).
+- Re-sends the state every ~10 s so newly built valves join in.
+- Analyzer `Error`: valves hold, status 9.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-- `d0` = Pipe Analyzer
+## Settings
 
-## Usage
+Edit the `define` lines at the top of `pipe_valves_open_when_cold.ic10`.
 
-1. Place the Pipe Analyzer on the pipe network you want to monitor.
-2. Place one or more Pipe Digital Valves on the pipe networks you want to control.
-3. Ensure those valves are on the **same data network** as this IC housing.
-4. (Recommended) Rename the Pipe Analyzer so it’s easy to pick in the IC housing UI:
-   - Pipe Analyzer: `read_pipe_temp_1`
-5. In the IC housing, assign:
-   - `d0` = `read_pipe_temp_1`
-6. Copy/paste `pipe_valves_open_when_cold.ic10` into the in-game IC editor and run it.
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `OPEN_BELOW_C` | `10` | Open below (°C) |
+| `CLOSE_ABOVE_C` | `30` | Close above (°C) |
+| `RESEND_TICKS` | `20` | Ticks between re-sends |
 
-## Tuning
+## Status (IC Housing `Setting`)
 
-Edit the constants at the top of `pipe_valves_open_when_cold.ic10`:
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | analyzer missing or fault |
 
-- `TEMP_OPEN_BELOW_C` (°C): valve is forced **open** when `tempC < TEMP_OPEN_BELOW_C`
-- `TEMP_CLOSE_ABOVE_C` (°C): valve is forced **closed** when `tempC > TEMP_CLOSE_ABOVE_C`
+## Setup
 
-Temperature notes:
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_valves_open_when_cold.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
 
-- The Pipe Analyzer reports `Temperature` in Kelvin (K).
-- The script converts to Celsius using: $C = K - 273.15$.
+## Notes
+
+- Device notes: `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_digital_valve.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Valves are unlocked before writing; state is re-sent every ~10 s; status on the housing.
 
 ## Status
 
-Functional.
-
-## Credit
-
-Hysteresis pattern is the common IC10 “Schmitt trigger” approach (see the IC10 wiki examples).
+Functional (author's label from before the remake; re-test in-game).

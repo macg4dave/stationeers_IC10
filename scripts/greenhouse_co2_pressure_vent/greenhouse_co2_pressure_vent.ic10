@@ -1,100 +1,63 @@
-# greenhouse_co2_pressure_vent
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - If Gas Sensor CO2 ratio < 20% OR room pressure < 100 kPa:
-#   open and turn ON an Active Vent.
-# - Otherwise close the Active Vent and turn it OFF.
-#
-# Device registers:
-#   d0 = Gas Sensor
-#   d1 = Active Vent
-#
-# Notes:
-# - Gas Sensor RatioCarbonDioxide is reported as 0..1.
-# - Gas Sensor Pressure is kPa.
-# - This script uses a strict threshold: below 20% means < 0.20.
-# - The script sets vent Mode, Setting, Open, and On.
-# - Active Vent mode constants are listed below; swap if your build differs.
-# - Change VENT_MODE below if you want the opposite airflow direction.
+# greenhouse_co2_pressure_vent - top up a room when CO2 or pressure is low
+# d0=Gas Sensor (room)  d1=Active Vent (fed from a CO2-rich pipe)
+# Vent ON+Open while CO2 < 20% OR room < 100 kPa.
+# Vent OFF once CO2 > 22% AND room >= 100 kPa.
+# Vent is kept in VENT_MODE with Setting = 100 kPa (its pressure limit).
+# db Setting: 0=vent off 1=vent on 9=device missing
 
-alias gas_read d0
+alias sensor d0
 alias vent d1
-
 alias co2 r0
-alias cond r1
-alias desired_on r2
-alias current_on r3
-alias current_open r4
-alias sensor_hash r5
-alias pressure_kpa r7
-alias current_setting r8
-alias current_mode r9
+alias kpa r1
+alias want r2
+alias cur r3
+alias cur2 r4
 
-define CO2_OPEN_BELOW_RATIO 0.20
-define MIN_ROOM_PRESSURE_KPA 100
+define CO2_LOW 0.20
+define CO2_OK 0.22
+define ROOM_KPA 100
+# 0 = Outward (pipe -> room), 1 = Inward (room -> pipe)
+define VENT_MODE 0
 
-# Active Vent mode values (swap if needed)
-define MODE_OUTWARD 0
-define MODE_INWARD 1
-define VENT_MODE 0   # = MODE_OUTWARD; use 1 for MODE_INWARD
-
-# Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
-define GAS_SENSOR_HASH -1252983604
-
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-bdns d1 wait_devices
+bdns sensor wait
+bdns vent wait
+l want vent On
 
 main:
-bdns d0 wait_devices
-bdns d1 wait_devices
-l sensor_hash gas_read PrefabHash
-bne sensor_hash GAS_SENSOR_HASH wait_devices
-
-l co2 gas_read RatioCarbonDioxide
-l pressure_kpa gas_read Pressure
-
-# Vent ON/Open when CO2 ratio < threshold OR pressure < MIN_ROOM_PRESSURE_KPA
-move desired_on 0
-slt cond co2 CO2_OPEN_BELOW_RATIO
-bnez cond need_vent
-slt cond pressure_kpa MIN_ROOM_PRESSURE_KPA
-beqz cond decide
-need_vent:
-move desired_on 1
-decide:
-
-# avoid redundant writes (and network spam): only set when it changes
-l current_mode vent Mode
-l current_setting vent Setting
-l current_open vent Open
-l current_on vent On
-sne cond VENT_MODE current_mode
-bnez cond write_state
-sne cond MIN_ROOM_PRESSURE_KPA current_setting
-bnez cond write_state
-sne cond desired_on current_open
-bnez cond write_state
-sne cond desired_on current_on
-beqz cond done
-
-write_state:
+yield
+bdns sensor wait
+bdns vent wait
+l co2 sensor RatioCarbonDioxide
+l kpa sensor Pressure
+slt cur co2 CO2_LOW
+slt cur2 kpa ROOM_KPA
+or cur cur cur2
+select want cur 1 want
+sgt cur co2 CO2_OK
+sge cur2 kpa ROOM_KPA
+and cur cur cur2
+select want cur 0 want
+s db Setting want
+l cur vent Mode
+beq cur VENT_MODE mode_ok
 s vent Lock 0
-sne cond VENT_MODE current_mode
-beqz cond skip_mode
 s vent Mode VENT_MODE
 yield
-skip_mode:
-sne cond MIN_ROOM_PRESSURE_KPA current_setting
-beqz cond skip_setting
-s vent Setting MIN_ROOM_PRESSURE_KPA
-skip_setting:
-s vent Open desired_on
-s vent On desired_on
-done:
-
-yield
+mode_ok:
+l cur vent Setting
+beq cur ROOM_KPA set_ok
+s vent Lock 0
+s vent Setting ROOM_KPA
+set_ok:
+l cur vent On
+l cur2 vent Open
+bne cur want write
+beq cur2 want main
+write:
+s vent Lock 0
+s vent Open want
+s vent On want
 j main

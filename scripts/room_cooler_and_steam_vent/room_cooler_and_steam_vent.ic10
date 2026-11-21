@@ -1,91 +1,80 @@
-# room_cooler_and_steam_vent
-# Category: Controller
-# Status: Functional
-#
-# Purpose:
-# - If Gas Sensor temperature > 30C: turn ON a Wall Cooler.
-# - If Gas Sensor reports "no steam" (RatioSteam ~ 0): turn ON an Active Vent.
-#
-# Device registers:
-#   d0 = Gas Sensor
-#   d1 = Wall Cooler
-#   d2 = Active Vent
-#
-# Notes:
-# - Gas Sensor Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
-# - Gas Sensor RatioSteam is a fraction (0..1) of the atmosphere.
-# - Script sets vent Open with On; set Active Vent Mode/Setting in-game.
+# room_cooler_and_steam_vent - Wall Cooler when hot; vent runs while no steam
+# d0=Gas Sensor (room)  d1=Wall Cooler  d2=Active Vent
+# Cooler ON above 30C, OFF below 28C.
+# Vent ON+Open while RatioSteam < 0.01%; OFF once steam > 0.1%.
+# Set the vent's Mode/Setting in its own UI; this script only opens/runs it.
+# db Setting: cooler + 2*vent (0..3), 9=device missing/no reading
 
-alias gas_read d0
+alias sensor d0
 alias cooler d1
 alias vent d2
-
-alias tempC r0
-alias steamRatio r1
-alias cond r2
-alias desired_cooler_on r3
-alias current_cooler_on r4
-alias desired_vent_on r5
-alias current_vent_on r6
-alias sensor_hash r7
-alias current_vent_open r8
-
-define KELVIN_TO_C 273.15
+alias tc r0
+alias steam r1
+alias cool r2
+alias run r3
+alias cur r4
+alias cur2 r5
 
 define COOL_ON_ABOVE_C 30
+define COOL_OFF_BELOW_C 28
+define STEAM_NONE_BELOW 0.0001
+define STEAM_SEEN_ABOVE 0.001
 
-# Gas Sensor prefab hash from catalog/devices/Gas_Sensor.json
-define GAS_SENSOR_HASH -1252983604
-
-# Treat RatioSteam below this as "no steam".
-# Use a small epsilon to avoid float noise.
-define STEAM_RATIO_MIN 0.0001
-
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-bdns d1 wait_devices
-bdns d2 wait_devices
+bdns sensor wait
+bdns cooler wait
+bdns vent wait
+l cool cooler On
+l run vent On
 
 main:
-bdns d0 wait_devices
-bdns d1 wait_devices
-bdns d2 wait_devices
-l sensor_hash gas_read PrefabHash
-bne sensor_hash GAS_SENSOR_HASH wait_devices
-
-# read temperature (K) and convert to Celsius
-l tempC gas_read Temperature
-sub tempC tempC KELVIN_TO_C
-
-# read steam ratio
-l steamRatio gas_read RatioSteam
-
-# Wall cooler: ON when tempC > COOL_ON_ABOVE_C
-slt cond COOL_ON_ABOVE_C tempC
-select desired_cooler_on cond 1 0
-
-# Active vent: ON when steamRatio < STEAM_RATIO_MIN
-slt cond steamRatio STEAM_RATIO_MIN
-select desired_vent_on cond 1 0
-
-# avoid redundant writes (and network spam): only set when it changes
-l current_cooler_on cooler On
-sne cond desired_cooler_on current_cooler_on
-beqz cond cooler_done
-s cooler On desired_cooler_on
-cooler_done:
-
-l current_vent_on vent On
-sne cond desired_vent_on current_vent_on
-bnez cond write_vent
-l current_vent_open vent Open
-sne cond desired_vent_on current_vent_open
-beqz cond vent_done
-write_vent:
-s vent Open desired_vent_on
-s vent On desired_vent_on
-vent_done:
-
 yield
+bdns sensor wait
+bdns cooler wait
+bdns vent wait
+l tc sensor Temperature
+blez tc fault
+sub tc tc 273.15
+sgt cur tc COOL_ON_ABOVE_C
+select cool cur 1 cool
+slt cur tc COOL_OFF_BELOW_C
+select cool cur 0 cool
+l steam sensor RatioSteam
+slt cur steam STEAM_NONE_BELOW
+select run cur 1 run
+sgt cur steam STEAM_SEEN_ABOVE
+select run cur 0 run
+
+apply:
+l cur cooler On
+beq cur cool vent_chk
+s cooler On cool
+vent_chk:
+l cur vent On
+l cur2 vent Open
+bne cur run vent_write
+beq cur2 run report
+vent_write:
+s vent Open run
+s vent On run
+report:
+mul cur run 2
+add cur cur cool
+s db Setting cur
+j main
+
+fault:
+move cool 0
+move run 0
+s db Setting 9
+l cur cooler On
+beqz cur fault_vent
+s cooler On 0
+fault_vent:
+l cur vent On
+beqz cur main
+s vent On 0
+s vent Open 0
 j main

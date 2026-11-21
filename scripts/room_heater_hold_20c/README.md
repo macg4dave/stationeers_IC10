@@ -1,53 +1,55 @@
 # room_heater_hold_20c
 
-## Purpose
+Keeps a room warm: a **Wall Heater** turns on when a **Gas Sensor** reads below 20 °C and off again above 22 °C.
 
-Read a **Gas Sensor** and turn a **Wall Heater** **ON** when room temperature is below **20°C**.
+*Previously called `room_heater_below_20c`.*
 
-If the room is **20°C or warmer**, the script turns the heater **OFF**.
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Sensor (in the room) |
+| `d1` | Wall Heater |
 
-Required:
+## What it does
 
-- Gas Sensor
-- Wall Heater
+- Below 20 °C: heater ON.
+- Above 22 °C: heater OFF.
+- 20–22 °C: keeps whatever it is doing (no flicker).
+- No reading (sensor in vacuum or wrong device): heater OFF, status 9.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Device registers
+## Settings
 
-- `d0` = Gas Sensor
-- `d1` = Wall Heater
+Edit the `define` lines at the top of `room_heater_hold_20c.ic10`.
 
-## Usage
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `HEAT_ON_BELOW_C` | `20` | Heater turns on below this (°C) |
+| `HEAT_OFF_ABOVE_C` | `22` | Heater turns off above this (°C) |
 
-1. Place a Gas Sensor in the room you want to monitor.
-2. Place a Wall Heater in that room.
-3. Make sure both devices are powered and on the same data network as the IC Housing.
-4. (Recommended) Rename devices so they are easy to assign:
-   - Gas Sensor: `room_heat_1_sensor`
-   - Wall Heater: `room_heat_1_heater`
-5. In the IC Housing, assign:
-   - `d0` = `room_heat_1_sensor`
-   - `d1` = `room_heat_1_heater`
-6. Paste `room_heater_hold_20c.ic10` into the in-game IC editor and run it.
+## Status (IC Housing `Setting`)
 
-## Tuning
+| Value | Meaning |
+| --- | --- |
+| `0` | heater off |
+| `1` | heater on |
+| `9` | device missing or no reading |
 
-Edit the constants at the top of `room_heater_hold_20c.ic10`:
+## Setup
 
-- `HEAT_ON_BELOW_C` (°C): heater is forced **ON** when `tempC < HEAT_ON_BELOW_C`
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `room_heater_hold_20c.ic10` into the chip and run it.
 
-Temperature notes:
+## Notes
 
-- Gas Sensor `Temperature` is reported in Kelvin (K).
-- The script converts to Celsius using $C = K - 273.15$.
+- Device notes: `docs/usage/gas_sensor.md`, `docs/usage/wall_heater.md`
 
-## In-game setup notes
+## Change history
 
-- See `docs/usage/gas_sensor.md` for Gas Sensor reading gotchas.
-- See `docs/usage/wall_heater.md` for Wall Heater setup notes.
-- This script only toggles `On`; any extra device-specific settings should be handled in the heater UI if needed.
+- 2026-11-21: remade and renamed. On/off now has a 2 °C band (was a single 20 °C threshold). The Gas Sensor prefab check was replaced by a "no reading" check, so any sensor with `Temperature` works. Status on the housing.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

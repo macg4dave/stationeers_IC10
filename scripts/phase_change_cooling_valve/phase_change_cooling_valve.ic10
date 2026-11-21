@@ -1,55 +1,47 @@
-# phase_change_cooling_valve
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Open a Pipe Digital Valve when a phase_change_device is above 30C.
-#
-# Device registers:
-#   d0 = phase_change_device
-#   (Pipe Digital Valves named "cold" on this data network are controlled)
-#
-# Notes:
-# - Device Temperature is Kelvin (K). Convert to Celsius via C = K - 273.15.
+# phase_change_cooling_valve - open "cold" valves when a phase-change device is hot
+# d0=phase_change_device. Pipe Digital Valves named exactly cold on the network.
+# OPEN above 30C, CLOSE below 28C, holds in between (starts closed).
+# Re-sends the state every ~10 s so newly built valves join in.
+# db Setting: 0=closed 1=open 9=device missing/no reading
 
-alias phase_change d0
+alias dev d0
+alias tc r0
+alias want r1
+alias sent r2
+alias ticks r3
+alias cur r4
 
-alias tempC r0
-alias cond r1
-alias desired_on r2
-alias last_written_on r3
-alias valve_hash r4
-alias valve_name_hash r5
+define OPEN_ABOVE_C 30
+define CLOSE_BELOW_C 28
+define VALVE_HASH -1280984102
+define VALVE_NAME HASH("cold")
+define RESEND_TICKS 20
 
-define KELVIN_TO_C 273.15
-define TEMP_OPEN_ABOVE_C 30
-# Pipe Digital Valve prefab hash from catalog/devices/Pipe_Digital_Valve.json
-define PIPE_VALVE_HASH -1280984102
-define PIPE_VALVE_NAME_HASH HASH("cold")
+move sent -1
 
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
-
-move valve_hash PIPE_VALVE_HASH
-move valve_name_hash PIPE_VALVE_NAME_HASH
-move desired_on 0
-move last_written_on -1
+bdns dev wait
 
 main:
-l tempC phase_change Temperature
-sub tempC tempC KELVIN_TO_C
-
-# if tempC > TEMP_OPEN_ABOVE_C => open valve, else close
-slt cond TEMP_OPEN_ABOVE_C tempC
-select desired_on cond 1 0
-
-# avoid redundant writes (and network spam): only set when it changes
-sne cond desired_on last_written_on
-beqz cond skip_write
-sbn valve_hash valve_name_hash Lock 0
-sbn valve_hash valve_name_hash On desired_on
-move last_written_on desired_on
-skip_write:
-
 yield
+bdns dev wait
+l tc dev Temperature
+blez tc wait
+sub tc tc 273.15
+sgt cur tc OPEN_ABOVE_C
+select want cur 1 want
+slt cur tc CLOSE_BELOW_C
+select want cur 0 want
+sub ticks ticks 1
+bne want sent send
+bgtz ticks report
+send:
+sbn VALVE_HASH VALVE_NAME Lock 0
+sbn VALVE_HASH VALVE_NAME On want
+move sent want
+move ticks RESEND_TICKS
+report:
+s db Setting want
 j main

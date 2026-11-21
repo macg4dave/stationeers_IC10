@@ -1,78 +1,64 @@
 # furnace_heat_pipe_below_20c
 
-## Purpose
+Uses an **Advanced Furnace** to heat a pipe when it gets cold, and stops feeding the furnace if the furnace itself gets too hot.
 
-Read a **Pipe Analyzer** and control an **Advanced Furnace** plus a
-**Pipe Digital Valve** from pipe temperature:
+*Previously called `pipe_furnace_valve_below_20c`.*
 
-- if temperature is **below 20°C**, turn the valve **ON** and turn the furnace **ON**
-- if the pipe is still below **20°C**, set furnace `SettingInput = 5` and `SettingOutput = 5`
-- if the pipe is still below **20°C** and the furnace is above **100°C**, override furnace `SettingInput = 0`
-- if temperature is **above 20°C**, turn the furnace and valve **OFF**
-- if temperature is **exactly 20°C**, keep the current state
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer (the pipe to keep warm) |
+| `d1` | Pipe Digital Valve |
+| `d2` | Advanced Furnace |
 
-Required:
+## What it does
 
-- Pipe Analyzer
-- Pipe Digital Valve
-- Advanced Furnace
+- Pipe below 20 °C: valve ON, furnace `On` + `Activate`, `SettingInput` 5, `SettingOutput` 5.
+- While heating and the furnace is above 100 °C: `SettingInput` 0 until it cools.
+- Pipe above 22 °C: valve OFF, furnace OFF, `Activate` 0.
+- 20–22 °C: holds.
+- Analyzer `Error` or empty pipe: everything OFF, status 9.
+- Unlocks the valve and furnace if they are locked.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Device registers
+## Settings
 
-- `d0` = Pipe Analyzer
-- `d1` = Pipe Digital Valve
-- `d2` = Advanced Furnace
+Edit the `define` lines at the top of `furnace_heat_pipe_below_20c.ic10`.
 
-## Usage
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `HEAT_BELOW_C` | `20` | Start heating below (°C) |
+| `STOP_ABOVE_C` | `22` | Stop heating above (°C) |
+| `FURNACE_MAX_C` | `100` | Furnace temperature that pauses its input (°C) |
+| `INPUT_COLD` | `5` | SettingInput while heating |
+| `INPUT_HOT` | `0` | SettingInput while the furnace is too hot |
+| `OUTPUT_SET` | `5` | SettingOutput while heating |
 
-1. Place a Pipe Analyzer on the pipe network you want to monitor.
-2. Place the Pipe Digital Valve you want to control.
-3. Place and power the Advanced Furnace.
-4. Make sure all three devices are on the same data network as the IC Housing.
-5. (Recommended) Rename devices so they are easy to assign:
-   - Pipe Analyzer: `read_pipe_temp_1`
-   - Pipe Digital Valve: `warm_valve_1`
-   - Advanced Furnace: `adv_furnace_1`
-6. In the IC Housing, assign:
-   - `d0` = `read_pipe_temp_1`
-   - `d1` = `warm_valve_1`
-   - `d2` = `adv_furnace_1`
-7. Paste `furnace_heat_pipe_below_20c.ic10` into the in-game IC editor and run it.
+## Status (IC Housing `Setting`)
 
-## Tuning
+| Value | Meaning |
+| --- | --- |
+| `0` | idle |
+| `1` | heating |
+| `2` | heating, furnace input paused (furnace hot) |
+| `9` | fault or device missing |
 
-Edit the constants at the top of `furnace_heat_pipe_below_20c.ic10`:
+## Setup
 
-- `TEMP_ON_BELOW_C` (°C):
-  - turn furnace + valve on when `tempC < TEMP_ON_BELOW_C`
-  - turn furnace + valve off when `tempC > TEMP_ON_BELOW_C`
-  - hold current state when `tempC == TEMP_ON_BELOW_C`
-- `FURNACE_MAX_ON_C` (°C):
-  - if the Advanced Furnace temperature is above this value while the pipe is still below `TEMP_ON_BELOW_C`, override furnace `SettingInput` with the hot-mode value below
-  - the furnace still stays on while the pipe is cold
-- `COLD_INPUT`:
-  - furnace `SettingInput` to use while the pipe is below `TEMP_ON_BELOW_C`
-- `HOT_INPUT`:
-  - furnace `SettingInput` override to use when the furnace is hotter than `FURNACE_MAX_ON_C` and the pipe is still cold
-- `HOT_OUTPUT`:
-  - furnace `SettingOutput` to use while the pipe is still cold
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `furnace_heat_pipe_below_20c.ic10` into the chip and run it.
 
-Temperature notes:
+## Notes
 
-- Pipe Analyzer `Temperature` is reported in Kelvin (K).
-- Advanced Furnace `Temperature` is also reported in Kelvin (K).
-- The script converts to Celsius using $C = K - 273.15$.
+- Assumes `Activate` stays at 1 while heating (latched). If your furnace expects a short pulse, use `furnace_pulse_when_pipes_cold` instead.
+- Device notes: `docs/usage/advanced_furnace.md`, `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_digital_valve.md`
 
-## In-game setup notes
+## Change history
 
-- This script checks that `d0` is actually a Pipe Analyzer by reading `PrefabHash`.
-- This script clears `Lock` on the valve and furnace if needed.
-- It writes the valve `On`, furnace `On`, and furnace `Activate` states only when needed.
-- If you wanted the furnace to pulse instead of staying on while cold, say the word and I
-  can turn this into a pulse-style variant.
+- 2026-11-21: remade and renamed. Rewritten to be shorter; added the 2 °C band, analyzer-error shut-off and status on the housing.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

@@ -1,56 +1,42 @@
-# power_generator_on_low_battery
-# Category: Controller
-# Status: Functional
-#
-# Purpose: Read all Large Station Batteries on the data network and compute the
-#          mean battery Ratio. If mean Ratio < 30%, turn Gas Fuel Generator on.
-#
-# Device registers:
-#   d0 = Gas Fuel Generator
-#
-# Notes:
-# - Large battery Ratio is 0..1 (fraction). 30% = 0.30.
-# - All target batteries and d0 must be on the same data network.
-# - If no large batteries are detected, generator is forced OFF (fail-safe).
+# power_generator_on_low_battery - generator charges the large batteries
+# d0=Gas Fuel Generator. Every Station Battery (Large) on the network is read.
+# Generator ON when the average charge drops below 30%,
+# OFF again once it is above 80%. Holds in between.
+# No large batteries found => generator OFF.
+# db Setting: 0=gen off 1=gen on 2=no batteries found 9=generator missing
 
 alias gen d0
+alias ratio r0
+alias want r1
+alias cur r2
 
-alias found_hash r0
-alias mean_ratio r1
-alias desired_on r2
-alias current_on r3
-alias cond r4
+define BATTERY_HASH HASH("StructureBatteryLarge")
+define ON_BELOW 0.30
+define OFF_ABOVE 0.80
 
-define LARGE_BATTERY_HASH HASH("StructureBatteryLarge")
-define LOW_RATIO 0.30
-
-wait_devices:
+wait:
+s db Setting 9
 yield
-bdns d0 wait_devices
+bdns gen wait
+l want gen On
 
 main:
 yield
-
-# Check whether at least one large battery exists on this data network.
-lb found_hash LARGE_BATTERY_HASH PrefabHash Maximum
-bne found_hash LARGE_BATTERY_HASH no_batteries
-
-# Mean ratio across all matching large batteries.
-lb mean_ratio LARGE_BATTERY_HASH Ratio Average
-slt desired_on mean_ratio LOW_RATIO
-j decide
-
-no_batteries:
-move desired_on 0
-
-decide:
-# Avoid redundant writes/network spam.
-l current_on gen On
-sne cond desired_on current_on
-beqz cond done
-s gen On desired_on
-
-done:
-# Optional quick status in IC housing: 0=OFF, 1=ON
-s db Setting desired_on
+bdns gen wait
+lb cur BATTERY_HASH PrefabHash Maximum
+bne cur BATTERY_HASH none
+lb ratio BATTERY_HASH Ratio Average
+slt cur ratio ON_BELOW
+select want cur 1 want
+sgt cur ratio OFF_ABOVE
+select want cur 0 want
+s db Setting want
+j apply
+none:
+move want 0
+s db Setting 2
+apply:
+l cur gen On
+beq cur want main
+s gen On want
 j main

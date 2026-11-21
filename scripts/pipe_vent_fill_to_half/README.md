@@ -1,61 +1,57 @@
 # pipe_vent_fill_to_half
 
-**Purpose:** Turns an **Active Vent** on when the connected **Pipe Analyzer** reports the pipe network is less than *half full of air (gas)*, relative to a target pressure.
+Runs an **Active Vent** to fill a pipe to about half of a target pressure (50 kPa by default).
 
-## Devices
+*Previously called `pipe_half_full_active_vent`.*
 
-Required:
+## Pins
 
-- Pipe Analyzer
-- Active Vent
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Active Vent |
 
-## Device registers
+## What it does
 
-- `d0` = Pipe Analyzer
-- `d1` = Active Vent
+- Below 50 % of `TARGET_KPA`: vent ON + Open.
+- Above 55 %: vent OFF.
+- In between: holds.
+- Analyzer `Error`: vent OFF.
+- Set the vent's Mode/Setting in its own screen.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## How it works
+## Settings
 
-This script uses **pipe pressure** as a practical proxy for “how full” the network is (no volume/moles math).
+Edit the `define` lines at the top of `pipe_vent_fill_to_half.ic10`.
 
-It computes two hysteresis thresholds based on `TARGET_PRESSURE_KPA`:
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `TARGET_KPA` | `100` | Full pressure (kPa) |
+| `ON_BELOW` | `0.50` | Start below this fraction |
+| `OFF_ABOVE` | `0.55` | Stop above this fraction |
 
-- Lower threshold: `TARGET_PRESSURE_KPA * FULLNESS_RATIO`
-- Upper threshold: `TARGET_PRESSURE_KPA * (FULLNESS_RATIO + HYSTERESIS_BAND)`
+## Status (IC Housing `Setting`)
 
-Behavior:
-
-- Vent turns **ON** when `Pressure < lower threshold` (needs more gas)
-- Vent turns **OFF** when `Pressure > upper threshold` (enough gas)
-- Otherwise, it keeps the previous vent state (prevents rapid flicker)
-
-If the analyzer reports `Error = 1`, the vent is forced **OFF**.
+| Value | Meaning |
+| --- | --- |
+| `0` | vent off |
+| `1` | vent on |
+| `9` | fault or device missing |
 
 ## Setup
 
-1. Place an IC Housing (or Advanced IC Housing) on the same data network as the devices.
-2. Insert an IC10 chip and paste in `pipe_vent_fill_to_half.ic10`.
-3. In the IC editor, set:
-   - `d0` to the Pipe Analyzer
-   - `d1` to the Active Vent
-4. Configure the Active Vent settings **in-game**. For normal use, set the desired `Mode`
-   and use `Setting` as the main pressure target. The script now keeps `Open` matched to
-   the vent `On` state for you. Leave
-   `PressureExternal` / `PressureInternal` at their mode defaults unless you specifically
-   want custom vent pressure limits.
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_vent_fill_to_half.ic10` into the chip and run it.
 
-## Tuning
+## Notes
 
-In `pipe_vent_fill_to_half.ic10`:
+- Device notes: `docs/usage/active_vent.md`, `docs/usage/pipe_analyzer.md`
 
-- `TARGET_PRESSURE_KPA` (default `100`) — what “100% full” means
-- `FULLNESS_RATIO` (default `0.5`) — desired fullness (as a fraction of target moles)
-- `HYSTERESIS_BAND` (default `0.05`) — extra margin above `FULLNESS_RATIO` to switch OFF
+## Change history
 
-Notes:
-
-- Pressure is assumed to be **kPa**.
+- 2026-11-21: remade and renamed. Shorter; status on the housing. Behaviour unchanged.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

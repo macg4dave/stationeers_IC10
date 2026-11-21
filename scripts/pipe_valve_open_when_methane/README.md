@@ -1,46 +1,52 @@
 # pipe_valve_open_when_methane
 
-Closes a **Pipe Digital Valve** when the connected **Pipe Analyzer** reports **no Methane**.
+Opens a **Pipe Digital Valve** only while the pipe contains methane, e.g. to pass fuel on and stop when the line is empty.
 
-## Purpose
+*Previously called `no_volatiles_valve`.*
 
-Acts as a methane-present gate:
+## Pins
 
-- If Methane is present in the pipe, the valve is **open**.
-- If Methane is not present (at or below a small tolerance), the valve is **closed**.
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Pipe Digital Valve |
 
-## Devices
+## What it does
 
-Required:
+- Valve ON while `RatioMethane` > 0 (above float noise).
+- Valve OFF when there is none, or on analyzer `Error`.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-- 1× Pipe Analyzer
-- 1× Pipe Digital Valve
-- 1× IC Housing + IC10 chip (or equivalent)
+## Settings
 
-## Device registers
+Edit the `define` lines at the top of `pipe_valve_open_when_methane.ic10`.
 
-- `d0` = Pipe Analyzer
-- `d1` = Pipe Digital Valve
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `EPS` | `0.000001` | Ratio counted as "no methane" |
 
-## How it works
+## Status (IC Housing `Setting`)
 
-Every tick it reads `RatioMethane` from the Pipe Analyzer.
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | fault or device missing |
 
-Then it sets the valve:
+## Setup
 
-- `On = 0` if `RatioMethane \le EPS`
-- `On = 1` if `RatioMethane > EPS`
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_valve_open_when_methane.ic10` into the chip and run it.
 
-`EPS` is a tiny tolerance to avoid floating-point “almost zero” values.
+## Notes
 
-## Tuning
+- Device notes: `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_digital_valve.md`
 
-In `pipe_valve_open_when_methane.ic10`:
+## Change history
 
-- `EPS` (default `0.000001`)
-  - Increase if you see tiny non-zero readings when the pipe is “effectively no methane”.
-  - Decrease if you need stricter filtering.
+- 2026-11-21: remade and renamed. Valve closes on analyzer error; status on the housing.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

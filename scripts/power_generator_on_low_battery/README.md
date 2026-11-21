@@ -1,34 +1,54 @@
 # power_generator_on_low_battery
 
-Turns a Gas Fuel Generator on when the **mean charge ratio** of **all Large Station Batteries** on the data network is below **30%**.
+Charges your **Large Station Batteries** with a **Gas Fuel Generator**: on when they run low, off once they are mostly full.
 
-- ON condition: mean battery `Ratio < 0.30`
-- OFF condition: mean battery `Ratio >= 0.30`
-- Fail-safe: if no large batteries are found, generator is forced OFF
+*Previously called `large_battery_mean_gas_generator`.*
 
-## Device mapping
+## Pins
 
-- `d0` = Gas Fuel Generator
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Fuel Generator |
 
-Batteries are discovered by prefab hash on the same data network (no direct `d1..d5` mapping needed).
+**Network devices:** Every Station Battery (Large) on the same data network is read (average charge). The IC Housing must be on the same data network as the named devices.
 
-## In-game setup
+## What it does
 
-1. Place an IC Housing with this script.
-2. Wire the IC Housing to your data network.
-3. Set `d0` to your Gas Fuel Generator.
-4. Ensure your **Large Station Batteries** are on the same data network.
-5. Ensure the Gas Fuel Generator has valid gas supply and pipe setup.
+- Average charge below 30 %: generator ON.
+- Above 80 %: generator OFF.
+- In between: holds.
+- No large batteries found: generator OFF.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Tuning constants
+## Settings
 
-In `power_generator_on_low_battery.ic10`:
+Edit the `define` lines at the top of `power_generator_on_low_battery.ic10`.
 
-- `LOW_RATIO` (default `0.30`) — threshold for enabling generator.
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `ON_BELOW` | `0.30` | Start below this charge ratio |
+| `OFF_ABOVE` | `0.80` | Stop above this charge ratio |
+
+## Status (IC Housing `Setting`)
+
+| Value | Meaning |
+| --- | --- |
+| `0` | generator off |
+| `1` | generator on |
+| `2` | no batteries found |
+| `9` | generator missing |
+
+## Setup
+
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `power_generator_on_low_battery.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
+
+## Change history
+
+- 2026-11-21: remade and renamed. **Behaviour change:** it used to switch off again as soon as the average reached 30 %, so the generator flicked on and off around 30 %. It now charges up to 80 %. Set `OFF_ABOVE 0.30` for the old behaviour.
 
 ## Status
 
-- Functional
-- Writes `db Setting` as quick status:
-  - `0` = generator target OFF
-  - `1` = generator target ON
+Functional (author's label from before the remake; re-test in-game).

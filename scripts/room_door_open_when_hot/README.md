@@ -1,58 +1,56 @@
 # room_door_open_when_hot
 
-## Purpose
+Opens a **Glass Door** when the room gets hot (to let heat out) and closes it again once the room has cooled.
 
-Read a **Gas Sensor** and control a **Glass Door** from room temperature:
+*Previously called `gas_sensor_glass_door_30c`.*
 
-- if temperature is **above 30°C**, open the door
-- if temperature is **below 30°C**, close the door
-- if temperature is **exactly 30°C**, keep the current door state
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | Gas Sensor |
+| `d1` | Glass Door |
 
-Required:
+## What it does
 
-- Gas Sensor
-- Glass Door
+- Above 30 °C: door OPEN.
+- Below 28 °C: door CLOSED.
+- 28–30 °C: holds.
+- Keeps the door powered and unlocked so it can move.
+- No reading: door left as it is, status 9.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Device registers
+## Settings
 
-- `d0` = Gas Sensor
-- `d1` = Glass Door
+Edit the `define` lines at the top of `room_door_open_when_hot.ic10`.
 
-## Usage
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `OPEN_ABOVE_C` | `30` | Open above (°C) |
+| `CLOSE_BELOW_C` | `28` | Close below (°C) |
 
-1. Place a Gas Sensor in the room you want to monitor.
-2. Place and power a Glass Door you want to control.
-3. Make sure both devices are on the same data network as the IC Housing.
-4. (Recommended) Rename devices so they are easy to assign:
-   - Gas Sensor: `door_temp_sensor_1`
-   - Glass Door: `door_temp_door_1`
-5. In the IC Housing, assign:
-   - `d0` = `door_temp_sensor_1`
-   - `d1` = `door_temp_door_1`
-6. Paste `room_door_open_when_hot.ic10` into the in-game IC editor and run it.
+## Status (IC Housing `Setting`)
 
-## Tuning
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | device missing or no reading |
 
-Edit the constants at the top of `room_door_open_when_hot.ic10`:
+## Setup
 
-- `TEMP_OPEN_ABOVE_C` (°C):
-  - open when `tempC > TEMP_OPEN_ABOVE_C`
-  - close when `tempC < TEMP_OPEN_ABOVE_C`
-  - hold current state when `tempC == TEMP_OPEN_ABOVE_C`
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `room_door_open_when_hot.ic10` into the chip and run it.
 
-Temperature notes:
+## Notes
 
-- Gas Sensor `Temperature` is reported in Kelvin (K).
-- The script converts to Celsius using $C = K - 273.15$.
+- Device notes: `docs/usage/gas_sensor.md`
 
-## In-game setup notes
+## Change history
 
-- See `docs/usage/gas_sensor.md` for Gas Sensor reading gotchas.
-- This script clears the door `Lock` and forces door `On=1` if needed.
-- The script writes `Open` only when the desired state changes.
+- 2026-11-21: remade and renamed. Added the 28–30 °C band (it used to flip at exactly 30 °C); status on the housing.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).

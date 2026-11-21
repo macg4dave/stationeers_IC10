@@ -1,39 +1,58 @@
 # phase_change_cooling_valve
 
-## Purpose
+Opens every **Pipe Digital Valve named `cold`** when a phase-change device gets hot, to send coolant through.
 
-Open a Pipe Digital Valve when a phase_change_device temperature is above 30°C.
+*Previously called `phase_change_temp_valve`.*
 
-This version controls Pipe Digital Valves named `cold` on the same data network as the IC housing.
+## Pins
 
-## Devices
+| Pin | Device |
+| --- | --- |
+| `d0` | phase_change_device |
 
-- **Required:**
-  - phase_change_device (temperature source)
-  - One or more Pipe Digital Valves named `cold` (controlled valves)
+**Network devices:** Pipe Digital Valves named exactly `cold` on the same data network. The IC Housing must be on the same data network as the named devices.
 
-## Device registers
+## What it does
 
-- `d0` = phase_change_device
+- Above 30 °C: valves OPEN.
+- Below 28 °C: valves CLOSED.
+- 28–30 °C: holds (starts closed).
+- Unlocks the valves; re-sends the state every ~10 s.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-## Usage
+## Settings
 
-1) Assign the phase_change_device to `d0`.
-2) Ensure any target Pipe Digital Valves are named exactly `cold` and are on the same data network as this IC housing.
-3) Paste `phase_change_cooling_valve.ic10` into an IC chip and run it.
+Edit the `define` lines at the top of `phase_change_cooling_valve.ic10`.
 
-### Hash behavior used by this script
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `OPEN_ABOVE_C` | `30` | Open above (°C) |
+| `CLOSE_BELOW_C` | `28` | Close below (°C) |
+| `RESEND_TICKS` | `20` | Ticks between re-sends |
 
-- Type filter uses Pipe Digital Valve prefab hash: `-1280984102`.
-- Name filter uses `HASH("cold")` (exact/case-sensitive).
-- Control writes clear lock before state write (`Lock=0` then `On=<0|1>`).
+## Status (IC Housing `Setting`)
 
-If the script seems to find no valves, first verify exact rename (`cold`) and data-network connection.
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | open |
+| `9` | device missing or no reading |
 
-## Tuning
+## Setup
 
-- `TEMP_OPEN_ABOVE_C` (°C): open valve when temperature is strictly above this value.
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `phase_change_cooling_valve.ic10` into the chip and run it.
+4. Rename the network devices exactly as listed above (Labeller).
+
+## Notes
+
+- Device notes: `docs/usage/phase_change_device.md`, `docs/usage/pipe_digital_valve.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Added the 28–30 °C band and the periodic re-send; status on the housing.
 
 ## Status
 
-Functional
+Functional (author's label from before the remake; re-test in-game).

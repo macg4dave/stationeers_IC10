@@ -1,67 +1,63 @@
 # pipe_sort_hot_cold_with_pump
 
-**Category:** Controller  
-**Status:** Functional
+Sends gas down a **hot** or **cold** pipe depending on its temperature, while a **Pipe Volume Pump** holds the line near 10 MPa.
 
+*Previously called `pipe_temp_hot_cold_valves`.*
 
-## Purpose
+## Pins
 
-Reads a **Pipe Analyzer** temperature and selects one of two **Pipe Digital Valves**.
-Uses hysteresis so valves do not flap on/off around a single threshold:
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Pipe Digital Valve (hot path) |
+| `d2` | Pipe Digital Valve (cold path) |
+| `d3` | Pipe Volume Pump |
 
-- **Cold route ON** below `20°C`, and stays on until temperature rises above `24°C`
-- **Hot route ON** above `40°C`, and stays on until temperature drops below `36°C`
-- Between those bands, current route is held for stability (unless close threshold is crossed)
+## What it does
 
-Also reads **Pipe Analyzer** pressure and toggles a **Pipe Volume Pump** to keep the
-pipe near **10 MPa** (10,000 kPa).
+- Cold valve: open below 20 °C, close above 24 °C.
+- Hot valve: open above 40 °C, close below 36 °C.
+- Never both open at once.
+- Pump ON below 9.75 MPa, OFF above 10.25 MPa; pump `Setting` kept at 1 L.
+- Analyzer `Error`: pump OFF, valves hold, status 9.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
+## Settings
 
-## Devices
+Edit the `define` lines at the top of `pipe_sort_hot_cold_with_pump.ic10`.
 
-Required:
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `COLD_OPEN_BELOW_C` | `20` |  |
+| `COLD_CLOSE_ABOVE_C` | `24` |  |
+| `HOT_OPEN_ABOVE_C` | `40` |  |
+| `HOT_CLOSE_BELOW_C` | `36` |  |
+| `TARGET_KPA` | `10000` | Pressure target (kPa) |
+| `BAND_KPA` | `250` | ± band around the target (kPa) |
+| `PUMP_SETTING_L` | `1` | Pump volume setting (L) |
 
-- 1× Pipe Analyzer
-- 2× Pipe Digital Valve
-- 1× Pipe Volume Pump
+## Status (IC Housing `Setting`)
 
+| Value | Meaning |
+| --- | --- |
+| `0..7` | cold valve + 2 × hot valve + 4 × pump (e.g. 5 = cold open, pump on) |
+| `9` | fault or device missing |
 
-## Device registers
+## Setup
 
-Assign these in the IC housing UI:
-
-- `d0` = Pipe Analyzer (temperature source)
-- `d1` = Pipe Digital Valve for the **hot** path (name/label it `hot`)
-- `d2` = Pipe Digital Valve for the **cold** path (name/label it `cold` for your own sanity)
-- `d3` = Pipe Volume Pump (pressure regulator)
-
-
-## Tuning
-
-In `pipe_sort_hot_cold_with_pump.ic10`:
-
-- `TEMP_COLD_OPEN_BELOW_C` (default `20`) — cold route can turn on below this temperature (°C)
-- `TEMP_COLD_CLOSE_ABOVE_C` (default `24`) — cold route turns off above this temperature (°C)
-- `TEMP_HOT_OPEN_ABOVE_C` (default `40`) — hot route can turn on above this temperature (°C)
-- `TEMP_HOT_CLOSE_BELOW_C` (default `36`) — hot route turns off below this temperature (°C)
-
-Pressure control:
-
-- `PRESSURE_TARGET_KPA` (default `10000`) — target pressure in **kPa** (10 MPa)
-- `PRESSURE_HYST_KPA` (default `250`) — hysteresis band in **kPa**
-- `PUMP_SETTING_L` (default `1`) — volume pump setting (liters per tick)
-
-Pump behaviour: ON below 9,750 kPa, OFF above 10,250 kPa, unchanged in between.
-
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_sort_hot_cold_with_pump.ic10` into the chip and run it.
 
 ## Notes
 
-- Pipe Analyzer `Temperature` is **Kelvin** (K). The script converts using: $C = K - 273.15$.
-- Pipe Analyzer `Pressure` is read as **kPa** (wiki: "In kPa").
+- Device notes: `docs/usage/pipe_analyzer.md`, `docs/usage/pipe_digital_valve.md`
 
 ## Change history
 
-- 2026-11: fixed the pump never stopping above 2 MPa. An old "Pa -> kPa"
-  guess divided any reading above 2,000 kPa by 1000, so at the 10 MPa target the
-  script saw ~10 and kept pumping. Temperature/valve behaviour is unchanged.
-  Status stays **Functional**; re-test the pump stop in-game.
+- 2026-11-21: remade and renamed. Pump stops on analyzer error; pins checked in the loop; status on the housing.
+- 2026-11: fixed the pump never stopping above 2 MPa (an old "Pa → kPa" guess divided readings above 2,000 kPa by 1000).
+
+## Status
+
+Functional (author's label from before the remake; re-test in-game).

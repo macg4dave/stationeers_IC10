@@ -1,48 +1,53 @@
 # pipe_methane_purge_valve
 
-**Purpose:** If Methane is present in a pipe, run a **Pipe Digital Valve** until **Oxygen ratio is >= 33% of Methane ratio**.
+Purges methane through a **Pipe Digital Valve** until there is enough oxygen relative to the methane.
 
-This is useful as a simple methane-purge controller when your valve gates a path used to remove or route methane-heavy gas.
+*Previously called `volatiles_purge_valve`.*
 
-## Devices
+## Pins
 
-Required:
+| Pin | Device |
+| --- | --- |
+| `d0` | Pipe Analyzer |
+| `d1` | Pipe Digital Valve |
 
-- **Pipe Analyzer** (on the target pipe network)
-- **Pipe Digital Valve** (on the same gas network path you want to gate)
+## What it does
 
-## Device registers
+- Valve ON while methane is present **and** `RatioOxygen` < 33 % of `RatioMethane`.
+- Otherwise, or on analyzer `Error`: valve OFF.
+- Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
 
-- `d0` = Pipe Analyzer
-- `d1` = Pipe Digital Valve
+## Settings
 
-## Behavior
+Edit the `define` lines at the top of `pipe_methane_purge_valve.ic10`.
 
-Each loop the script reads:
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `O2_PER_CH4` | `0.33` | Oxygen needed per unit of methane |
+| `EPS` | `0.000001` | Ratio counted as "no methane" |
 
-- `RatioMethane` from the Pipe Analyzer
-- `RatioOxygen` from the Pipe Analyzer
+## Status (IC Housing `Setting`)
 
-Rules:
-
-- If `RatioMethane` is not present (<= `EPS`), valve is **OFF**.
-- If `RatioMethane` is present and `RatioOxygen < (0.33 * RatioMethane)`, valve is **ON**.
-- Otherwise (i.e., `RatioOxygen >= 0.33 * RatioMethane`), valve is **OFF**.
-
-### Tuning
-
-- `EPS` (default `0.000001`): treat ratios <= EPS as zero to avoid float noise.
-- `O2_PER_VOL` (default `0.33`): oxygen-to-methane multiplier used for valve cutoff.
+| Value | Meaning |
+| --- | --- |
+| `0` | closed |
+| `1` | purging |
+| `9` | fault or device missing |
 
 ## Setup
 
-1. Put the Pipe Analyzer on the pipe network you want to monitor.
-2. Put a Pipe Digital Valve on the path you want to control.
-3. In the IC Housing, set:
-   - `d0` to the Pipe Analyzer
-   - `d1` to the Pipe Digital Valve
-4. Paste `pipe_methane_purge_valve.ic10` into the chip and run it.
+1. Build the devices and connect them, the IC Housing and power to one data network.
+2. In the IC Housing screen, set each pin as listed above.
+3. Paste `pipe_methane_purge_valve.ic10` into the chip and run it.
+
+## Notes
+
+- Device notes: `docs/usage/pipe_analyzer.md`
+
+## Change history
+
+- 2026-11-21: remade and renamed. Valve now closes on analyzer error (it used to stay as it was). Dropped the Pipe Analyzer prefab check.
 
 ## Status
 
-Functional.
+Functional (author's label from before the remake; re-test in-game).
