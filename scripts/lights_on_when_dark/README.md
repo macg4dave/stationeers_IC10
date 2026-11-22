@@ -1,16 +1,17 @@
 # lights_on_when_dark
 
-Turns every light on the data network **on when it gets dark** and **off when it gets
-light**, using one **Daylight Sensor**. Lights are found by type, so you never wire them
-to pins or rename them.
+Turns every light on the data network **on at 18:00** and **off at 06:30**, in the same
+sun time that `display_clock_from_sun` shows, using one **Daylight Sensor**. Lights are
+found by type, so you never wire them to pins or rename them.
 
 ## Pins
 
 | Pin | Device |
 | --- | --- |
-| `d0` | Daylight Sensor |
+| `d0` | Daylight Sensor, **flat, facing up** |
 
-The sensor can be the one your solar tracker already uses: point both chips' `d0` at it.
+The sensor can be the one your clock or solar tracker already uses: point this chip's
+`d0` at it.
 
 ## Light types
 
@@ -33,11 +34,13 @@ Grow lights, LEDs and consoles are not touched.
 
 ## What it does
 
-- Reads the sun's `Vertical` from the sensor. Sun height above the horizon is
-  `90 − Vertical`.
-- Lights **ON** when the sun is under 5° above the horizon (dusk, night).
-- Lights **OFF** when the sun is over 10° above the horizon (morning, day).
-- Between 5° and 10° nothing changes, so the lights don't flicker at dusk and dawn.
+- Works out the sun time exactly like `display_clock_from_sun`: how far the sun is along
+  its path, from the sensor's `Horizontal` and `Vertical`. Sunrise is 06:00, the sun's
+  highest point 12:00, sunset 18:00.
+- Lights **ON** from `ON_AT` to `OFF_AT` (default 18:00 to 06:30), **OFF** otherwise.
+  The period can cross midnight (18:00–06:30) or not (01:00–05:00).
+- No dead band is needed: the time passes each switching point once a day, so the
+  lights do not flicker the way a "sun below 5°" threshold could.
 - Each loop it reads every light type and writes only if a light differs. A light
   switched by hand, or a new light, is put back to the right state within a tick.
 - If the sensor is switched off, the script switches it on.
@@ -50,18 +53,21 @@ Edit the `define` lines at the top of `lights_on_when_dark.ic10`.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `ON_BELOW` | `5` | Lights on when the sun is lower than this (degrees above the horizon) |
-| `OFF_ABOVE` | `10` | Lights off when the sun is higher than this (degrees) |
+| `ON_AT` | `1800` | Lights on at this sun time, as HHMM (`1800` = 18:00) |
+| `OFF_AT` | `630` | Lights off at this sun time, as HHMM (`630` = 06:30) |
+| `RISE_DEG` | `0` | Sensor `Horizontal` at sunrise. **Same value as in the clock** |
+| `SHIFT_MIN` | `0` | Moves the sun time by whole minutes. **Same value as in the clock** |
 | `L_*` | see above | Light prefab hashes |
 
-Raise both numbers to switch the lights on earlier in the evening.
+With the same `RISE_DEG` and `SHIFT_MIN` in both scripts, the lights switch exactly when
+the clock shows `ON_AT` and `OFF_AT`.
 
 ## Status (IC Housing `Setting`)
 
 | Value | Meaning |
 | --- | --- |
-| `0` | day: lights off |
-| `1` | dark: lights on |
+| `0` | lights off |
+| `1` | lights on |
 | `9` | Daylight Sensor missing, or `d0` is a different device |
 
 ## Setup
@@ -69,22 +75,30 @@ Raise both numbers to switch the lights on earlier in the evening.
 1. Build the Daylight Sensor **flat, facing up**, and connect it, the lights and the IC
    Housing to one data network. The sensor needs power.
 2. Set `d0` to the Daylight Sensor.
-3. Paste `lights_on_when_dark.ic10` into the chip and run it.
+3. Copy `RISE_DEG` and `SHIFT_MIN` from your clock script, if you changed them there.
+4. Paste `lights_on_when_dark.ic10` into the chip and run it.
 
 To read a light's real hash, put the light on `d0` of a spare chip and run
 `l r0 d0 PrefabHash` then `s db Setting r0`. The housing shows the number.
 
 ## Notes
 
-- It goes by the sun's position, not by how bright it is. Storms, rooms with no windows
-  and planets with long dark spells are not detected; the lights follow the sun only.
-- Sensor `Vertical` is taken as degrees from straight up, as in `solar_panels_track_sun`
-  (which works in-game). Sun on the horizon = 90.
+- It goes by the sun's position, not by how bright it is. Storms and rooms with no
+  windows are not detected.
+- A sensor on a wall reports different angles. The clock's optional `d2` input checks
+  a conversion for wall sensors; this script needs the sensor flat.
 - Device notes: `docs/usage/daylight_sensor.md`
 
 ## Change history
 
 - 2026-11-22: new script.
+- 2026-11-22: lights never came on in-game (status stayed 0 at night); a wall-mounted
+  sensor is suspected. Added `WALL` / `WALL_TURN` (a guessed conversion) and
+  `SHOW_HEIGHT` to test it in-game.
+- 2026-11-22: switches by sun time (`ON_AT`/`OFF_AT`, the clock's maths) instead of sun
+  height (`ON_BELOW`/`OFF_ABOVE`), at the user's request once the clock worked in-game.
+  `WALL`, `WALL_TURN` and `SHOW_HEIGHT` are removed: the wall check now lives in the
+  clock (`d2`), and this script needs a flat sensor.
 
 ## Status
 

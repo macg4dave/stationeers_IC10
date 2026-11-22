@@ -6,6 +6,14 @@
 
 This sensor does **not** provide a direct `TimeOfDay` clock number; scripts derive time from angles.
 
+## Confirmed in-game (2026-11-22)
+
+- Flat, facing up: `Vertical` is degrees from straight up. At sunrise it read 81
+  (sun about 9° above the horizon).
+- `Horizontal` can read negative (−125 was seen), so treat it as −180..180.
+- `SolarAngle` read the same as `Vertical` (88 / 88) on a wall-mounted sensor.
+- Still unknown: whether `Vertical` goes above 90 at night on a flat sensor.
+
 ## Minimum to work
 
 - Powered

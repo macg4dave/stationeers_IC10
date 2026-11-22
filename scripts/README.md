@@ -74,8 +74,9 @@ in `tests/standalone.rs` passes (simulated, not an in-game test).
 | Script | What it does | Targeting | Sim |
 | --- | --- | --- | --- |
 | `solar_panels_track_sun/` | Every movable solar panel named `0`/`90`/`180`/`270` follows the sun (Daylight Sensor) | Names | yes |
-| `lights_on_when_dark/` | Every light on the network on at dusk, off after sunrise (Daylight Sensor) | Prefab | yes |
+| `lights_on_when_dark/` | Every light on the network on 18:00–06:30 sun time, same maths as the clock (Daylight Sensor) | Prefab | yes |
 | `power_generator_on_low_battery/` | Generator on below 30 % average large-battery charge, off above 80 % | Prefab | yes |
+| `power_apc_on_high_battery/` | Area Power Control on above 70 % total battery charge, off below 60 % | Prefab | yes |
 | `suit_helmet_auto_open/` | Helmet opens in safe air (4–45 °C, 80–150 kPa), respects a manual close | db + pin | yes |
 | `display_clock_from_sun/` | 24 h clock on two LED Displays from a Daylight Sensor | Pins | yes |
 | `vending_export_exact_count/` | Exports an exact item count; gives up if the item runs out | Pins | timeout only |

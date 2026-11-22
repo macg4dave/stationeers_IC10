@@ -1,13 +1,12 @@
 # display_clock_from_sun - 24 h clock (HH and MM) from the sun's position
-# d0=LED Display (hours)  d1=LED Display (minutes)  d3=Daylight Sensor
-# Time = Daylight Sensor Horizontal angle (0..360 deg) mapped to 00:00..23:59.
-# Tuning: SENSOR_DIRECTION = sensor facing (0..3, adds 90 deg each),
-#   OFFSET_DEG shifts the angle, INVERT 1 runs the angle backwards,
-#   SHIFT_MIN moves the clock by whole minutes.
-# Displays are kept On in Mode 10 (two-character text).
-
+# d0=LED (hours) d1=LED (minutes) d3=Daylight Sensor flat; d2=wall sensor (optional)
+# Time = how far the sun is along its path: rises 06:00, highest 12:00, sets 18:00.
+# RISE_DEG = flat sensor Horizontal at sunrise. SHIFT_MIN moves the clock (minutes).
+# d2 set: db Setting = wall-guess sun height - flat sun height (deg), to test WALL_TURN
+# db Setting: 1=running 9=display missing, or d3 is not a Daylight Sensor
 alias hdisp d0
 alias mdisp d1
+alias wall d2
 alias sun d3
 alias deg r0
 alias mins r1
@@ -16,50 +15,91 @@ alias mm r3
 alias val r4
 alias cur r5
 alias tens r6
-
-define SENSOR_DIRECTION 0
-define OFFSET_DEG 0
-define INVERT 0
+alias lastH r7
+alias lastM r8
+alias x r9
+alias y r10
+alias z r11
+define RISE_DEG 0
 define SHIFT_MIN 0
+define WALL_TURN 0
 define MODE_TEXT 10
-
+define SENSOR_HASH 1076425094
+wait:
+s db Setting 9
+move lastH -1
+move lastM -1
+yield
+bdns hdisp wait
+bdns mdisp wait
+bdns sun wait
+l cur sun PrefabHash
+bne cur SENSOR_HASH wait
 main:
 yield
-bdns hdisp main
-bdns mdisp main
-bdns sun main
+bdns hdisp wait
+bdns mdisp wait
+bdns sun wait
+l cur sun PrefabHash
+bne cur SENSOR_HASH wait
+s db Setting 1
+l cur sun On
+bnez cur powered
+s sun On 1
+powered:
 l deg sun Horizontal
-mul cur SENSOR_DIRECTION 90
-add deg deg cur
-add deg deg OFFSET_DEG
-add deg deg 360
-mod deg deg 360
-beqz INVERT no_inv
-sub deg 360 deg
-no_inv:
-floor deg deg
-mul mins deg 1440
-div mins mins 360
-floor mins mins
+sub deg deg RISE_DEG
+mul deg deg deg2rad
+cos x deg
+l z sun Vertical
+mul cur z deg2rad
+sub z z 90
+sin cur cur
+mul x x cur
+mul y x x
+sub y 1 y
+sqrt y y
+blez z above
+sub y 0 y
+above:
+atan2 deg y x
+mul mins deg 229.18311805232929
+add mins mins 3240
 add mins mins SHIFT_MIN
-add mins mins 1440
 mod mins mins 1440
+floor mins mins
 div hh mins 60
 floor hh hh
-mul mm hh 60
-sub mm mins mm
+mod mm mins 60
 move val hh
 jal pack
-l cur hdisp Setting
-beq cur val h_ok
+beq val lastH h_ok
 s hdisp Setting val
+move lastH val
 h_ok:
 move val mm
 jal pack
-l cur mdisp Setting
-beq cur val m_ok
+beq val lastM m_ok
 s mdisp Setting val
+move lastM val
 m_ok:
+bdns wall shown
+l x wall PrefabHash
+bne x SENSOR_HASH shown
+l x wall Horizontal
+add x x WALL_TURN
+mul x x deg2rad
+cos x x
+l y wall Vertical
+mul y y deg2rad
+sin y y
+mul x x y
+asin x x
+mul x x rad2deg
+add x x z
+round x x
+s db Setting x
+shown:
 l cur hdisp Mode
 beq cur MODE_TEXT hm_ok
 s hdisp Mode MODE_TEXT
@@ -76,14 +116,11 @@ l cur mdisp On
 bnez cur main
 s mdisp On 1
 j main
-
-# val (0..99) -> two ASCII digits packed as one number ("07" etc.)
 pack:
-div tens val 10
-floor tens tens
-mul cur tens 10
-sub val val cur
-add val val 48
+mod cur val 10
+sub tens val cur
+div tens tens 10
+add val cur 48
 add tens tens 48
 mul tens tens 256
 add val val tens

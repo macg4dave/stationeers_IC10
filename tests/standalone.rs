@@ -558,14 +558,121 @@ fn suit_helmet_auto_open_respects_a_manual_close() {
 
 #[test]
 fn display_clock_from_sun() {
-    let hrs = dev(&[("On", 0.0), ("Mode", 0.0), ("Setting", 0.0)]);
-    let mins = dev(&[("On", 0.0), ("Mode", 0.0), ("Setting", 0.0)]);
-    let day = dev(&[("Horizontal", 97.5)]); // floors to 97 deg -> 06:28 (4 min/deg)
-    chip("display_clock_from_sun", &[("d0", &hrs), ("d1", &mins), ("d3", &day)]).go(4);
+    let led = || {
+        share(
+            Device::new(&[("On", 0.0), ("Mode", 0.0), ("Setting", 0.0)])
+                .prefab("StructureConsoleLED5"),
+        )
+    };
+    let (hrs, mins) = (led(), led());
+    // In-game at sunrise (2026-11-22), flat sensor, top to 0: H 4, V 81. Sun 9 deg up.
+    let day = share(
+        Device::new(&[("Horizontal", 4.0), ("Vertical", 81.0), ("On", 0.0)])
+            .prefab("StructureDaylightSensor"),
+    );
+    let mut c = Chip::new(script("display_clock_from_sun"))
+        .pin("d0", &hrs)
+        .pin("d1", &mins)
+        .pin("d3", &day);
+    c.go(4);
     let pair = |a: char, b: char| f64::from(a as u32 * 256 + b as u32);
+    let shows = |h: &str, m: &str| {
+        let p = |t: &str| pair(t.as_bytes()[0] as char, t.as_bytes()[1] as char);
+        (p(h), p(m))
+    };
+    let now = || (hrs.get("Setting"), mins.get("Setting"));
     assert_eq!(hrs.get("Mode"), 10.0);
-    assert_eq!(hrs.get("Setting"), pair('0', '6'));
-    assert_eq!(mins.get("Setting"), pair('2', '8'));
+    assert_eq!(now(), shows("06", "39"), "the in-game sunrise reading is early morning");
+    assert_eq!((day.get("On"), c.status()), (1.0, 1.0), "sensor switched on; running");
+    // The sun `theta` deg along its path from sunrise (sensor H 0), path tilted by `tilt`.
+    let sun = |theta: f64, tilt: f64| {
+        let (t, k) = (theta.to_radians(), tilt.to_radians());
+        let (x, y, z) = (t.cos(), t.sin() * k.sin(), t.sin() * k.cos());
+        (y.atan2(x).to_degrees(), z.acos().to_degrees())
+    };
+    for tilt in [0.0, 25.0] {
+        for (theta, want) in [
+            (10.1, ("06", "40")),
+            (60.1, ("10", "00")), // H still 0 when untilted: azimuth alone stalls here
+            (100.1, ("12", "40")),
+            (200.1, ("19", "20")),
+            (300.1, ("02", "00")),
+        ] {
+            let (h, v) = sun(theta, tilt);
+            day.set("Horizontal", h);
+            day.set("Vertical", v);
+            c.go(2);
+            assert_eq!(now(), shows(want.0, want.1), "{theta} deg along a {tilt} deg path");
+        }
+    }
+    let wrong = share(Device::new(&[("Horizontal", 0.0)]).prefab("StructureGasSensor"));
+    c.set_pin("d3", &wrong);
+    c.go(4);
+    assert_eq!(
+        (c.status(), hrs.get("Setting")),
+        (9.0, pair('0', '2')),
+        "wrong device: clock holds"
+    );
+    let (h2, m2) = (led(), led());
+    c.set_pin("d0", &h2);
+    c.set_pin("d1", &m2);
+    c.set_pin("d3", &day);
+    c.go(4);
+    assert_eq!(
+        (h2.get("Setting"), m2.get("Setting")),
+        shows("02", "00"),
+        "displays replaced while waiting are written"
+    );
+    let sent = (h2.writes_of("Setting").len(), m2.writes_of("Setting").len());
+    c.go(20);
+    let now = (h2.writes_of("Setting").len(), m2.writes_of("Setting").len());
+    assert_eq!(now, sent, "no rewrite while the time holds");
+    let path =
+        ic10_tools::repo::root().join("scripts/display_clock_from_sun/display_clock_from_sun.ic10");
+    let src = std::fs::read_to_string(path).expect("script is readable");
+    for (from, to, h, want) in [
+        ("define RISE_DEG 0", "define RISE_DEG 90", 94.0, shows("06", "39")),
+        ("define SHIFT_MIN 0", "define SHIFT_MIN 30", 4.0, shows("07", "09")),
+    ] {
+        let (h3, m3) = (led(), led());
+        let sensor = share(
+            Device::new(&[("Horizontal", h), ("Vertical", 81.0), ("On", 1.0)])
+                .prefab("StructureDaylightSensor"),
+        );
+        let mut c = Chip::new(parse(&src.replace(from, to)))
+            .pin("d0", &h3)
+            .pin("d1", &m3)
+            .pin("d3", &sensor);
+        c.go(4);
+        assert_eq!((h3.get("Setting"), m3.get("Setting")), want, "{to}");
+    }
+    // Optional wall sensor on d2: the housing shows wall-guess height minus flat height.
+    // In-game at sunrise (2026-11-22): flat H 4, V 81 (9 deg up); wall facing 0: H 22, V 171.
+    for (turn, want, why) in [
+        ("define WALL_TURN 0", -1.0, "the guess with WALL_TURN 0 is within 1 deg"),
+        ("define WALL_TURN 180", -17.0, "WALL_TURN 180 turns the guess"),
+    ] {
+        let (h3, m3) = (led(), led());
+        let sensor = |h: f64, v: f64| {
+            share(
+                Device::new(&[("Horizontal", h), ("Vertical", v), ("On", 1.0)])
+                    .prefab("StructureDaylightSensor"),
+            )
+        };
+        let (flat, wall) = (sensor(4.0, 81.0), sensor(22.0, 171.0));
+        let mut c = Chip::new(parse(&src.replace("define WALL_TURN 0", turn)))
+            .pin("d0", &h3)
+            .pin("d1", &m3)
+            .pin("d2", &wall)
+            .pin("d3", &flat);
+        c.go(4);
+        assert_eq!(c.status(), want, "{why}");
+        assert_eq!((h3.get("Setting"), m3.get("Setting")), shows("06", "39"), "clock unchanged");
+        let gas = share(Device::new(&[("Horizontal", 0.0)]).prefab("StructureGasSensor"));
+        c.set_pin("d2", &gas);
+        c.go(4);
+        assert_eq!(c.status(), 1.0, "a wrong device on d2 is ignored");
+    }
 }
 
 #[test]
@@ -733,10 +840,20 @@ fn solar_panels_track_sun_rejects_a_wrong_sensor_and_turns_the_sensor_on() {
 
 // ------------------------------------------------------------------------- lights
 
+/// Flat Daylight Sensor readings for clock time `hhmm` on a sun path through the zenith
+/// that rises at sensor `Horizontal` 0 (06:00), as in `display_clock_from_sun`.
+fn sun_at(hhmm: f64) -> (f64, f64) {
+    let mins = (hhmm / 100.0).floor() * 60.0 + hhmm % 100.0 + 0.5;
+    let t = ((mins - 360.0) / 4.0).to_radians();
+    let (x, z) = (t.cos(), t.sin());
+    (if x >= 0.0 { 0.0 } else { 180.0 }, z.acos().to_degrees())
+}
+
 #[test]
 fn lights_on_when_dark() {
+    let (h, v) = sun_at(1200.0);
     let sensor = share(
-        Device::new(&[("Horizontal", 0.0), ("Vertical", 30.0), ("On", 0.0)])
+        Device::new(&[("Horizontal", h), ("Vertical", v), ("On", 0.0)])
             .prefab("StructureDaylightSensor"),
     );
     let light = |prefab: &str, on: f64| share(Device::new(&[("On", on)]).prefab(prefab));
@@ -760,18 +877,23 @@ fn lights_on_when_dark() {
     let on = |ls: &[Shared<Device>]| ls.iter().map(|l| l.get("On")).collect::<Vec<_>>();
     c.go(4);
     assert_eq!(sensor.get("On"), 1.0, "switched the sensor on");
-    assert_eq!((c.status(), on(&lights)), (0.0, vec![0.0; 8]), "day: every light type off");
+    assert_eq!((c.status(), on(&lights)), (0.0, vec![0.0; 8]), "midday: every light type off");
     assert_eq!(grow.get("On"), 1.0, "other devices are left alone");
-    for (vertical, want, why) in [
-        (83.0, 0.0, "7 deg up: inside the band, stays off"),
-        (86.0, 1.0, "4 deg up: dark, lights on"),
-        (120.0, 1.0, "night"),
-        (82.0, 1.0, "8 deg up at dawn: inside the band, stays on"),
-        (79.0, 0.0, "11 deg up: day, lights off"),
+    for (hhmm, want) in [
+        (1759.0, 0.0),
+        (1800.0, 1.0),
+        (2300.0, 1.0),
+        (0.0, 1.0),
+        (300.0, 1.0),
+        (629.0, 1.0),
+        (630.0, 0.0),
+        (1000.0, 0.0),
     ] {
-        sensor.set("Vertical", vertical);
+        let (h, v) = sun_at(hhmm);
+        sensor.set("Horizontal", h);
+        sensor.set("Vertical", v);
         c.go(4);
-        assert_eq!((c.status(), on(&lights)), (want, vec![want; 8]), "{why}");
+        assert_eq!((c.status(), on(&lights)), (want, vec![want; 8]), "{hhmm}: on 18:00-06:30");
     }
     let sent = lights[0].writes_of("On").len();
     c.go(20);
@@ -783,4 +905,66 @@ fn lights_on_when_dark() {
     c.set_pin("d0", &wrong);
     c.go(6);
     assert_eq!((c.status(), lights[0].get("On")), (9.0, 0.0), "wrong device: lights hold");
+}
+
+#[test]
+fn lights_on_when_dark_settings() {
+    let path =
+        ic10_tools::repo::root().join("scripts/lights_on_when_dark/lights_on_when_dark.ic10");
+    let src = std::fs::read_to_string(path).expect("script is readable");
+    // (setting edits, clock time) -> lamp On
+    let run = |edits: &[(&str, &str)], hhmm: f64, rise: f64| {
+        let text = edits.iter().fold(src.clone(), |t, (from, to)| t.replace(from, to));
+        let (h, v) = sun_at(hhmm);
+        let sensor = share(
+            Device::new(&[("Horizontal", h + rise), ("Vertical", v), ("On", 1.0)])
+                .prefab("StructureDaylightSensor"),
+        );
+        let lamp = share(Device::new(&[("On", 0.0)]).prefab("StructureWallLight"));
+        let mut c = Chip::new(parse(&text)).pin("d0", &sensor).net(&lamp);
+        c.go(4);
+        lamp.get("On")
+    };
+    let night_shift =
+        [("define ON_AT 1800", "define ON_AT 100"), ("define OFF_AT 630", "define OFF_AT 500")];
+    for (hhmm, want) in [(30.0, 0.0), (100.0, 1.0), (459.0, 1.0), (500.0, 0.0), (1900.0, 0.0)] {
+        assert_eq!(run(&night_shift, hhmm, 0.0), want, "{hhmm}: ON_AT before OFF_AT, 01:00-05:00");
+    }
+    let rise = [("define RISE_DEG 0", "define RISE_DEG 90")];
+    assert_eq!(run(&rise, 1900.0, 90.0), 1.0, "RISE_DEG turns the sun path like the clock");
+    assert_eq!(run(&rise, 1700.0, 90.0), 0.0, "RISE_DEG: 17:00 is day");
+    assert_eq!(run(&rise, 615.0, 90.0), 1.0, "RISE_DEG: 06:15, before OFF_AT, still on");
+    let shift = [("define SHIFT_MIN 0", "define SHIFT_MIN 120")];
+    assert_eq!(run(&shift, 1700.0, 0.0), 1.0, "SHIFT_MIN 120: 17:00 reads 19:00");
+}
+
+#[test]
+fn power_apc_on_high_battery() {
+    let apc = switchable(&[]);
+    let bat = |prefab: &str, max: f64| {
+        share(Device::new(&[("Charge", 0.0), ("Maximum", max)]).prefab(prefab))
+    };
+    // A large battery holds 10x a small one, so it dominates the total.
+    let (small, large) = (bat("StructureBattery", 100.0), bat("StructureBatteryLarge", 1000.0));
+    let mut c = chip("power_apc_on_high_battery", &[("d0", &apc)]).net(&small).net(&large);
+    for (s, l, want, why) in [
+        (100.0, 500.0, 0.0, "55%: off"),
+        (100.0, 650.0, 0.0, "per-battery average 82.5%, but the total is 68.2%: off"),
+        (0.0, 800.0, 1.0, "72.7% of the total: on"),
+        (100.0, 600.0, 1.0, "63.6%: inside the band, stays on"),
+        (0.0, 650.0, 0.0, "59.1%: off"),
+        (100.0, 700.0, 1.0, "72.7%: on again"),
+    ] {
+        small.set("Charge", s);
+        large.set("Charge", l);
+        c.go(4);
+        assert_eq!((apc.get("On"), c.status()), (want, want), "{why}");
+    }
+    let sent = apc.writes_of("On").len();
+    c.go(20);
+    assert_eq!(apc.writes_of("On").len(), sent, "no rewrite while nothing changes");
+    c.network.clear();
+    c.go(4);
+    assert_eq!((apc.get("On"), c.status()), (0.0, 2.0), "no batteries: APC off");
+    assert_eq!(Chip::new(script("power_apc_on_high_battery")).go(3).status(), 9.0, "no APC");
 }

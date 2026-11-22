@@ -326,12 +326,47 @@ In-game checks needed:
 
 ## 16. Lights on when dark (2026-11-22)
 
-New script `scripts/lights_on_when_dark/`: one Daylight Sensor switches every light on
-the network by type (on below 5° of sun height, off above 10°). Simulated: one scenario
-in `tests/standalone.rs`; six single-line mutations each turn it red.
+`scripts/lights_on_when_dark/`: one flat Daylight Sensor; every light on the network by
+type is on from `ON_AT` to `OFF_AT` (default 18:00–06:30) in the sun time of
+`display_clock_from_sun` (same maths, same `RISE_DEG`/`SHIFT_MIN`). It first switched by
+sun height; in-game the lights never came on (status 0 at night, sensor probably on a
+wall). Simulated: two scenarios in `tests/standalone.rs`; twelve single-line mutations
+each turn one red.
 
 In-game checks needed:
 
 - **Light hashes:** the eight light prefab names are not in the catalog and unconfirmed.
   Only types whose hash is right will switch; read `PrefabHash` for any that don't.
-- **Timing:** lights come on at dusk and go off after sunrise.
+- **Timing:** lights switch when the clock shows `ON_AT` / `OFF_AT`.
+- **Flat sensor at night:** whether `Vertical` goes above 90 after sunset is still
+  unconfirmed. The clock and the lights both rely on it to tell 21:00 from 15:00.
+
+## 17. APC on high battery (2026-11-22)
+
+New script `scripts/power_apc_on_high_battery/`: an Area Power Control on `d0` runs
+while the total charge of all Station Batteries is above 70 %, off below 60 %.
+Simulated: one scenario in `tests/standalone.rs`; six single-line mutations each turn
+it red.
+
+In-game checks needed:
+
+- **Small battery hash:** `StructureBattery` (-400115994) is unconfirmed;
+  `StructureBatteryLarge` is the hash `power_generator_on_low_battery` uses.
+- **APC `On`:** switching `On` cuts the APC's output.
+
+## 18. Clock from the sun (2026-11-22)
+
+`display_clock_from_sun` turned only the sun's compass direction (`Horizontal`) into
+time. In-game at sunrise it showed 00:08–00:12 and barely moved: on a steep sun path
+the direction hardly changes all morning. It now uses the sun's angle along its path,
+from `Horizontal` and `Vertical` (sunrise 06:00, highest 12:00, set 18:00).
+
+In-game data (user, sunrise, 2026-11-22): flat sensor, top to 0: H 4, V 81 (sun 9° up;
+confirms `Vertical` counts from straight up). Wall sensor facing 0 at the same moment:
+H 22, V 171, which the `lights_on_when_dark` wall guess (`WALL_TURN 0`) turns into 8°.
+
+The clock errors at lines 68 and 73 were a wiring mix-up: `d0` was the Daylight Sensor
+(`PrefabHash` 1076425094 read in-game), not a display.
+
+In-game checks needed: the clock advances evenly through the day and night; `RISE_DEG`
+(sensor `Horizontal` at sunrise) stays the same from day to day.

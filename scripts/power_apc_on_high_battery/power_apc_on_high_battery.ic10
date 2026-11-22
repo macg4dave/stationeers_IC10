@@ -1,0 +1,48 @@
+# power_apc_on_high_battery - Area Power Control on while the batteries are charged
+# d0=Area Power Control. Every Station Battery and Station Battery (Large) is read.
+# APC ON once the total charge is over 70%, OFF again below 60%. Holds in between.
+# No batteries found => APC OFF.
+# db Setting: 0=APC off 1=APC on 2=no batteries found 9=APC missing
+
+alias apc d0
+alias charge r0
+alias max r1
+alias want r2
+alias cur r3
+
+define BAT -400115994
+define BAT_LARGE -1388288459
+define ON_ABOVE 0.70
+define OFF_BELOW 0.60
+
+wait:
+s db Setting 9
+yield
+bdns apc wait
+l want apc On
+
+main:
+yield
+bdns apc wait
+lb charge BAT Charge Sum
+lb cur BAT_LARGE Charge Sum
+add charge charge cur
+lb max BAT Maximum Sum
+lb cur BAT_LARGE Maximum Sum
+add max max cur
+blez max none
+div charge charge max
+sgt cur charge ON_ABOVE
+select want cur 1 want
+slt cur charge OFF_BELOW
+select want cur 0 want
+s db Setting want
+j apply
+none:
+move want 0
+s db Setting 2
+apply:
+l cur apc On
+beq cur want main
+s apc On want
+j main

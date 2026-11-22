@@ -1,17 +1,24 @@
-# lights_on_when_dark - every light on the network turns on when it gets dark
-# d0=Daylight Sensor (flat, facing up). Lights are found by type: no pins, no names.
-# ON when the sun is under 5 deg above the horizon, OFF once it is over 10 deg.
+# lights_on_when_dark - every light on the network on from ON_AT to OFF_AT (sun time)
+# d0=Daylight Sensor, flat, facing up. Lights are found by type: no pins, no names.
+# Time as display_clock_from_sun (06:00 sunrise, 12:00 highest): keep RISE_DEG and
+# SHIFT_MIN equal in both scripts. ON_AT/OFF_AT are HHMM (1800 = 18:00).
 # Sensor missing or wrong device on d0 => lights left as they are.
-# db Setting: 0=day (lights off) 1=dark (lights on) 9=Daylight Sensor missing
-
+# db Setting: 0=lights off 1=lights on 9=Daylight Sensor missing
 alias sensor d0
-alias up r0
-alias want r1
-alias t r2
-alias cur r3
-
-define ON_BELOW 5
-define OFF_ABOVE 10
+alias deg r0
+alias mins r1
+alias x r2
+alias y r3
+alias z r4
+alias want r5
+alias t r6
+alias cur r7
+alias on r8
+alias off r9
+define ON_AT 1800
+define OFF_AT 630
+define RISE_DEG 0
+define SHIFT_MIN 0
 define SENSOR_HASH 1076425094
 define L_WALL -1860064656
 define L_WALLBAT -1306415132
@@ -22,13 +29,24 @@ define L_ROUND 1514476632
 define L_ROUNDANG 1592905386
 define L_ROUNDSM 1436121888
 
+move t ON_AT
+mod cur t 100
+sub on t cur
+div on on 100
+mul on on 60
+add on on cur
+move t OFF_AT
+mod cur t 100
+sub off t cur
+div off off 100
+mul off off 60
+add off off cur
 wait:
 s db Setting 9
 yield
 bdns sensor wait
 l t sensor PrefabHash
 bne t SENSOR_HASH wait
-
 main:
 yield
 bdns sensor wait
@@ -38,12 +56,32 @@ l t sensor On
 bnez t powered
 s sensor On 1
 powered:
-l up sensor Vertical
-sub up 90 up
-slt t up ON_BELOW
-select want t 1 want
-sgt t up OFF_ABOVE
-select want t 0 want
+l deg sensor Horizontal
+sub deg deg RISE_DEG
+mul deg deg deg2rad
+cos x deg
+l z sensor Vertical
+mul cur z deg2rad
+sin cur cur
+mul x x cur
+mul y x x
+sub y 1 y
+sqrt y y
+ble z 90 above
+sub y 0 y
+above:
+atan2 deg y x
+mul mins deg 229.18311805232929
+add mins mins 3240
+add mins mins SHIFT_MIN
+mod mins mins 1440
+floor mins mins
+sge t mins on
+slt cur mins off
+and want t cur
+or t t cur
+sgt cur on off
+select want cur t want
 s db Setting want
 move t L_WALL
 jal set
@@ -62,7 +100,6 @@ jal set
 move t L_ROUNDSM
 jal set
 j main
-
 set:
 lb cur t On Average
 beq cur want set_ok
