@@ -254,6 +254,18 @@
       "itemHash": -2045627372
     },
     {
+      "wikiTitle": "Solar_Panel_1x5",
+      "file": "devices/Solar_Panel_1x5.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
+      "wikiTitle": "Solar_Panel_1x5_Heavy",
+      "file": "devices/Solar_Panel_1x5_Heavy.json",
+      "itemName": null,
+      "itemHash": null
+    },
+    {
       "wikiTitle": "Solar_Panel_Heavy",
       "file": "devices/Solar_Panel_Heavy.json",
       "itemName": null,

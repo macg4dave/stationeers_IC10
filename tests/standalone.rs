@@ -196,11 +196,13 @@ fn phase_change_cooling_valve() {
 #[test]
 fn pipe_sort_hot_cold_with_pump() {
     let pa = analyzer(20.0, 5000.0, &[]);
-    let (hot, cold, pump) = (switchable(&[]), switchable(&[]), switchable(&[]));
+    let (cold, hot, pump) = (switchable(&[]), switchable(&[]), switchable(&[]));
+    let heaters = [pipe_heater(), pipe_heater()];
     let mut c = chip(
         "pipe_sort_hot_cold_with_pump",
         &[("d0", &pa), ("d1", &hot), ("d2", &cold), ("d3", &pump)],
     );
+    c = heaters.iter().fold(c, |c, h| c.net(h));
     for (t, want) in [
         (15.0, (1.0, 0.0)),
         (22.0, (1.0, 0.0)),
@@ -212,6 +214,9 @@ fn pipe_sort_hot_cold_with_pump() {
         temp(&pa, t);
         c.go(4);
         assert_eq!((cold.get("On"), hot.get("On")), want, "{t}C (bands hold inside)");
+        for h in &heaters {
+            assert_eq!(h.get("On"), want.0, "{t}C: pipe heaters follow the cold valve");
+        }
     }
     for (kpa, want, why) in [
         (5000.0, 1.0, "fills"),
@@ -227,6 +232,32 @@ fn pipe_sort_hot_cold_with_pump() {
     pa.set("Error", 1.0);
     c.go(4);
     assert_eq!((pump.get("On"), c.status()), (0.0, 9.0), "analyzer error stops the pump");
+    pa.set("Error", 0.0);
+    temp(&pa, 15.0);
+    c.go(4);
+    assert_eq!(heaters[0].get("On"), 1.0, "cold gas heats again");
+    pa.set("Error", 1.0);
+    c.go(4);
+    assert_eq!(heaters[0].get("On"), 0.0, "analyzer error turns the pipe heaters off");
+}
+
+fn pipe_heater() -> Shared<Device> {
+    share(Device::new(&[("On", 0.0)]).prefab("StructurePipeHeater"))
+}
+
+#[test]
+fn pipe_sort_hot_cold_with_pump_runs_without_a_pump() {
+    let pa = analyzer(15.0, 5000.0, &[]);
+    let (cold, hot) = (switchable(&[]), switchable(&[]));
+    let mut c = chip("pipe_sort_hot_cold_with_pump", &[("d0", &pa), ("d1", &hot), ("d2", &cold)]);
+    c.go(4);
+    assert_eq!((cold.get("On"), c.status()), (1.0, 1.0), "valves work with d3 empty");
+    temp(&pa, 42.0);
+    c.go(4);
+    assert_eq!((hot.get("On"), c.status()), (1.0, 2.0), "hot path, no pump bit");
+    pa.set("Error", 1.0);
+    c.go(4);
+    assert_eq!((c.halted.is_none(), c.status()), (true, 9.0), "analyzer error, no halt");
 }
 
 // ------------------------------------------------------------------ pressure and air
@@ -242,6 +273,10 @@ fn room_vents_hold_pressure() {
         (v.get("On"), v.get("Mode"), v.get("Setting"))
     };
     assert_eq!(at(80.0), (1.0, 0.0, 120.0), "low: blow in");
+    for _ in 0..8 {
+        at(100.0); // 64 ticks (32 s) still filling
+    }
+    assert_eq!(v.writes_of("Mode").len(), 1, "a running vent is set once, not re-sent");
     assert_eq!(at(120.0).0, 0.0);
     assert_eq!(at(130.0), (1.0, 1.0, 90.0), "high: pull out");
     assert_eq!(at(90.0).0, 0.0);
@@ -571,13 +606,15 @@ fn vending_export_gives_up_when_the_item_never_arrives() {
 
 // ------------------------------------------------------------------------- solar
 
-const PANELS: [&str; 6] = [
-    "StructureSolarPanel",
-    "StructureSolarPanelReinforced",
-    "StructureSolarPanelDual",
-    "StructureSolarPanelDualReinforced",
-    "StructureSolarPanel1x5",
-    "StructureSolarPanel1x5Reinforced",
+/// (prefab hash, half turn added because the type is built flipped)
+const PANELS: [(f64, f64); 6] = [
+    (-2045627372.0, 0.0), // StructureSolarPanel
+    (-934345724.0, 0.0),  // StructureSolarPanelReinforced (Heavy)
+    (-539224550.0, 0.0),  // StructureSolarPanelDual
+    (-1545574413.0, 0.0), // StructureSolarPanelDualReinforced (Heavy Dual)
+    (939649277.0, 180.0), // StructureSolarPanel1x5 (moves in-game, user)
+    // Heavy 1x5: PrefabHash read in-game by the user; prefab name unknown.
+    (-2049226859.0, 180.0),
 ];
 
 /// A sensor plus one panel of every type in every direction group, and one panel with
@@ -590,18 +627,20 @@ fn solar(h: f64, v: f64) -> SolarRig {
         Device::new(&[("Horizontal", h), ("Vertical", v), ("On", 1.0), ("Mode", 0.0)])
             .prefab("StructureDaylightSensor"),
     );
-    let panel = |prefab: &str, name: &str| {
-        share(Device::new(&[("Horizontal", 0.0), ("Vertical", 0.0)]).prefab(prefab).named(name))
+    let panel = |prefab: f64, name: &str| {
+        share(
+            Device::new(&[("Horizontal", 0.0), ("Vertical", 0.0), ("PrefabHash", prefab)])
+                .named(name),
+        )
     };
     let mut panels = vec![];
-    for prefab in PANELS {
-        // 1x5 panels are built flipped: one named 0 has its data port at 180 (user, in-game).
-        let flip = if prefab.contains("1x5") { 180.0 } else { 0.0 };
+    // 1x5 panels are built flipped: one named 0 has its data port at 180 (user, in-game).
+    for (prefab, flip) in PANELS {
         for name in [0.0, 90.0, 180.0, 270.0] {
             panels.push(((name + flip) % 360.0, panel(prefab, &format!("{name}"))));
         }
     }
-    let stray = panel("StructureSolarPanel", "45");
+    let stray = panel(PANELS[0].0, "45");
     let chip =
         panels.iter().fold(chip("solar_panels_track_sun", &[("d0", &sensor)]), |c, p| c.net(&p.1));
     (chip.net(&stray), sensor, panels, stray)
@@ -690,4 +729,58 @@ fn solar_panels_track_sun_rejects_a_wrong_sensor_and_turns_the_sensor_on() {
     assert_eq!(c.status(), 9.0, "wrong device on d0");
     assert_eq!(panels[0].1.writes_of("Horizontal").len(), sent, "panels left alone");
     assert_eq!(Chip::new(script("solar_panels_track_sun")).go(3).status(), 9.0, "no sensor");
+}
+
+// ------------------------------------------------------------------------- lights
+
+#[test]
+fn lights_on_when_dark() {
+    let sensor = share(
+        Device::new(&[("Horizontal", 0.0), ("Vertical", 30.0), ("On", 0.0)])
+            .prefab("StructureDaylightSensor"),
+    );
+    let light = |prefab: &str, on: f64| share(Device::new(&[("On", on)]).prefab(prefab));
+    let lights: Vec<_> = [
+        "StructureWallLight",
+        "StructureWallLightBattery",
+        "StructureLightLong",
+        "StructureLightLongAngled",
+        "StructureLightLongWide",
+        "StructureLightRound",
+        "StructureLightRoundAngled",
+        "StructureLightRoundSmall",
+    ]
+    .iter()
+    .map(|p| light(p, 1.0))
+    .collect();
+    let grow = light("StructureGrowLight", 1.0);
+    let mut c =
+        lights.iter().fold(chip("lights_on_when_dark", &[("d0", &sensor)]), |c, l| c.net(l));
+    c = c.net(&grow);
+    let on = |ls: &[Shared<Device>]| ls.iter().map(|l| l.get("On")).collect::<Vec<_>>();
+    c.go(4);
+    assert_eq!(sensor.get("On"), 1.0, "switched the sensor on");
+    assert_eq!((c.status(), on(&lights)), (0.0, vec![0.0; 8]), "day: every light type off");
+    assert_eq!(grow.get("On"), 1.0, "other devices are left alone");
+    for (vertical, want, why) in [
+        (83.0, 0.0, "7 deg up: inside the band, stays off"),
+        (86.0, 1.0, "4 deg up: dark, lights on"),
+        (120.0, 1.0, "night"),
+        (82.0, 1.0, "8 deg up at dawn: inside the band, stays on"),
+        (79.0, 0.0, "11 deg up: day, lights off"),
+    ] {
+        sensor.set("Vertical", vertical);
+        c.go(4);
+        assert_eq!((c.status(), on(&lights)), (want, vec![want; 8]), "{why}");
+    }
+    let sent = lights[0].writes_of("On").len();
+    c.go(20);
+    assert_eq!(lights[0].writes_of("On").len(), sent, "no rewrite while nothing changes");
+    lights[3].set("On", 1.0);
+    c.go(2);
+    assert_eq!(lights[3].get("On"), 0.0, "a light switched on by hand in daytime goes off");
+    let wrong = share(Device::new(&[("Vertical", 120.0)]).prefab("StructureGasSensor"));
+    c.set_pin("d0", &wrong);
+    c.go(6);
+    assert_eq!((c.status(), lights[0].get("On")), (9.0, 0.0), "wrong device: lights hold");
 }

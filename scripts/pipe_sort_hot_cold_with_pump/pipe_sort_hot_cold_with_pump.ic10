@@ -1,12 +1,11 @@
 # pipe_sort_hot_cold_with_pump - route gas by temperature, pump holds pressure
-# d0=Pipe Analyzer  d1=Pipe Digital Valve (hot)  d2=Pipe Digital Valve (cold)
-# d3=Pipe Volume Pump
-# Cold valve: open below 20C, close above 24C. Hot valve: open above 40C,
-# close below 36C. Never both open. Pump ON below 9.75 MPa, OFF above 10.25 MPa.
-# Analyzer Error => pump OFF (valves hold).
+# d0=Pipe Analyzer d1=Digital Valve (hot) d2=Digital Valve (cold) d3=Volume Pump (opt.)
+# Cold valve open <20C, shut >24C. Hot valve open >40C, shut <36C. Never both open.
+# Every Pipe Heater on the network is ON while the cold valve is open.
+# Pump ON <9.75 MPa, OFF >10.25 MPa. Analyzer Error => pump+heaters OFF, valves hold.
 # db Setting: cold + 2*hot + 4*pump, 9=fault/device missing
 
-alias pipe d0
+alias analyzer d0
 alias hot d1
 alias cold d2
 alias pump d3
@@ -24,26 +23,25 @@ define HOT_CLOSE_BELOW_C 36
 define TARGET_KPA 10000
 define BAND_KPA 250
 define PUMP_SETTING_L 1
+define HEATER -419758574
 
 wait:
 s db Setting 9
 yield
-bdns pipe wait
+bdns analyzer wait
 bdns hot wait
 bdns cold wait
-bdns pump wait
 
 main:
 yield
-bdns pipe wait
+bdns analyzer wait
 bdns hot wait
 bdns cold wait
-bdns pump wait
-l cur pipe Error
+l cur analyzer Error
 bnez cur fault
-l tc pipe Temperature
+l tc analyzer Temperature
 sub tc tc 273.15
-l kpa pipe Pressure
+l kpa analyzer Pressure
 l wc cold On
 l wh hot On
 slt cur tc COLD_OPEN_BELOW_C
@@ -64,6 +62,12 @@ l cur hot On
 beq cur wh hot_ok
 s hot On wh
 hot_ok:
+lb cur HEATER On Average
+beq cur wc heat_ok
+sb HEATER On wc
+heat_ok:
+move wp 0
+bdns pump report
 l wp pump On
 sub cur TARGET_KPA BAND_KPA
 slt cur kpa cur
@@ -76,6 +80,7 @@ beq cur PUMP_SETTING_L pump_set
 s pump Setting PUMP_SETTING_L
 pump_set:
 jal set_pump
+report:
 mul cur wh 2
 add cur cur wc
 mul wp wp 4
@@ -84,9 +89,14 @@ s db Setting cur
 j main
 
 fault:
+s db Setting 9
+lb cur HEATER On Maximum
+blez cur heat_off
+sb HEATER On 0
+heat_off:
+bdns pump main
 move wp 0
 jal set_pump
-s db Setting 9
 j main
 
 set_pump:

@@ -194,7 +194,8 @@ needs an in-game re-test; the column says what to look at first.
 
 ## 10. In-game test list (priority order)
 
-1. `pipe_sort_hot_cold_with_pump`: pump stops above ~10.25 MPa and restarts below 9.75 MPa.
+1. `pipe_sort_hot_cold_with_pump`: pump stops above ~10.25 MPa and restarts below 9.75 MPa. Since 2026-11-21
+   Pipe Heaters follow the cold valve and the pump on `d3` is optional: check both.
 2. `autolathe_restock_vending`: empty one stocked item; the right recipe is set before
    printing (machine `120` → `121`/`122`, prep `154` → `155`); the feeder fetches one
    ingot stack at a time (S2).
@@ -312,10 +313,25 @@ replaced by `scripts/solar_panels_track_sun/`:
 Simulated: four scenarios in `tests/standalone.rs`. Six single-line mutations of the
 script each turn at least one of them red.
 
+Confirmed in-game (user, 2026-11-21): 1x5 and Heavy 1x5 panels track the sun. The
+Heavy 1x5 hash is -2049226859, read from `PrefabHash`; the guessed name
+`StructureSolarPanel1x5Reinforced` (1945473703) matched nothing, and the real prefab
+name is still unknown.
+
 In-game checks needed:
 
 - **Facing at midday:** every type faces the sun. Dual panels may need their name
   shifted one group, because the data-port position on Dual is unconfirmed.
-- **1x5 hashes:** confirm the hashes, which are guesses (`StructureSolarPanel1x5`,
-  `StructureSolarPanel1x5Reinforced`).
 - **Night:** at night, panels follow the sun below the horizon and face sunrise at dawn.
+
+## 16. Lights on when dark (2026-11-22)
+
+New script `scripts/lights_on_when_dark/`: one Daylight Sensor switches every light on
+the network by type (on below 5° of sun height, off above 10°). Simulated: one scenario
+in `tests/standalone.rs`; six single-line mutations each turn it red.
+
+In-game checks needed:
+
+- **Light hashes:** the eight light prefab names are not in the catalog and unconfirmed.
+  Only types whose hash is right will switch; read `PrefabHash` for any that don't.
+- **Timing:** lights come on at dusk and go off after sunrise.

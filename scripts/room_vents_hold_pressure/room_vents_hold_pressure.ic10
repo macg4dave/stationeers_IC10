@@ -2,16 +2,14 @@
 # d0=Gas Sensor (room). Active Vents named exactly ROOM_VENT on the network.
 # Below 90 kPa: vents blow in (Outward, stop at 120 kPa) until 120 kPa.
 # Above 120 kPa: vents pull out (Inward, stop at 90 kPa) until 90 kPa.
-# Between: vents OFF. Re-applies the running state every ~6 s.
+# Between: vents OFF. Vents are set once, when the state changes.
 # db Setting: 0=idle 1=filling 2=exhausting 9=sensor missing
 
 alias sensor d0
 alias kpa r0
 alias state r1
-alias ticks r2
-alias cur r3
-alias mode r4
-alias set r5
+alias mode r2
+alias set r3
 
 define LOW_KPA 90
 define HIGH_KPA 120
@@ -19,7 +17,6 @@ define VENT_HASH -1129453144
 define VENT_NAME HASH("ROOM_VENT")
 define MODE_OUTWARD 0
 define MODE_INWARD 1
-define REAPPLY_TICKS 12
 
 wait:
 s db Setting 9
@@ -41,14 +38,10 @@ j main
 
 filling:
 bge kpa HIGH_KPA stop
-j hold
+j main
 exhausting:
 ble kpa LOW_KPA stop
-hold:
-s db Setting state
-sub ticks ticks 1
-bgtz ticks main
-beq state 2 exhaust
+j main
 
 fill:
 move state 1
@@ -60,7 +53,6 @@ move state 2
 move mode MODE_INWARD
 move set LOW_KPA
 run:
-move ticks REAPPLY_TICKS
 s db Setting state
 sbn VENT_HASH VENT_NAME Lock 0
 sbn VENT_HASH VENT_NAME Mode mode

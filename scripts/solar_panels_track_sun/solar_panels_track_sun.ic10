@@ -1,6 +1,6 @@
 # solar_panels_track_sun - aims every movable solar panel at the sun
 # d0=Daylight Sensor. Name each panel 0, 90, 180 or 270: the way its data port faces.
-# Types: Solar Panel, Heavy, Dual, Heavy Dual, 1x5, Heavy 1x5 (1x5 hashes unconfirmed).
+# Types: Solar Panel, Heavy, Dual, Heavy Dual, 1x5, Heavy 1x5.
 # 1x5 panels are built flipped: their names mean the opposite way (0 = port at 180).
 # At night panels keep following the sun below the horizon, so they face sunrise.
 # db Setting: 1=day 2=night 9=Daylight Sensor missing or wrong device on d0
@@ -25,7 +25,7 @@ define P_HEAVY -934345724
 define P_DUAL -539224550
 define P_HDUAL -1545574413
 define P_1X5 939649277
-define P_H1X5 1945473703
+define P_H1X5 -2049226859
 
 wait:
 s db Setting 9

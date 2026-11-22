@@ -23,13 +23,14 @@ Solar panels are not pins. They are found on the data network by type and exact 
 | Solar Panel (Heavy) | `StructureSolarPanelReinforced` | `-934345724` |
 | Solar Panel (Dual) | `StructureSolarPanelDual` | `-539224550` |
 | Solar Panel (Heavy Dual) | `StructureSolarPanelDualReinforced` | `-1545574413` |
-| Solar Panel 1x5 | `StructureSolarPanel1x5` **(guess)** | `939649277` |
-| Solar Panel 1x5 (Heavy) | `StructureSolarPanel1x5Reinforced` **(guess)** | `1945473703` |
+| Solar Panel 1x5 | `StructureSolarPanel1x5` | `939649277` |
+| Solar Panel 1x5 (Heavy) | unknown | `-2049226859` |
 
-The first four come from the game's prefab data. The 1x5 names are guesses that follow
-the game's naming. If your 1x5 panels don't move, read their real hash (see
-[Setup](#setup)) and replace `P_1X5` / `P_H1X5`. A wrong guess is harmless: those lines
-then match nothing.
+The first four come from the game's prefab data. The 1x5 hash follows the game's
+naming and the panels move in-game. The Heavy 1x5 hash was read in-game from the
+panel's `PrefabHash` (its prefab name is not known), and those panels track the sun
+in-game. If a panel type doesn't move, read its real hash (see [Setup](#setup)) and
+replace its `P_*` define.
 
 Angled and Flat panels are not included: they are built in a fixed pose.
 
@@ -101,7 +102,7 @@ Edit the `define` lines at the top of `solar_panels_track_sun.ic10`.
      elsewhere on the panel. Rename those panels to the next number round (`0` → `90`
      → `180` → `270`) until they line up. No code change is needed.
 
-To read a panel's real hash (for the 1x5), put the panel on `d0` of a spare chip and run
+To read a panel's real hash, put the panel on `d0` of a spare chip and run
 `l r0 d0 PrefabHash` then `s db Setting r0`. The housing shows the number.
 
 ## Notes
@@ -128,8 +129,13 @@ To read a panel's real hash (for the 1x5), put the panel on `d0` of a spare chip
   checks the sensor every loop, and keeps the panel naming.
 - 2026-11-21: 1x5 and Heavy 1x5 panels are flipped in-game (name `0` = data port at
   180), so their `Horizontal` is turned 180°.
+- 2026-11-21: Heavy 1x5 panels did not move: the guessed hash (`1945473703`, from
+  `StructureSolarPanel1x5Reinforced`) matched nothing. `P_H1X5` is now `-2049226859`,
+  the `PrefabHash` the user read in-game. Confirmed in-game: Heavy 1x5 panels now
+  track the sun.
 
 ## Status
 
 Functional (author's label; the maths matches the old Functional script).
-This version has been simulated, not yet run in-game.
+Run in-game by the user (2026-11-21): 1x5 and Heavy 1x5 panels track the sun. Other
+types and the night behaviour of this version are simulated only.

@@ -1,0 +1,71 @@
+# lights_on_when_dark - every light on the network turns on when it gets dark
+# d0=Daylight Sensor (flat, facing up). Lights are found by type: no pins, no names.
+# ON when the sun is under 5 deg above the horizon, OFF once it is over 10 deg.
+# Sensor missing or wrong device on d0 => lights left as they are.
+# db Setting: 0=day (lights off) 1=dark (lights on) 9=Daylight Sensor missing
+
+alias sensor d0
+alias up r0
+alias want r1
+alias t r2
+alias cur r3
+
+define ON_BELOW 5
+define OFF_ABOVE 10
+define SENSOR_HASH 1076425094
+define L_WALL -1860064656
+define L_WALLBAT -1306415132
+define L_LONG 797794350
+define L_LONGANG 1847265835
+define L_LONGWIDE 555215790
+define L_ROUND 1514476632
+define L_ROUNDANG 1592905386
+define L_ROUNDSM 1436121888
+
+wait:
+s db Setting 9
+yield
+bdns sensor wait
+l t sensor PrefabHash
+bne t SENSOR_HASH wait
+
+main:
+yield
+bdns sensor wait
+l t sensor PrefabHash
+bne t SENSOR_HASH wait
+l t sensor On
+bnez t powered
+s sensor On 1
+powered:
+l up sensor Vertical
+sub up 90 up
+slt t up ON_BELOW
+select want t 1 want
+sgt t up OFF_ABOVE
+select want t 0 want
+s db Setting want
+move t L_WALL
+jal set
+move t L_WALLBAT
+jal set
+move t L_LONG
+jal set
+move t L_LONGANG
+jal set
+move t L_LONGWIDE
+jal set
+move t L_ROUND
+jal set
+move t L_ROUNDANG
+jal set
+move t L_ROUNDSM
+jal set
+j main
+
+set:
+lb cur t On Average
+beq cur want set_ok
+sb t On want
+set_ok:
+j ra

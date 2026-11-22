@@ -11,9 +11,13 @@ accept `Horizontal`/`Vertical` writes. Only these rotate, though:
 - Solar Panel (Heavy) `StructureSolarPanelReinforced` (-934345724)
 - Solar Panel (Dual) `StructureSolarPanelDual` (-539224550)
 - Solar Panel (Heavy Dual) `StructureSolarPanelDualReinforced` (-1545574413)
-- 1x5 panels: newer than that data. Their names and hashes are not confirmed; read
-  `PrefabHash` in-game. They are built flipped: their data port sits opposite a
-  normal panel's, so `Horizontal` needs an extra 180°.
+- 1x5 panels: newer than that data, both confirmed in-game (2026-11-21):
+  - Solar Panel 1x5 `StructureSolarPanel1x5` (939649277)
+  - Solar Panel 1x5 (Heavy), prefab name unknown (-2049226859, `PrefabHash` read
+    in-game; `StructureSolarPanel1x5Reinforced` is wrong)
+
+  Both are built flipped (confirmed in-game): their data port sits opposite a normal
+  panel's, so `Horizontal` needs an extra 180°.
 
 Angled (`StructureSolarPanel45*`) and Flat (`StructureSolarPanelFlat*`) panels are
 built in a fixed pose.
