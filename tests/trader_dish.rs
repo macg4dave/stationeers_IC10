@@ -115,7 +115,7 @@ fn run(dish: &Shared<FakeDish>, dial: Option<f64>, lever: Option<f64>, ticks: u6
 fn finds_locks_interrogates_and_calls_down() {
     for (h, v) in [(200.0, 50.0), (10.0, 80.0), (300.0, 5.0), (95.0, 33.0)] {
         let dish = FakeDish::new(h, v, 3.0);
-        run(&dish, Some(0.0), Some(1.0), 3000);
+        run(&dish, Some(0.0), None, 3000);
         let d = dish.borrow();
         assert_eq!(d.progress, 1.0, "({h}, {v}): interrogation completed");
         assert!(d.called, "({h}, {v}): trader called down");
@@ -124,16 +124,20 @@ fn finds_locks_interrogates_and_calls_down() {
 }
 
 #[test]
-fn lever_off_interrogates_but_does_not_call() {
-    let dish = FakeDish::new(200.0, 50.0, 3.0);
-    run(&dish, Some(0.0), Some(0.0), 3000);
-    assert_eq!((dish.borrow().progress, dish.borrow().called), (1.0, false));
+fn lever_on_stops_the_call_down() {
+    for (lever, call) in [(None, true), (Some(0.0), true), (Some(1.0), false)] {
+        let dish = FakeDish::new(200.0, 50.0, 3.0);
+        run(&dish, Some(0.0), lever, 3000);
+        let d = dish.borrow();
+        assert_eq!(d.progress, 1.0, "lever {lever:?}: interrogation completed");
+        assert_eq!(d.called, call, "lever {lever:?}: auto-land unless the lever is on");
+    }
 }
 
 #[test]
 fn dial_filters_the_trader_type() {
     let dish = FakeDish::new(200.0, 50.0, 3.0);
-    run(&dish, Some(5.0), Some(1.0), 1500);
+    run(&dish, Some(5.0), None, 1500);
     let d = dish.borrow();
     assert!(!d.dev.writes_of("BestContactFilter").contains(&777.0));
     assert!(!(d.interrogating || d.called));
@@ -142,7 +146,7 @@ fn dial_filters_the_trader_type() {
 #[test]
 fn the_same_trader_is_not_interrogated_twice() {
     let dish = FakeDish::new(200.0, 50.0, 3.0);
-    let c = run(&dish, Some(0.0), Some(1.0), 6000);
+    let c = run(&dish, Some(0.0), None, 6000);
     let presses = dish.writes_of("Activate").iter().filter(|&&v| v == 1.0).count();
     assert_eq!(presses, 2, "one interrogate + one call");
     assert_eq!((c.status() / 100.0).floor(), 1.0, "back to scanning");

@@ -86,7 +86,7 @@ instruction, LogicType, Mode value or device capability.
 - Start from `scripts/_template/` (or `modular scripts/_template/`) and follow
   `docs/ic10_script_checklist.md`.
 - Paste limits: **128 lines, 90 chars/line, 4096 bytes**, comments included. Keep
-  aliases short. Compressing code to fit is fine if behaviour is unchanged.
+  aliases short (see "Names"). Compressing code to fit is fine if behaviour is unchanged.
 - Actuators: read before write (`l cur dev On` → write only on change).
 - Thresholds: add hysteresis unless the README says why not.
 - House style for single-chip scripts (all of `scripts/` follows it): a 2–6 line
@@ -100,6 +100,36 @@ instruction, LogicType, Mode value or device capability.
 - Add a scenario to `tests/` and a row to `scripts/README.md`.
 - Solar panels in this repo use only the four cardinal headings `0/90/180/270` unless
   the user asks otherwise.
+
+## Names: aliases, defines, labels
+
+The IC Housing labels a pin only after the script runs `alias <name> dN`. A script
+without aliases shows bare, unlabelled pins in-game, so every script aliases its pins.
+
+- **Pins:** one `alias <name> dN` per used pin, straight after the header, in pin
+  order. Mark optional pins with a trailing comment (`alias led d3  # optional, ...`).
+  After the alias, use the name everywhere, `bdns` included, never the raw `dN`.
+  Never alias `db`.
+- **Pin names** say what the device does in this script, in short lower case:
+  `dish`, `vent`, `heater`, `sensor`, `lever`, `led`. Use the role, not the prefab
+  (`dish`, not `large_dish`). For two of a kind, name each by its role (`hot`/`cold`,
+  `in`/`out`). Use `_a`/`_b` only when the roles are the same, and digits only for
+  indexed slots (`slot0`). Modular systems name inter-chip links after what is on the
+  other end (`worker_a`, `cmd_slot`) and alias unused pins `n0..n5`.
+- **Registers:** alias the ones that keep a meaning across the loop, in lower case:
+  `cur`/`want` for read-before-write, quantities with their unit (`kpa`, `tc` for °C),
+  `state`, `ticks`. Short-lived scratch values may stay raw `rN`. When the line limit
+  leaves no room, raw registers are fine.
+- **`define`** names are `UPPER_SNAKE` with their unit where it helps (`SCAN_W`,
+  `MAX_KPA`). **Labels** are lower-case `snake_case` verbs or states (`wait`, `scan`,
+  `lock`, `set_on`).
+- A name must not be an instruction (`move`, `select`), a register or pin (`r0`, `sp`,
+  `ra`, `d0`, `db`), or another alias/define/label in the same script. LogicTypes are
+  PascalCase, so lower-case names never clash with them.
+- The README pin table has a `Name` column: `| Pin | Name | Device |`.
+- In a shipped script, do not rename existing aliases to fit this convention: players
+  know their pins by those labels. A script that has no aliases gets them, keeping the
+  same pin numbers.
 
 ## Modular systems
 

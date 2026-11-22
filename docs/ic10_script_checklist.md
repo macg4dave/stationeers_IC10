@@ -12,12 +12,14 @@ modular chips). Background and the reasons behind each rule: `AGENTS.md`.
 
 Script name, `Category | Status`, purpose in 1–3 lines, the `d0..d5`/`db` map, and any
 note that prevents a common failure (units, required in-game settings).
+Then one `alias <name> dN` per used pin, so the IC Housing labels it (naming rules:
+`AGENTS.md`, "Names"). Use the alias names in the code, not `dN`.
 
 ## 3. Device guards
 
-- Wait loop: `yield` then `bdns dN wait` for every required pin.
+- Wait loop: `yield` then `bdns <alias> wait` for every required pin.
 - In the main loop, guard pins before critical `l` reads if a device can be removed or
-  lose power while the chip runs (`bdns d0 wait` at the top of `main`).
+  lose power while the chip runs (`bdns sensor wait` at the top of `main`).
 - Reading an unset pin halts the chip in-game.
 
 ## 4. Units

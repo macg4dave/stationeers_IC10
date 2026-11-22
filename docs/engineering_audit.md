@@ -201,7 +201,8 @@ needs an in-game re-test; the column says what to look at first.
    ingot stack at a time (S2).
 3. `farm_potato_grower`: Grow Light follows the light window; Harvie plants and harvests.
 4. `trader_dish_auto_land`: LED shows degrees falling to ≤ 2 while locking; interrogation
-   completes; lever on calls the trader down (assumptions listed in its README).
+   completes; with no lever (or lever off) the trader is called down; lever on stops it
+   (assumptions listed in its README).
 5. `suit_helmet_auto_open`: opens in safe air; stays closed after you close it.
 6. `vending_export_exact_count`: a normal export is still exact; an absent item gives
    status `2` after ~20 s instead of hanging.
