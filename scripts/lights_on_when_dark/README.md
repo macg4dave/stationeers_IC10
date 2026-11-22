@@ -8,7 +8,7 @@ found by type, so you never wire them to pins or rename them.
 
 | Pin | Device |
 | --- | --- |
-| `d0` | Daylight Sensor, **flat, facing up** |
+| `d0` | Daylight Sensor, **flat, facing up** (or on a wall with `WALL 1`) |
 
 The sensor can be the one your clock or solar tracker already uses: point this chip's
 `d0` at it.
@@ -57,10 +57,33 @@ Edit the `define` lines at the top of `lights_on_when_dark.ic10`.
 | `OFF_AT` | `630` | Lights off at this sun time, as HHMM (`630` = 06:30) |
 | `RISE_DEG` | `0` | Sensor `Horizontal` at sunrise. **Same value as in the clock** |
 | `SHIFT_MIN` | `0` | Moves the sun time by whole minutes. **Same value as in the clock** |
+| `WALL` | `0` | `1` = the sensor is on a wall (a guess, see [Wall sensor](#wall-sensor)) |
+| `WALL_FACE` | `180` | Wall only: where the sensor faces, in degrees from the sunrise direction |
+| `WALL_TURN` | `0` | Wall only: turn for the sensor's `Horizontal` (`0`, `90`, `180`, `270`) |
 | `L_*` | see above | Light prefab hashes |
 
 With the same `RISE_DEG` and `SHIFT_MIN` in both scripts, the lights switch exactly when
 the clock shows `ON_AT` and `OFF_AT`.
+
+## Wall sensor
+
+`WALL 1` reads a Daylight Sensor mounted on a wall. **This is a guess**, checked against
+one pair of in-game readings only. The guess is that a wall sensor reports:
+
+- `Vertical` = the angle between the sun and the way the sensor faces;
+- `Horizontal + WALL_TURN` = the angle round that facing, from straight up.
+
+From that the script works out the same sun time as a flat sensor. `RISE_DEG` is not
+used with `WALL 1`; `WALL_FACE` takes its place.
+
+At sunrise on 2026-11-22 a flat sensor read H 4 / V 81 (06:39) and a wall sensor read
+H 22 / V 171. With `WALL_FACE 180` and `WALL_TURN 0` the wall reading gives 06:36, so
+those are the defaults.
+
+To check it: with the clock's optional wall input (`d2`, see `display_clock_from_sun`)
+the clock housing shows how far the wall guess is from the flat sensor. Near 0 all day
+means the guess holds. If the lights switch at the wrong times with `WALL 1`, try
+`WALL_TURN` `180`, then `WALL_FACE` `0`, and send the sensor readings if neither helps.
 
 ## Status (IC Housing `Setting`)
 
@@ -85,8 +108,7 @@ To read a light's real hash, put the light on `d0` of a spare chip and run
 
 - It goes by the sun's position, not by how bright it is. Storms and rooms with no
   windows are not detected.
-- A sensor on a wall reports different angles. The clock's optional `d2` input checks
-  a conversion for wall sensors; this script needs the sensor flat.
+- A sensor on a wall reports different angles: use `WALL 1` (a guess, see above).
 - Device notes: `docs/usage/daylight_sensor.md`
 
 ## Change history
@@ -99,6 +121,9 @@ To read a light's real hash, put the light on `d0` of a spare chip and run
   height (`ON_BELOW`/`OFF_ABOVE`), at the user's request once the clock worked in-game.
   `WALL`, `WALL_TURN` and `SHOW_HEIGHT` are removed: the wall check now lives in the
   clock (`d2`), and this script needs a flat sensor.
+- 2026-11-22: wall sensor support again, now for the sun time: `WALL 1` with
+  `WALL_FACE` (default 180) and `WALL_TURN` (default 0), from the in-game sunrise
+  readings. A guess until checked over a whole day.
 
 ## Status
 

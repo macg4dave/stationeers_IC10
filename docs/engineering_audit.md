@@ -340,6 +340,9 @@ In-game checks needed:
 - **Timing:** lights switch when the clock shows `ON_AT` / `OFF_AT`.
 - **Flat sensor at night:** whether `Vertical` goes above 90 after sunset is still
   unconfirmed. The clock and the lights both rely on it to tell 21:00 from 15:00.
+- **Wall sensor (`WALL 1`):** the conversion is a guess, fitted to one in-game sunrise
+  pair (flat H 4 V 81, wall H 22 V 171 → 06:39 vs 06:36). Check over a whole day with
+  the clock's `d2` input.
 
 ## 17. APC on high battery (2026-11-22)
 

@@ -968,3 +968,68 @@ fn power_apc_on_high_battery() {
     assert_eq!((apc.get("On"), c.status()), (0.0, 2.0), "no batteries: APC off");
     assert_eq!(Chip::new(script("power_apc_on_high_battery")).go(3).status(), 9.0, "no APC");
 }
+
+#[test]
+fn lights_on_when_dark_wall_sensor() {
+    // Guess under test in-game: a wall sensor facing WALL_FACE deg from the sunrise
+    // direction reads V = angle from its facing, H + WALL_TURN = angle round that facing
+    // from straight up. Checked once at sunrise (2026-11-22): flat H 4 V 81, wall H 22 V 171.
+    let path =
+        ic10_tools::repo::root().join("scripts/lights_on_when_dark/lights_on_when_dark.ic10");
+    let src = std::fs::read_to_string(path).expect("script is readable");
+    // Sun direction for sun time `hhmm` on a path tilted `tilt` deg:
+    // x toward sunrise, y sideways, z up.
+    let world = |hhmm: f64, tilt: f64| {
+        let mins = (hhmm / 100.0).floor() * 60.0 + hhmm % 100.0 + 0.5;
+        let (t, k) = (((mins - 360.0) / 4.0).to_radians(), tilt.to_radians());
+        (t.cos(), t.sin() * k.sin(), t.sin() * k.cos())
+    };
+    let wall_reading = |(x, y, z): (f64, f64, f64), face: f64, turn: f64| {
+        let f = face.to_radians();
+        let (along, side) = (x * f.cos() + y * f.sin(), -x * f.sin() + y * f.cos());
+        (side.atan2(z).to_degrees() - turn, along.acos().to_degrees())
+    };
+    let run = |edits: &[(&str, &str)], (h, v): (f64, f64)| {
+        let text = edits.iter().fold(src.clone(), |t, (from, to)| t.replace(from, to));
+        let sensor = share(
+            Device::new(&[("Horizontal", h), ("Vertical", v), ("On", 1.0)])
+                .prefab("StructureDaylightSensor"),
+        );
+        let lamp = share(Device::new(&[("On", 0.0)]).prefab("StructureWallLight"));
+        let mut c = Chip::new(parse(&text)).pin("d0", &sensor).net(&lamp);
+        c.go(4);
+        (c.status(), lamp.get("On"))
+    };
+    let wall = [("define WALL 0", "define WALL 1")];
+    // The in-game sunrise pair: 06:36 from the wall, 06:39 from the flat sensor.
+    let late_off = [("define WALL 0", "define WALL 1"), ("define OFF_AT 630", "define OFF_AT 635")];
+    assert_eq!(run(&late_off, (22.0, 171.0)), (0.0, 0.0), "wall sunrise reading is after 06:35");
+    let early_off =
+        [("define WALL 0", "define WALL 1"), ("define OFF_AT 630", "define OFF_AT 637")];
+    assert_eq!(run(&early_off, (22.0, 171.0)), (1.0, 1.0), "wall sunrise reading is before 06:37");
+    for (face, turn) in [(180.0, 0.0), (90.0, 0.0), (180.0, 90.0)] {
+        let set = [
+            ("define WALL 0", "define WALL 1"),
+            ("define WALL_FACE 180", &*format!("define WALL_FACE {face}")),
+            ("define WALL_TURN 0", &*format!("define WALL_TURN {turn}")),
+        ];
+        for tilt in [0.0, 20.0] {
+            for (hhmm, want) in [
+                (1200.0, 0.0),
+                (1759.0, 0.0),
+                (1801.0, 1.0),
+                (0.0, 1.0),
+                (629.0, 1.0),
+                (631.0, 0.0),
+            ] {
+                let reading = wall_reading(world(hhmm, tilt), face, turn);
+                assert_eq!(
+                    run(&set, reading).1,
+                    want,
+                    "face {face} turn {turn} tilt {tilt}: {hhmm}"
+                );
+            }
+        }
+    }
+    assert_eq!(run(&wall, wall_reading(world(1200.0, 0.0), 180.0, 0.0)), (0.0, 0.0), "noon");
+}

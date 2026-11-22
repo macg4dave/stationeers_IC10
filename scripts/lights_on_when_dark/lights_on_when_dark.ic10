@@ -1,8 +1,7 @@
 # lights_on_when_dark - every light on the network on from ON_AT to OFF_AT (sun time)
-# d0=Daylight Sensor, flat, facing up. Lights are found by type: no pins, no names.
-# Time as display_clock_from_sun (06:00 sunrise, 12:00 highest): keep RISE_DEG and
-# SHIFT_MIN equal in both scripts. ON_AT/OFF_AT are HHMM (1800 = 18:00).
-# Sensor missing or wrong device on d0 => lights left as they are.
+# d0=Daylight Sensor: flat facing up, or on a wall with WALL 1 (a guess, see README).
+# Lights are found by type. ON_AT/OFF_AT are HHMM (1800 = 18:00), in the sun time of
+# display_clock_from_sun (06:00 sunrise): keep RISE_DEG and SHIFT_MIN equal in both.
 # db Setting: 0=lights off 1=lights on 9=Daylight Sensor missing
 alias sensor d0
 alias deg r0
@@ -19,6 +18,9 @@ define ON_AT 1800
 define OFF_AT 630
 define RISE_DEG 0
 define SHIFT_MIN 0
+define WALL 0
+define WALL_FACE 180
+define WALL_TURN 0
 define SENSOR_HASH 1076425094
 define L_WALL -1860064656
 define L_WALLBAT -1306415132
@@ -28,19 +30,14 @@ define L_LONGWIDE 555215790
 define L_ROUND 1514476632
 define L_ROUNDANG 1592905386
 define L_ROUNDSM 1436121888
-
-move t ON_AT
-mod cur t 100
-sub on t cur
-div on on 100
-mul on on 60
-add on on cur
-move t OFF_AT
-mod cur t 100
-sub off t cur
-div off off 100
-mul off off 60
-add off off cur
+div on ON_AT 100
+floor on on
+mul on on -40
+add on on ON_AT
+div off OFF_AT 100
+floor off off
+mul off off -40
+add off off OFF_AT
 wait:
 s db Setting 9
 yield
@@ -56,6 +53,7 @@ l t sensor On
 bnez t powered
 s sensor On 1
 powered:
+bnez WALL wall
 l deg sensor Horizontal
 sub deg deg RISE_DEG
 mul deg deg deg2rad
@@ -64,10 +62,30 @@ l z sensor Vertical
 mul cur z deg2rad
 sin cur cur
 mul x x cur
+sub z 90 z
+j path
+wall:
+l deg sensor Horizontal
+add deg deg WALL_TURN
+mul deg deg deg2rad
+cos z deg
+sin y deg
+l cur sensor Vertical
+mul cur cur deg2rad
+sin x cur
+mul y y x
+cos x cur
+mul t WALL_FACE deg2rad
+cos cur t
+mul x x cur
+sin cur t
+mul y y cur
+sub x x y
+path:
 mul y x x
 sub y 1 y
 sqrt y y
-ble z 90 above
+bgez z above
 sub y 0 y
 above:
 atan2 deg y x
