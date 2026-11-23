@@ -10,11 +10,11 @@ reset:
 move r10 1
 jal show
 bdns dish reset
+s dish Activate 0  # stops any interrogation
 s dish BestContactFilter -1
 s dish Setting SCAN_W
 scan:
-add r0 r0 30
-brlt r0 360 3
+add r0 r0 30   # 30 x 20 steps: all 60 positions in 60 moves
 add r1 r1 20
 mod r1 r1 100
 jal probe
@@ -34,9 +34,9 @@ check:
 l r7 dish WattsReachingContact
 l r12 dish MinimumWattsToContact
 max r12 r12 1
-bge r7 r12 locked  # enough power on target
-ble r3 2 locked
-blt r4 0.5 locked
+bge r7 r12 interrogate  # enough power on target
+ble r3 2 interrogate
+blt r4 0.5 interrogate
 move r6 0
 try:
 move r0 r8
@@ -64,23 +64,15 @@ add r6 r6 1
 blt r6 4 try
 div r4 r4 2
 j check
-locked:
-move r10 3
-l r7 dish Activate
-bnez r7 interrogate
-s dish Activate 1
-move r13 1200  # give up after 600 s
 interrogate:
+s dish Activate 1  # held at 1 while interrogating
 jal show
-sub r13 r13 1
-blez r13 finish
 l r7 dish InterrogationProgress
-mul r12 r7 100
-add r12 r12 300
-s db Setting r12   # 3xx = progress %
+add r10 r7 3   # status 3xx = progress %
 bge r7 1 done
+l r12 dish SignalID
+bltz r12 reset  # trader gone (SignalStrength -1 = resolving)
 l r2 dish SignalStrength
-bltz r2 reset
 bgt r2 6 lock
 j interrogate
 done:
@@ -88,7 +80,11 @@ move r10 4
 brdns lever 3   # no lever = call down
 l r7 lever Open
 bnez r7 finish
+s dish Activate 0  # call down = a fresh 0-1-0 press
+yield
 s dish Activate 1
+yield
+s dish Activate 0
 move r10 5
 finish:
 move r11 r5
@@ -96,13 +92,12 @@ jal show
 sleep 5
 j reset
 probe:
-brgez r1 3
-mul r1 r1 -1
-add r0 r0 180
+max r1 r1 0
 mod r0 r0 360
 min r1 r1 90
 s dish Horizontal r0
 s dish Vertical r1
+move r14 18    # wait up to 9 s for the signal to resolve
 wait_idle:
 yield
 brdns skip 3
@@ -111,8 +106,12 @@ bnez r12 finish
 bdns dish wait_idle
 l r7 dish Idle
 beqz r7 wait_idle
-sleep 1
 l r2 dish SignalStrength
+bgez r2 show
+l r12 dish SignalID
+bltz r12 show    # nothing in view
+sub r14 r14 1
+bgtz r14 wait_idle  # contact seen, still resolving
 show:
 yield
 brdns skip 3

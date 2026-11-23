@@ -28,7 +28,7 @@ in `tests/standalone.rs` passes (simulated, not an in-game test).
 
 | Script | What it does | Targeting | Sim |
 | --- | --- | --- | --- |
-| `room_heater_hold_20c/` | Wall Heater on below 20 °C, off above 22 °C | Pins | yes |
+| `room_heater_hold_20c/` | Every Wall Heater on the network on below 20 °C, off above 22 °C | Prefab | yes |
 | `pipe_heater_hold_20c/` | Pipe Heater on below 20 °C, off above 22 °C | Pins | yes |
 | `air_conditioner_hold_25c/` | Air Conditioner kept on at a 25 °C target (chip in the AC) | db | yes |
 | `room_cooler_and_steam_vent/` | Wall Cooler above 30 °C; Active Vent runs while there is no steam | Pins | yes |

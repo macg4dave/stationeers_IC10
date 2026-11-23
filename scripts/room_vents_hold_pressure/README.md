@@ -14,9 +14,9 @@ Uses **Active Vents named `ROOM_VENT`** to keep a room between 90 and 120 kPa: b
 
 ## What it does
 
-- Below 90 kPa: vents Outward (pipe → room) with a 120 kPa limit, until the room reaches 120 kPa.
-- Above 120 kPa: vents Inward (room → pipe) with a 90 kPa limit, until the room is down to 90 kPa.
-- In between: vents OFF.
+- Below 90 kPa: vents Outward (pipe → room) with a 105 kPa limit, until the room reaches 105 kPa.
+- Above 120 kPa: vents Inward (room → pipe) with a 110 kPa limit, until the room is down to 110 kPa.
+- Otherwise: vents OFF. Between 90 and 120 kPa nothing starts.
 - Sets the vents once when the state changes (Mode, then a tick later Setting, Open, On,
   Lock). A vent added or renamed while they run joins at the next change.
 - Every pin is also checked inside the main loop: unplug a device and the chip waits instead of halting.
@@ -29,6 +29,8 @@ Edit the `define` lines at the top of `room_vents_hold_pressure.ic10`.
 | --- | --- | --- |
 | `LOW_KPA` | `90` | Start filling below (kPa) |
 | `HIGH_KPA` | `120` | Start exhausting above (kPa) |
+| `FILL_KPA` | `105` | Filling stops here (kPa) |
+| `DRAIN_KPA` | `110` | Exhausting stops here (kPa) |
 
 ## Status (IC Housing `Setting`)
 
@@ -52,6 +54,8 @@ Edit the `define` lines at the top of `room_vents_hold_pressure.ic10`.
 
 ## Change history
 
+- 2026-11-22: filling now stops at 105 kPa and exhausting at 110 kPa (user request), not
+  at the opposite threshold (120 / 90). New `FILL_KPA` and `DRAIN_KPA` defines.
 - 2026-11-21: removed the re-send every ~6 s. It worked around an old game bug that the
   user says is gone. Vents ran slowly in-game; re-writing `Mode` on running vents is the
   suspected cause (not yet confirmed). Vents are now set once per state change.

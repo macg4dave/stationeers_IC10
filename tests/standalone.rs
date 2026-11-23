@@ -50,19 +50,26 @@ fn pipe_heater_hold_20c() {
 
 #[test]
 fn room_heater_hold_20c() {
-    let (s, h) = (gas_sensor(15.0, 100.0, &[]), switchable(&[]));
-    let mut c = chip("room_heater_hold_20c", &[("d0", &s), ("d1", &h)]);
+    let s = gas_sensor(15.0, 100.0, &[]);
+    let heater = |on: f64| share(Device::new(&[("On", on)]).prefab("StructureWallHeater"));
+    let (a, b, other) = (heater(0.0), heater(1.0), switchable(&[]));
+    let mut c = chip("room_heater_hold_20c", &[("d0", &s)]).net(&a).net(&b).net(&other);
+    let on = || [a.get("On"), b.get("On")];
     c.go(4);
-    assert_eq!(h.get("On"), 1.0);
+    assert_eq!(on(), [1.0, 1.0], "every Wall Heater on the network turns on");
     temp(&s, 21.0);
     c.go(4);
-    assert_eq!(h.get("On"), 1.0, "20..22C band holds");
+    assert_eq!(on(), [1.0, 1.0], "20..22C band holds");
     temp(&s, 23.0);
     c.go(4);
-    assert_eq!(h.get("On"), 0.0);
+    assert_eq!(on(), [0.0, 0.0], "every Wall Heater turns off");
+    a.set("On", 1.0);
+    c.go(4);
+    assert_eq!(on(), [0.0, 0.0], "a heater switched on by hand is turned back off");
     s.set("Temperature", 0.0);
     c.go(4);
-    assert_eq!((h.get("On"), c.status()), (0.0, 9.0), "no reading");
+    assert_eq!((on(), c.status()), ([0.0, 0.0], 9.0), "no reading");
+    assert!(other.writes_of("On").is_empty(), "other devices are left alone");
 }
 
 #[test]
@@ -272,14 +279,16 @@ fn room_vents_hold_pressure() {
         c.go(8);
         (v.get("On"), v.get("Mode"), v.get("Setting"))
     };
-    assert_eq!(at(80.0), (1.0, 0.0, 120.0), "low: blow in");
+    assert_eq!(at(80.0), (1.0, 0.0, 105.0), "low: blow in up to 105 kPa");
     for _ in 0..8 {
         at(100.0); // 64 ticks (32 s) still filling
     }
     assert_eq!(v.writes_of("Mode").len(), 1, "a running vent is set once, not re-sent");
-    assert_eq!(at(120.0).0, 0.0);
-    assert_eq!(at(130.0), (1.0, 1.0, 90.0), "high: pull out");
-    assert_eq!(at(90.0).0, 0.0);
+    assert_eq!(at(105.0).0, 0.0, "filling stops at 105 kPa");
+    assert_eq!(at(115.0).0, 0.0, "105..120 kPa stays idle");
+    assert_eq!(at(130.0), (1.0, 1.0, 110.0), "high: pull out down to 110 kPa");
+    assert_eq!(at(115.0).0, 1.0, "still exhausting above 110 kPa");
+    assert_eq!(at(110.0).0, 0.0, "exhausting stops at 110 kPa");
     assert_eq!(at(2500.0).0, 1.0, "a 2.5 MPa room is exhausted, never treated as low");
     assert_eq!(v.get("Mode"), 1.0);
 }

@@ -4,9 +4,11 @@
 //! is the angle in degrees between where the dish points and the contact (smaller
 //! is closer), -1 when nothing is visible. Vertical runs from the zenith (0) to the
 //! horizon (90). The dish turns 4° per tick, reads Idle 0 and SignalStrength -1 while it
-//! turns (wiki). WattsReachingContact falls off with the angle; interrogation needs it at
-//! MinimumWattsToContact. Activate while idle starts interrogation; Activate after
-//! InterrogationProgress reached 1 calls the trader down.
+//! turns (wiki). After it stops, SignalStrength stays -1 for `resolve` reads while SignalID
+//! already shows the contact (the working 2026 tracker waits up to 8.5 s for this). WattsReachingContact falls off with the angle; interrogation needs it at
+//! MinimumWattsToContact. Activate keeps the value written; only a 0 -> 1 change is a
+//! press (as the working 2026 scripts pulse it). A press starts interrogation, or calls
+//! the trader down once InterrogationProgress reached 1. Writing 0 stops interrogation.
 mod common;
 use common::*;
 
@@ -21,8 +23,11 @@ struct FakeDish {
     visible: f64,
     progress: f64,
     interrogating: bool,
-    called: bool,
+    starts: u32,
+    calls: u32,
     busy: f64,
+    resolve: f64,
+    settled: f64,
     started: Option<u64>,
     lock_at: Option<u64>,
 }
@@ -51,8 +56,11 @@ impl FakeDish {
             visible: 40.0,
             progress: 0.0,
             interrogating: false,
-            called: false,
+            starts: 0,
+            calls: 0,
             busy: 0.0,
+            resolve: 0.0,
+            settled: 0.0,
             started: None,
             lock_at: None,
         })
@@ -85,6 +93,10 @@ impl Logic for FakeDish {
                 Some(0.0)
             }
             "SignalStrength" if self.busy > 0.0 => Some(-1.0),
+            "SignalStrength" if seen && self.settled < self.resolve => {
+                self.settled += 1.0;
+                Some(-1.0)
+            }
             "SignalStrength" => Some(or_none(d)),
             "WattsReachingContact" => Some(self.dev.get("Setting") * (1.0 - d / 20.0).max(0.0)),
             "MinimumWattsToContact" => Some(MIN_W),
@@ -93,10 +105,6 @@ impl Logic for FakeDish {
             "InterrogationProgress" => {
                 if self.interrogating && self.read("WattsReachingContact") >= Some(MIN_W) {
                     self.progress = (self.progress + 0.1).min(1.0);
-                    if self.progress >= 1.0 {
-                        self.interrogating = false;
-                        self.dev.set("Activate", 0.0);
-                    }
                 }
                 Some(self.progress)
             }
@@ -107,19 +115,22 @@ impl Logic for FakeDish {
         if f == "Horizontal" || f == "Vertical" {
             let turn = (v - self.dev.get(f)).abs() % 360.0;
             self.busy += (turn.min(360.0 - turn) / 4.0).ceil();
+            self.settled = 0.0;
         }
         if f == "BestContactFilter" && v >= 0.0 && self.lock_at.is_none() {
             self.lock_at = Some(tick);
         }
+        let pressed = f == "Activate" && v == 1.0 && self.dev.get(f) == 0.0;
         let ok = self.dev.write_field(f, v, tick);
-        if f == "Activate" && v == 1.0 {
-            match self.progress >= 1.0 {
-                true => self.called = true,
-                false => {
-                    self.interrogating = true;
-                    self.started.get_or_insert(tick);
-                }
+        match (f, v) {
+            ("Activate", 0.0) => self.interrogating = false,
+            _ if pressed && self.progress >= 1.0 => self.calls += 1,
+            _ if pressed => {
+                self.interrogating = true;
+                self.starts += 1;
+                self.started.get_or_insert(tick);
             }
+            _ => {}
         }
         ok
     }
@@ -144,7 +155,7 @@ fn finds_locks_interrogates_and_calls_down() {
         run(&dish, None, 3000);
         let d = dish.borrow();
         assert_eq!(d.progress, 1.0, "({h}, {v}): interrogation completed");
-        assert!(d.called, "({h}, {v}): trader called down");
+        assert_eq!(d.calls, 1, "({h}, {v}): trader called down");
         assert!(d.dev.writes_of("BestContactFilter").contains(&777.0), "locked to the contact");
     }
 }
@@ -156,7 +167,7 @@ fn lever_on_stops_the_call_down() {
         run(&dish, lever, 3000);
         let d = dish.borrow();
         assert_eq!(d.progress, 1.0, "lever {lever:?}: interrogation completed");
-        assert_eq!(d.called, call, "lever {lever:?}: auto-land unless the lever is on");
+        assert_eq!(d.calls == 1, call, "lever {lever:?}: auto-land unless the lever is on");
     }
 }
 
@@ -176,9 +187,10 @@ fn skip_button_drops_the_trader_and_scans_on() {
             c.pins["d1"].borrow_mut().device_mut().set("Activate", v); // one-tick press
             c.go(ticks);
         }
-        let activate = dish.writes_of("Activate").iter().filter(|&&v| v == 1.0).count();
-        assert_eq!(activate, presses, "{phase}: skipped trader is not interrogated again");
-        assert!(!dish.borrow().called, "{phase}: skipped trader is not called down");
+        let d = dish.borrow();
+        assert_eq!(d.starts, presses, "{phase}: skipped trader is not interrogated again");
+        assert!(!d.interrogating, "{phase}: skip stops the interrogation");
+        assert_eq!(d.calls, 0, "{phase}: skipped trader is not called down");
         assert_eq!((c.status() / 100.0).floor(), 1.0, "{phase}: back to scanning");
     }
 }
@@ -187,8 +199,8 @@ fn skip_button_drops_the_trader_and_scans_on() {
 fn the_same_trader_is_not_interrogated_twice() {
     let dish = FakeDish::new(200.0, 50.0, 3.0);
     let c = run(&dish, None, 6000);
-    let presses = dish.writes_of("Activate").iter().filter(|&&v| v == 1.0).count();
-    assert_eq!(presses, 2, "one interrogate + one call");
+    let d = dish.borrow();
+    assert_eq!((d.starts, d.calls), (1, 1), "one interrogation, one call-down");
     assert_eq!((c.status() / 100.0).floor(), 1.0, "back to scanning");
 }
 
@@ -223,4 +235,15 @@ fn status_is_the_phase_and_shows_interrogation_progress() {
     assert!(bad.is_empty(), "status stays a phase code (100..900): {bad:?}");
     assert!(shown.iter().any(|s| (s - 350.0).abs() < 1e-6), "3xx shows progress %: {shown:?}");
     assert!(shown.contains(&500.0), "called down shows 500");
+}
+
+#[test]
+fn waits_for_a_slow_signal_to_resolve() {
+    // In-game a second trader was never found after the first landed; Medium and larger
+    // contacts take up to 8.5 s to resolve after the dish stops.
+    let dish = FakeDish::new(200.0, 50.0, 3.0);
+    dish.borrow_mut().resolve = 16.0; // 8 s
+    run(&dish, None, 6000);
+    let d = dish.borrow();
+    assert_eq!((d.starts, d.calls), (1, 1), "slow-resolving trader interrogated and called");
 }

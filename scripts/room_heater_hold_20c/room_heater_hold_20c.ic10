@@ -1,28 +1,26 @@
-# room_heater_hold_20c - Wall Heater keeps a room near 20C
-# d0=Gas Sensor (room)  d1=Wall Heater
-# Heater ON below 20C, OFF above 22C, holds in between.
-# db Setting: 0=heater off 1=heater on 9=device missing/no reading
+# room_heater_hold_20c - every Wall Heater on the network keeps a room near 20C
+# d0=Gas Sensor (room). Wall Heaters are found by type (d1 is no longer used).
+# Heaters ON below 20C, OFF above 22C, hold in between.
+# db Setting: 0=heaters off 1=heaters on 9=device missing/no reading
 
 alias sensor d0
-alias heater d1
 alias tc r0
 alias want r1
 alias cur r2
 
 define HEAT_ON_BELOW_C 20
 define HEAT_OFF_ABOVE_C 22
+define HEATER_HASH 24258244
 
 wait:
 s db Setting 9
 yield
 bdns sensor wait
-bdns heater wait
-l want heater On
+lb want HEATER_HASH On Maximum
 
 main:
 yield
 bdns sensor wait
-bdns heater wait
 l tc sensor Temperature
 blez tc fault
 sub tc tc 273.15
@@ -30,18 +28,19 @@ slt cur tc HEAT_ON_BELOW_C
 select want cur 1 want
 sgt cur tc HEAT_OFF_ABOVE_C
 select want cur 0 want
-l cur heater On
-beq cur want report
-s heater On want
-report:
+jal set
 s db Setting want
 j main
 
 fault:
 move want 0
-l cur heater On
-beqz cur fault_done
-s heater On 0
-fault_done:
+jal set
 s db Setting 9
 j main
+
+set:
+lb cur HEATER_HASH On Average
+beq cur want set_ok
+sb HEATER_HASH On want
+set_ok:
+j ra

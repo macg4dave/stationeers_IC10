@@ -1,7 +1,7 @@
 # room_vents_hold_pressure - Active Vents keep a room between 90 and 120 kPa
 # d0=Gas Sensor (room). Active Vents named exactly ROOM_VENT on the network.
-# Below 90 kPa: vents blow in (Outward, stop at 120 kPa) until 120 kPa.
-# Above 120 kPa: vents pull out (Inward, stop at 90 kPa) until 90 kPa.
+# Below 90 kPa: vents blow in (Outward, stop at 105 kPa) until 105 kPa.
+# Above 120 kPa: vents pull out (Inward, stop at 110 kPa) until 110 kPa.
 # Between: vents OFF. Vents are set once, when the state changes.
 # db Setting: 0=idle 1=filling 2=exhausting 9=sensor missing
 
@@ -13,6 +13,8 @@ alias set r3
 
 define LOW_KPA 90
 define HIGH_KPA 120
+define FILL_KPA 105
+define DRAIN_KPA 110
 define VENT_HASH -1129453144
 define VENT_NAME HASH("ROOM_VENT")
 define MODE_OUTWARD 0
@@ -37,21 +39,21 @@ sleep 1
 j main
 
 filling:
-bge kpa HIGH_KPA stop
+bge kpa FILL_KPA stop
 j main
 exhausting:
-ble kpa LOW_KPA stop
+ble kpa DRAIN_KPA stop
 j main
 
 fill:
 move state 1
 move mode MODE_OUTWARD
-move set HIGH_KPA
+move set FILL_KPA
 j run
 exhaust:
 move state 2
 move mode MODE_INWARD
-move set LOW_KPA
+move set DRAIN_KPA
 run:
 s db Setting state
 sbn VENT_HASH VENT_NAME Lock 0

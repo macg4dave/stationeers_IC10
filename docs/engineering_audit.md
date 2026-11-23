@@ -157,7 +157,7 @@ needs an in-game re-test; the column says what to look at first.
 
 | Script | Changes (audit + remake) | Static | Sim | Check first in-game |
 | --- | --- | --- | --- | --- |
-| room_heater_hold_20c | 20/22 °C band, no-reading → off | pass | pass | heater cycles once across 20–22 °C |
+| room_heater_hold_20c | 20/22 °C band, no-reading → off, all Wall Heaters by type | pass | pass | every heater on the network cycles once across 20–22 °C |
 | pipe_heater_hold_20c | 20/22 °C band, empty pipe → off | pass | pass | same |
 | air_conditioner_hold_25c | tidy only | pass | pass | AC holds 25 °C (S6) |
 | room_cooler_and_steam_vent | cooler 28/30 °C band, steam band | pass | pass | cooler and vent both switch |
