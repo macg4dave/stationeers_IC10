@@ -18,7 +18,7 @@ the data network is switched together, by type.
 
 ## What it does
 
-- Cold valve: open below 20 °C, close above 24 °C.
+- Cold valve: open below 18 °C, close above 20 °C.
 - Hot valve: open above 40 °C, close below 36 °C.
 - Never both open at once.
 - Pump ON below 9.75 MPa, OFF above 10.25 MPa; pump `Setting` kept at 1 L.
@@ -35,8 +35,8 @@ Edit the `define` lines at the top of `pipe_sort_hot_cold_with_pump.ic10`.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `COLD_OPEN_BELOW_C` | `20` |  |
-| `COLD_CLOSE_ABOVE_C` | `24` |  |
+| `COLD_OPEN_BELOW_C` | `18` | Cold valve and heaters on below (°C) |
+| `COLD_CLOSE_ABOVE_C` | `20` | Cold valve and heaters off above (°C) |
 | `HOT_OPEN_ABOVE_C` | `40` |  |
 | `HOT_CLOSE_BELOW_C` | `36` |  |
 | `TARGET_KPA` | `10000` | Pressure target (kPa) |
@@ -66,6 +66,10 @@ Edit the `define` lines at the top of `pipe_sort_hot_cold_with_pump.ic10`.
   on an analyzer error, so a broken reading cannot overheat the pipe.
 
 ## Change history
+
+- 2026-11-23: cold side now closes above 20 °C and reopens below 18 °C (was 24 / 20).
+  In-game, the cold valve and pipe heaters stayed on above 20 °C: the old band held
+  them open until 24 °C, which the heaters did not reach (owner's request).
 
 - 2026-11-21: Pipe Heaters on the network now turn on while the cold valve is open.
   Alias `pipe` renamed `analyzer`. Pins unchanged (`d1` hot, `d2` cold).

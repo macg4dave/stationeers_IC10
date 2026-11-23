@@ -240,7 +240,10 @@ fn pipe_sort_hot_cold_with_pump() {
     c = heaters.iter().fold(c, |c, h| c.net(h));
     for (t, want) in [
         (15.0, (1.0, 0.0)),
-        (22.0, (1.0, 0.0)),
+        (19.0, (1.0, 0.0)),
+        (21.0, (0.0, 0.0)), // in-game: valve and heaters stayed on above 20 C
+        (19.0, (0.0, 0.0)),
+        (17.0, (1.0, 0.0)),
         (25.0, (0.0, 0.0)),
         (42.0, (0.0, 1.0)),
         (38.0, (0.0, 1.0)),
@@ -572,10 +575,96 @@ fn power_generator_on_low_battery() {
     assert_eq!(gen_.get("On"), 0.0, "no batteries: fail-safe OFF");
 }
 
+/// Hardsuit and helmet in good air: 100 kPa, 21 kPa O2, a trace of CO2.
+fn suit_and_helmet() -> (Shared<Device>, Shared<Device>) {
+    let suit = dev(&[
+        ("TemperatureExternal", 20.0 + K),
+        ("PressureExternal", 100.0),
+        ("Pressure", 100.0),
+        ("AirRelease", 1.0),
+        ("Combustion", 0.0),
+    ]);
+    let helmet = dev(&[
+        ("Open", 0.0),
+        ("Lock", 0.0),
+        ("Pressure", 100.0),
+        ("RatioOxygen", 0.21),
+        ("RatioCarbonDioxide", 0.001),
+        ("RatioPollutant", 0.0),
+        ("Combustion", 0.0),
+    ]);
+    (suit, helmet)
+}
+
+#[test]
+fn suit_helmet_auto_open_closes_for_fire_and_bad_air() {
+    let (suit, helmet) = suit_and_helmet();
+    let mut c = Chip::new(script("suit_helmet_auto_open")).pin("d0", &helmet).pin("db", &suit);
+    c.go(4);
+    assert_eq!(helmet.get("Open"), 1.0, "good air: open");
+    for (dev, field, bad, good, why) in [
+        (&helmet, "RatioOxygen", 0.1, 0.21, "10 kPa O2 would suffocate"),
+        (&helmet, "RatioCarbonDioxide", 0.05, 0.001, "5 kPa CO2"),
+        (&helmet, "RatioPollutant", 0.01, 0.0, "1 kPa pollutant"),
+    ] {
+        dev.set(field, bad);
+        c.go(4);
+        assert_eq!(helmet.get("Open"), 0.0, "{why}: closed");
+        dev.set(field, good);
+        c.go(6);
+        assert_eq!(helmet.get("Open"), 0.0, "{why}: held closed, no open/close loop");
+        helmet.set("Open", 1.0); // player opens it again
+        c.go(4);
+        assert_eq!(helmet.get("Open"), 1.0, "{why}: player reopens in good air");
+    }
+    helmet.set("RatioOxygen", 0.18);
+    helmet.set("RatioCarbonDioxide", 0.015);
+    c.go(4);
+    assert_eq!(helmet.get("Open"), 1.0, "18 kPa O2 and 1.5 kPa CO2 do no harm: stays open");
+    for who in [&suit, &helmet] {
+        who.set("Combustion", 1.0);
+        c.go(4);
+        assert_eq!(helmet.get("Open"), 0.0, "fire closes the helmet");
+        who.set("Combustion", 0.0);
+        c.go(4);
+        assert_eq!(helmet.get("Open"), 1.0, "fire out: opens again");
+    }
+}
+
+#[test]
+fn suit_helmet_auto_open_leaves_the_suit_air_alone() {
+    // In-game the AirRelease control turned the suit's air off; filters ticked.
+    let (suit, helmet) = suit_and_helmet();
+    let mut c = Chip::new(script("suit_helmet_auto_open")).pin("d0", &helmet).pin("db", &suit);
+    for kpa in [100.0, 160.0, 105.0] {
+        suit.set("Pressure", kpa);
+        c.go(4);
+    }
+    assert_eq!(suit.get("AirRelease"), 1.0, "suit air release left on");
+    assert!(suit.writes_of("AirRelease").is_empty(), "AirRelease never written");
+    assert!(suit.writes_of("Filtration").is_empty(), "filters are left to the player");
+}
+
+#[test]
+fn suit_helmet_stays_open_when_the_open_helmet_reads_no_air() {
+    // In-game the helmet did not stay open: an open helmet likely reads 0 kPa itself.
+    let (suit, helmet) = suit_and_helmet();
+    let mut c = Chip::new(script("suit_helmet_auto_open")).pin("d0", &helmet).pin("db", &suit);
+    c.go(4);
+    assert_eq!(helmet.get("Open"), 1.0, "opens in good air");
+    for f in ["Pressure", "RatioOxygen", "RatioCarbonDioxide"] {
+        helmet.set(f, 0.0);
+    }
+    c.go(10);
+    assert_eq!(helmet.get("Open"), 1.0, "no helmet reading is not bad air: stays open");
+    suit.set("PressureExternal", 20.0);
+    c.go(4);
+    assert_eq!(helmet.get("Open"), 0.0, "thin air outside still closes it");
+}
+
 #[test]
 fn suit_helmet_auto_open_respects_a_manual_close() {
-    let suit = dev(&[("TemperatureExternal", 20.0 + K), ("PressureExternal", 100.0)]);
-    let helmet = dev(&[("Open", 0.0), ("Lock", 0.0)]);
+    let (suit, helmet) = suit_and_helmet();
     let mut c = Chip::new(script("suit_helmet_auto_open")).pin("d0", &helmet).pin("db", &suit);
     c.go(4);
     assert_eq!(helmet.get("Open"), 1.0);

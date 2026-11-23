@@ -1,9 +1,8 @@
 # suit_helmet_auto_open - helmet opens itself in safe air, closes when it is not
 # Put this chip in the Hardsuit: db=Hardsuit  d0=Hardsuit Helmet
-# Safe = 4..45 C outside AND 80..150 kPa outside.
-# Safe: open the helmet once. If you close it yourself, it stays closed until
-#       the air goes unsafe and safe again (or you open it again).
-# Unsafe: close the helmet immediately.
+# Safe = 4..45 C outside AND 80..150 kPa outside, no fire, and (visor open) the
+# air in the helmet has enough O2 and little CO2/pollutant. Bad air: close and
+# hold until you open it. The suit's own air settings are never touched.
 
 alias suit db
 alias helmet d0
@@ -14,11 +13,16 @@ alias hold r3
 alias cur r4
 alias prev r5
 alias tmp r6
+alias x r7
+alias y r8
 
 define MIN_C 4
 define MAX_C 45
 define MIN_KPA 80
 define MAX_KPA 150
+define O2_MIN_KPA 16
+define CO2_MAX_KPA 2
+define POL_MAX_KPA 0.1
 
 main:
 sleep 1
@@ -34,7 +38,24 @@ sge tmp kpa MIN_KPA
 and safe safe tmp
 sle tmp kpa MAX_KPA
 and safe safe tmp
+l x suit Combustion
+l y helmet Combustion
+or x x y
+select safe x 0 safe  # fire
 beqz safe unsafe
+beqz cur air_ok  # visor shut: helmet air is suit air
+l x helmet Pressure
+blt x MIN_KPA air_ok  # no reading from the open helmet
+l y helmet RatioOxygen
+mul y y x
+blt y O2_MIN_KPA bad_air
+l y helmet RatioCarbonDioxide
+mul y y x
+bgt y CO2_MAX_KPA bad_air
+l y helmet RatioPollutant
+mul y y x
+bgt y POL_MAX_KPA bad_air
+air_ok:
 bnez hold holding
 # we opened it last time but it is closed now => player closed it: hold
 seqz tmp cur
@@ -45,6 +66,10 @@ holding:
 # held closed until the player opens it again
 seqz hold cur
 move tmp cur
+j apply
+bad_air:
+move hold 1
+move tmp 0
 j apply
 unsafe:
 move hold 0

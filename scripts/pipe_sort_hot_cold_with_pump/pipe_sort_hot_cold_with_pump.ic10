@@ -1,6 +1,6 @@
 # pipe_sort_hot_cold_with_pump - route gas by temperature, pump holds pressure
 # d0=Pipe Analyzer d1=Digital Valve (hot) d2=Digital Valve (cold) d3=Volume Pump (opt.)
-# Cold valve open <20C, shut >24C. Hot valve open >40C, shut <36C. Never both open.
+# Cold valve open <18C, shut >20C. Hot valve open >40C, shut <36C. Never both open.
 # Every Pipe Heater on the network is ON while the cold valve is open.
 # Pump ON <9.75 MPa, OFF >10.25 MPa. Analyzer Error => pump+heaters OFF, valves hold.
 # db Setting: cold + 2*hot + 4*pump, 9=fault/device missing
@@ -16,8 +16,8 @@ alias wh r3
 alias wp r4
 alias cur r5
 
-define COLD_OPEN_BELOW_C 20
-define COLD_CLOSE_ABOVE_C 24
+define COLD_OPEN_BELOW_C 18
+define COLD_CLOSE_ABOVE_C 20
 define HOT_OPEN_ABOVE_C 40
 define HOT_CLOSE_BELOW_C 36
 define TARGET_KPA 10000
