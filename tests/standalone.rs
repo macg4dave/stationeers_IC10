@@ -116,6 +116,34 @@ fn room_door_open_when_hot() {
 }
 
 #[test]
+fn airlock_doors_auto_close() {
+    let doors: Vec<_> = (0..3).map(|_| switchable(&[])).collect();
+    let v = vent("AIRLOCK_VENT", &[]);
+    let other = vent("ROOM_VENT", &[]);
+    let pins = [("d0", &doors[0]), ("d1", &doors[1]), ("d2", &doors[2])];
+    let mut c = chip("airlock_doors_auto_close", &pins).net(&v).net(&other);
+    c.go(4);
+    assert_eq!((v.get("On"), c.status()), (0.0, 0.0), "all doors shut: vents left alone");
+    for (i, d) in doors.iter().enumerate() {
+        d.set("Open", 1.0);
+        c.go(2);
+        assert_eq!(d.get("Open"), 0.0, "door {i} closed within 1 s");
+        c.go(6);
+        assert_eq!(v.get("On"), 1.0, "door {i}: a door change within 5 s keeps the vents on");
+    }
+    assert_eq!(read(&v, &["On", "Open", "Mode"]), [1.0, 1.0, 1.0], "vents on, Inward");
+    assert_eq!(v.writes_of("Mode").len(), 1, "Mode written only when it changes");
+    assert_eq!(other.get("On"), 0.0, "only vents named AIRLOCK_VENT");
+    assert_eq!(c.status(), 1.0);
+    c.go(8); // last change: the closed door read shut ~5.5 s ago
+    assert_eq!(read(&v, &["On", "Open"]), [0.0, 0.0], "vents off 5 s after the last door change");
+    assert_eq!(c.status(), 0.0);
+    let mut c = chip("airlock_doors_auto_close", &pins[..2]);
+    c.go(4);
+    assert_eq!(c.status(), 9.0, "missing door shows 9 without halting");
+}
+
+#[test]
 fn furnace_heat_pipe_below_20c() {
     let (pa, valve) = (analyzer(15.0, 100.0, &[]), switchable(&[]));
     let furnace = dev(&[

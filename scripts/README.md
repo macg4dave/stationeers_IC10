@@ -33,6 +33,7 @@ in `tests/standalone.rs` passes (simulated, not an in-game test).
 | `air_conditioner_hold_25c/` | Air Conditioner kept on at a 25 °C target (chip in the AC) | db | yes |
 | `room_cooler_and_steam_vent/` | Wall Cooler above 30 °C; Active Vent runs while there is no steam | Pins | yes |
 | `room_door_open_when_hot/` | Glass Door opens above 30 °C, closes below 28 °C | Pins | yes |
+| `airlock_doors_auto_close/` | Any of 3 airlock doors closes within 1 s; vents `AIRLOCK_VENT` turn on | Pins + names | yes |
 | `furnace_heat_pipe_below_20c/` | Advanced Furnace heats a pipe below 20 °C; pauses input when the furnace passes 100 °C | Pins | yes |
 | `furnace_pulse_when_pipes_cold/` | Gas < 30 °C or liquid < 80 °C: valve + furnace `Activate` pulse every 30 s | Pins | yes |
 

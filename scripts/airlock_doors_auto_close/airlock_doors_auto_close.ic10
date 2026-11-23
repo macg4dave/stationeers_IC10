@@ -1,0 +1,62 @@
+# airlock_doors_auto_close - close any opened airlock door, then run the vents
+# d0 outside, d1 middle, d2 inside door. Active Vents named AIRLOCK_VENT.
+# A door open 2 ticks running (<= 1 s) is closed; vents get VENT_MODE and On.
+# Vents off after OFF_S s with no door opening or closing.
+# db Setting: 0=vents off 1=vents on 9=door missing
+alias outside d0
+alias middle d1
+alias inside d2
+alias state r10
+alias secs r11  # since a door last opened or closed
+define VENT_MODE 1  # 0 = Outward (pipe to room), 1 = Inward (room to pipe)
+define VENT_HASH -1129453144
+define VENT_NAME HASH("AIRLOCK_VENT")
+define OFF_S 5
+wait:
+s db Setting 9
+main:
+yield
+bdns outside wait
+bdns middle wait
+bdns inside wait
+s db Setting state
+add secs secs 0.5
+l r0 outside Open
+seq r9 r0 r5
+mul secs secs r9  # door changed: restart
+and r8 r0 r5   # open now and last tick
+move r5 r0
+breqz r8 3
+s outside Open 0
+jal vents
+l r0 middle Open
+seq r9 r0 r6
+mul secs secs r9
+and r8 r0 r6
+move r6 r0
+breqz r8 3
+s middle Open 0
+jal vents
+l r0 inside Open
+seq r9 r0 r7
+mul secs secs r9
+and r8 r0 r7
+move r7 r0
+breqz r8 3
+s inside Open 0
+jal vents
+blt secs OFF_S main
+beqz state main
+move state 0
+sbn VENT_HASH VENT_NAME On 0
+sbn VENT_HASH VENT_NAME Open 0
+j main
+vents:
+move state 1
+lbn r9 VENT_HASH VENT_NAME Mode Average
+breq r9 VENT_MODE 3  # Mode only on change: it resets pressure limits
+sbn VENT_HASH VENT_NAME Mode VENT_MODE
+yield
+sbn VENT_HASH VENT_NAME Open 1
+sbn VENT_HASH VENT_NAME On 1
+j ra
