@@ -86,11 +86,14 @@ instruction, LogicType, Mode value or device capability.
 - Start from `scripts/_template/` (or `modular scripts/_template/`) and follow
   `docs/ic10_script_checklist.md`.
 - Paste limits: **128 lines, 90 chars/line, 4096 bytes**, comments included. Keep
-  aliases short (see "Names"). Compressing code to fit is fine if behaviour is unchanged.
+  aliases short (see "Names"). When a script is over a limit, remove comments first
+  (header lines included; README keeps that information), and only then compress code,
+  keeping behaviour unchanged.
 - Actuators: read before write (`l cur dev On` → write only on change).
 - Thresholds: add hysteresis unless the README says why not.
 - House style for single-chip scripts (all of `scripts/` follows it): a 2–6 line
-  header (name - purpose, pins, behaviour, status codes); `bdns` for every pin in the
+  header (name - purpose, pins, behaviour, status codes), unless the lines are needed
+  for code; `bdns` for every pin in the
   wait loop *and* the main loop; analyzer `Error` / no reading → safe state; status on
   `db Setting` with `9` = device missing or bad reading (skip when `db` is the device
   the chip lives in, e.g. an AC or a suit).

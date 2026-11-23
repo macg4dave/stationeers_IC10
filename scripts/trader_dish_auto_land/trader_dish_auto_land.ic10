@@ -1,26 +1,30 @@
-# trader_dish_auto_land - find trader, lock (SignalStrength=deg), interrogate, call down
-# db=phase*100: 1 scan 2 lock 3xx interrogate (xx = %) 4 done 5 landing; 900=no dish
 alias dish d0
 alias skip d1   # optional button: skip this trader
 alias lever d2  # optional, on = do not call down
 alias led d3    # optional, SignalStrength
+alias pad d4    # optional landing pad: busy = dish off
 define SCAN_W 5000
 define MAX_W 10000
 reset:
-move r10 1
+move r13 1
+brdns pad 3
+l r13 pad Mode
+sle r13 r13 1    # 1 = pad free or no pad
+select r10 r13 1 6
 jal show
 bdns dish reset
+s dish On r13   # off while a ship is on the pad
+beqz r13 reset
 s dish Activate 0  # stops any interrogation
 s dish BestContactFilter -1
 s dish Setting SCAN_W
-scan:
 add r0 r0 30   # 30 x 20 steps: all 60 positions in 60 moves
 add r1 r1 20
 mod r1 r1 100
 jal probe
-bltz r2 scan
+bltz r2 reset
 l r5 dish SignalID
-beq r5 r11 scan
+beq r5 r11 reset
 lock:
 s dish BestContactFilter r5
 s dish Setting MAX_W
@@ -39,21 +43,18 @@ ble r3 2 interrogate
 blt r4 0.5 interrogate
 move r6 0
 try:
-move r0 r8
-move r1 r9
 mod r12 r6 2
 select r12 r12 -1 1
 mul r7 r4 r12
-bge r6 2 try_v
-mul r12 r1 0.0174533
+mul r12 r9 deg2rad
 sin r12 r12
 max r12 r12 0.2
-div r7 r7 r12
-add r0 r0 r7
-j try_go
-try_v:
-add r1 r1 r7
-try_go:
+div r12 r7 r12
+slt r13 r6 2   # 1 = Horizontal try
+select r12 r13 r12 0
+add r0 r8 r12
+select r7 r13 0 r7
+add r1 r9 r7
 jal probe
 bltz r2 next
 bge r2 r3 next

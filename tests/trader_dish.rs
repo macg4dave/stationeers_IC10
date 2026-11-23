@@ -35,6 +35,7 @@ struct FakeDish {
 impl FakeDish {
     fn new(h: f64, v: f64, ctype: f64) -> Shared<Self> {
         let dev = Device::new(&[
+            ("On", 1.0),
             ("Horizontal", 0.0),
             ("Vertical", 0.0),
             ("Setting", 0.0),
@@ -246,4 +247,28 @@ fn waits_for_a_slow_signal_to_resolve() {
     run(&dish, None, 6000);
     let d = dish.borrow();
     assert_eq!((d.starts, d.calls), (1, 1), "slow-resolving trader interrogated and called");
+}
+
+#[test]
+fn dish_turns_off_while_a_ship_is_on_the_pad() {
+    // Landing pad Mode > 1 = busy (a working 2026 pad resolver treats it so; unconfirmed).
+    let dish = FakeDish::new(200.0, 50.0, 3.0);
+    let pad = dev(&[("Mode", 2.0)]);
+    let mut c = Chip::new(script("trader_dish_auto_land")).pin("d0", &dish).pin("d4", &pad);
+    c.go(600);
+    {
+        let d = dish.borrow();
+        assert_eq!(d.dev.get("On"), 0.0, "busy pad turns the dish off");
+        assert!(d.dev.writes_of("Horizontal").is_empty(), "no scanning while the pad is busy");
+        assert_eq!(c.status(), 600.0, "busy pad shows 600");
+    }
+    pad.borrow_mut().device_mut().set("Mode", 0.0);
+    c.go(3000);
+    let d = dish.borrow();
+    assert_eq!(d.dev.get("On"), 1.0, "free pad turns the dish back on");
+    assert_eq!(d.calls, 1, "next trader found and called down once the pad is free");
+    drop(d);
+    pad.borrow_mut().device_mut().set("Mode", 3.0);
+    c.go(200);
+    assert_eq!(dish.borrow().dev.get("On"), 0.0, "pad busy again: dish off within a scan move");
 }

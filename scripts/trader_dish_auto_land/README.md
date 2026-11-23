@@ -2,7 +2,8 @@
 
 One chip that drives a **Satellite Dish** to find a trader, lock on, interrogate it and
 call it down to your landing pad. Switch the lever on to stop the call-down. Press the
-button to skip the trader it is working on.
+button to skip the trader it is working on. With the landing pad connected, the dish
+turns off while a ship is on the pad.
 
 *Replaces the four-chip `SatTraderTrack` multi-chip system, which never worked in-game. That system was removed on 2026-11-21; it is still in git history.*
 
@@ -16,9 +17,14 @@ The IC Housing shows these names on its pins once the script is running.
 | `d1` | `skip` | (optional) Logic Button: press to drop the current trader and scan for the next one |
 | `d2` | `lever` | (optional) Lever: on (`Open` 1) = interrogate only, do not call down. Off or not connected = call down |
 | `d3` | `led` | (optional) LED Display: last SignalStrength read (degrees to the contact, `-1` = none) |
+| `d4` | `pad` | (optional) Landing Pad: while its `Mode` is above 1 (ship on the pad), the dish is turned off |
 
 ## What it does
 
+0. **Pad check.** Before each scan move, if `pad` is connected and its `Mode` is above 1,
+   the script writes the dish `On` 0, shows `600` and waits. When `Mode` is 0 or 1
+   again, it writes `On` 1 and scans on. Without a pad it never turns the dish off. The
+   pad is only checked while scanning, not during lock-on or interrogation.
 1. **Scan.** Each move steps the dish 30° in Horizontal and 20° in Vertical (Vertical
    rows 0, 20, 40, 60, 80 from straight up, then back to 0). That visits all 60
    positions in 60 moves. At each one it waits for the dish's `Idle`, then reads
@@ -78,6 +84,7 @@ or skipped). It skips that trader until it finishes with a different one.
 | `3xx` | interrogating, `xx` = `InterrogationProgress` in % (`342` = 42%). Holds for 5 s after a skip |
 | `400` | interrogated, not called (lever on) |
 | `500` | called down |
+| `600` | ship on the landing pad: dish off, waiting |
 | `900` | dish missing |
 
 While interrogating, `300` that never climbs means progress is stuck at 0. If the
@@ -87,8 +94,8 @@ status shows values far above `400` (e.g. `5300`), `InterrogationProgress` runs 
 ## Setup
 
 1. Build the dish with power and data. Put the IC Housing on the same network.
-2. Set `d0` to the dish. Optionally set `d1` to a Logic Button, `d2` to a Lever and `d3`
-   to an LED Display.
+2. Set `d0` to the dish. Optionally set `d1` to a Logic Button, `d2` to a Lever, `d3`
+   to an LED Display and `d4` to the landing pad.
 3. Set up your landing pad: powered, with its **Landing Pad Data and Power** on the
    **same data network as the dish**. The dish can only call a trader down to a pad on
    its own network. Use only one landing pad on that network. The pad must be big
@@ -150,6 +157,14 @@ SignalStrength ≤ 2 and reads the trader type from `ContactSlotIndex` (0 Utilit
   listed on the comms computer, try a higher `SCAN_W`: the working tracker scans Utility
   and Basic traders at 50,000 W.
 
+- **Landing pad `Mode` (2026-11-23).** The pad check copies the working 2026
+  `trade_pad_res.ic10`, which treats pad `Mode` above 1 as "not available". Which
+  value means "on approach" and which "landed" is not known, nor which pad piece the
+  pin must point at (the reference just says "Landing Pad"). Please read the pad's
+  `Mode` on a Logic Reader when it is empty, while a ship comes down and while one is
+  landed. If the status shows `600` with the pad empty, or the ship turns back when the
+  dish goes off, report it.
+
 ## Change history
 
 - 2026-11-21: new single-chip design. It replaces the four-chip system, which treated
@@ -197,6 +212,12 @@ SignalStrength ≤ 2 and reads the trader type from `ContactSlotIndex` (0 Utilit
   when the trader leaves, or with the skip button). Each scan move now steps both axes,
   and Vertical is clamped at 0 instead of stepping over the top. The simulated dish now
   resolves slowly when asked; the old script never found such a trader.
+
+- 2026-11-23: **dish off while a ship is on the pad (owner's request).** New optional
+  `pad` pin on `d4`. Each scan move now goes through `reset`, so the pad is checked
+  before every move. To stay within 128 lines, the two header comments were removed
+  (the status codes are in this README) and the lock-on step code was rewritten
+  without branches (same steps). Simulated only.
 
 ## Status
 
