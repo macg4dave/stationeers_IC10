@@ -1,0 +1,109 @@
+{
+  "source": {
+    "wikiUrl": "https://stationeers-wiki.com/Weather_Station",
+    "wikiTitle": "Weather_Station",
+    "retrievedAt": "2026-11-23T00:00:00+00:00",
+    "notes": "Hand-copied from a user-saved local HTML copy in temp/ (wiki oldid 28032, edited 2026-08-19). The wiki says the logic output does not work unpowered, and indoors the station always shows no event."
+  },
+  "identity": {
+    "itemName": "ItemKitWeatherStation",
+    "itemHash": 337505889,
+    "structureName": "StructureWeatherStation",
+    "structureHash": 1997212478
+  },
+  "io": {
+    "modeValues": [
+      {
+        "value": 0,
+        "meaning": "NoStorm (No Storm)"
+      },
+      {
+        "value": 1,
+        "meaning": "StormIncoming (Storm Incoming)"
+      },
+      {
+        "value": 2,
+        "meaning": "InStorm (Currently in Storm)"
+      }
+    ],
+    "parameters": [
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": "1 if device is activated (usually means running), otherwise 0"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Disable manual operation of the Weather Station."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "The current state of the Weather Station."
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Power",
+        "type": "boolean",
+        "description": "Can be read to return if the Weather Station is correctly powered or not, set via the power system, return 1 if powered and 0 if not"
+      },
+      {
+        "name": "Mode",
+        "type": "integer",
+        "description": "The mode of the Weather Station: 0 NoStorm, 1 StormIncoming, 2 InStorm."
+      },
+      {
+        "name": "Error",
+        "type": "boolean",
+        "description": "1 if device is in error state, otherwise 0"
+      },
+      {
+        "name": "Activate",
+        "type": "integer",
+        "description": "1 if device is activated (usually means running), otherwise 0"
+      },
+      {
+        "name": "Lock",
+        "type": "boolean",
+        "description": "Disable manual operation of the Weather Station."
+      },
+      {
+        "name": "On",
+        "type": "boolean",
+        "description": "The current state of the Weather Station."
+      },
+      {
+        "name": "RequiredPower",
+        "type": "integer",
+        "description": "Idle operating power quantity, does not necessarily include extra demand power"
+      },
+      {
+        "name": "PrefabHash",
+        "type": "integer",
+        "description": "The hash of the structure"
+      },
+      {
+        "name": "NextWeatherEventTime",
+        "type": "integer",
+        "description": "Returns seconds until the next scheduled weather event, or 0 if no weather event is scheduled."
+      },
+      {
+        "name": "ReferenceId",
+        "type": "integer",
+        "description": "Unique Reference Identifier for this object"
+      },
+      {
+        "name": "NameHash",
+        "type": "integer",
+        "description": "Provides the hash value for the name of the object as a 32 bit integer."
+      },
+      {
+        "name": "NextWeatherHash",
+        "type": "integer",
+        "description": "Provides the hash value for the name of the next weather event as a 32 bit integer."
+      }
+    ]
+  }
+}

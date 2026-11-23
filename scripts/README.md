@@ -80,6 +80,7 @@ in `tests/standalone.rs` passes (simulated, not an in-game test).
 | `power_apc_on_high_battery/` | Area Power Control on above 70 % total battery charge, off below 60 % | Prefab | yes |
 | `suit_helmet_auto_open/` | Helmet opens in safe air (4–45 °C, 80–150 kPa), respects a manual close | db + pin | yes |
 | `display_clock_from_sun/` | 24 h clock on two LED Displays from a Daylight Sensor | Pins | yes |
+| `display_storm_countdown/` | LED Display counts down to the next storm; Flashing Lights warn before it | Pins + prefab | yes |
 | `vending_export_exact_count/` | Exports an exact item count; gives up if the item runs out | Pins | timeout only |
 | `trader_dish_auto_land/` | One dish finds a trader, locks on, interrogates, calls it down | Pins | yes (simulated dish) |
 

@@ -1,9 +1,6 @@
 # lights_on_when_dark - every light on the network on from ON_AT to OFF_AT (sun time)
-# d0=Daylight Sensor: flat facing up, or on a wall with WALL 1 (a guess, see README).
-# Lights are found by type. ON_AT/OFF_AT are HHMM (1800 = 18:00), in the sun time of
-# display_clock_from_sun (06:00 sunrise): keep RISE_DEG and SHIFT_MIN equal in both.
-# db Setting: 0=lights off 1=lights on 9=Daylight Sensor missing
 alias sensor d0
+alias weather d1  # optional Weather Station: lights on in a storm
 alias deg r0
 alias mins r1
 alias x r2
@@ -21,6 +18,7 @@ define SHIFT_MIN 0
 define WALL 0
 define WALL_FACE 180
 define WALL_TURN 0
+define STORM_FROM 2  # Mode 2 = in a storm, 1 = storm coming
 define SENSOR_HASH 1076425094
 define L_WALL -1860064656
 define L_WALLBAT -1306415132
@@ -100,6 +98,10 @@ and want t cur
 or t t cur
 sgt cur on off
 select want cur t want
+brdns weather 4
+l t weather Mode
+brlt t STORM_FROM 2
+move want 1
 s db Setting want
 move t L_WALL
 jal set

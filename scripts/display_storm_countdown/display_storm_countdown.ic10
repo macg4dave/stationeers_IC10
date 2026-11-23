@@ -1,0 +1,91 @@
+# display_storm_countdown - LED Display counts down to the next storm
+# d0 Weather Station (outside, powered), d1 LED Display. Shows m:ss to the next
+# event, STORM during one, NONE if none is scheduled, NO PWR if unpowered.
+# Colour: green no storm, yellow storm coming, red storm. db: Mode 0-2, 9=missing
+# Flashing Lights on the network: on from WARN_S s before a storm until it ends.
+alias weather d0
+alias led d1
+alias t r0
+alias mode r1
+alias val r2
+alias col r3
+alias x r4
+alias mins r5
+alias k r6
+alias cur r7
+alias want r8  # Flashing Lights On; -1 = leave them
+define WS_HASH 1997212478
+define FLASH_HASH -1535893860
+define WARN_S 10800  # 3 h, same seconds as the countdown
+define GREY 1
+define GREEN 2
+define RED 4
+define YELLOW 5
+define TXT_STORM $53544F524D
+define TXT_NONE $4E4F4E45
+define TXT_NOPWR $4E4F20505752
+wait:
+s db Setting 9
+main:
+yield
+bdns weather wait
+bdns led wait
+l x weather PrefabHash
+bne x WS_HASH wait
+l mode weather Mode
+s db Setting mode
+l x weather Power
+move val TXT_NOPWR
+move col GREY
+move want -1
+beqz x show
+move want 1
+move val TXT_STORM
+move col RED
+beq mode 2 show
+select col mode YELLOW GREEN
+move val TXT_NONE
+l t weather NextWeatherEventTime
+floor t t
+sgt want t 0
+sle x t WARN_S
+and want want x
+blez t show
+mod x t 60
+sub mins t x
+div mins mins 60
+min mins mins 999
+div val x 10
+floor val val
+mul val val 256
+mod x x 10
+add val val x
+add val val 3813424  # ":00" in ASCII, the digits are added on top
+move k 16777216      # 256^3: minutes go left of ":ss"
+digit:
+mod x mins 10
+add x x 48
+mul x x k
+add val val x
+mul k k 256
+div mins mins 10
+floor mins mins
+bgtz mins digit
+show:
+brltz want 4
+lb cur FLASH_HASH On Average
+breq cur want 2
+sb FLASH_HASH On want
+l cur led Mode
+breq cur 10 2
+s led Mode 10  # text
+l cur led Color
+breq cur col 2
+s led Color col
+l cur led On
+brnez cur 2
+s led On 1
+l cur led Setting
+beq cur val main
+s led Setting val
+j main

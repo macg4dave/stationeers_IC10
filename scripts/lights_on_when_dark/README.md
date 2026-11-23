@@ -2,13 +2,15 @@
 
 Turns every light on the data network **on at 18:00** and **off at 06:30**, in the same
 sun time that `display_clock_from_sun` shows, using one **Daylight Sensor**. Lights are
-found by type, so you never wire them to pins or rename them.
+found by type, so you never wire them to pins or rename them. With an optional
+**Weather Station**, the lights also come on during a storm until it ends.
 
 ## Pins
 
-| Pin | Device |
-| --- | --- |
-| `d0` | Daylight Sensor, **flat, facing up** (or on a wall with `WALL 1`) |
+| Pin | Name | Device |
+| --- | --- | --- |
+| `d0` | `sensor` | Daylight Sensor, **flat, facing up** (or on a wall with `WALL 1`) |
+| `d1` | `weather` | (optional) Weather Station: lights on while its `Mode` ≥ `STORM_FROM` |
 
 The sensor can be the one your clock or solar tracker already uses: point this chip's
 `d0` at it.
@@ -43,6 +45,9 @@ Grow lights, LEDs and consoles are not touched.
   lights do not flicker the way a "sun below 5°" threshold could.
 - Each loop it reads every light type and writes only if a light differs. A light
   switched by hand, or a new light, is put back to the right state within a tick.
+- **Storms.** With a Weather Station on `d1`, the lights are on while its `Mode` is
+  `STORM_FROM` or more, whatever the time. When the storm ends they go back to the
+  clock. `Mode`: `0` no storm, `1` storm coming, `2` in a storm.
 - If the sensor is switched off, the script switches it on.
 - If the sensor is unplugged or `d0` is a different device, the lights stay as they are
   and the status shows 9. The chip waits instead of halting.
@@ -58,6 +63,7 @@ Edit the `define` lines at the top of `lights_on_when_dark.ic10`.
 | `RISE_DEG` | `0` | Sensor `Horizontal` at sunrise. **Same value as in the clock** |
 | `SHIFT_MIN` | `0` | Moves the sun time by whole minutes. **Same value as in the clock** |
 | `WALL` | `0` | `1` = the sensor is on a wall (a guess, see [Wall sensor](#wall-sensor)) |
+| `STORM_FROM` | `2` | Weather Station `Mode` that turns the lights on: `2` in a storm, `1` also when one is coming |
 | `WALL_FACE` | `180` | Wall only: where the sensor faces, in degrees from the sunrise direction |
 | `WALL_TURN` | `0` | Wall only: turn for the sensor's `Horizontal` (`0`, `90`, `180`, `270`) |
 | `L_*` | see above | Light prefab hashes |
@@ -90,14 +96,15 @@ means the guess holds. If the lights switch at the wrong times with `WALL 1`, tr
 | Value | Meaning |
 | --- | --- |
 | `0` | lights off |
-| `1` | lights on |
+| `1` | lights on (night, or a storm) |
 | `9` | Daylight Sensor missing, or `d0` is a different device |
 
 ## Setup
 
 1. Build the Daylight Sensor **flat, facing up**, and connect it, the lights and the IC
    Housing to one data network. The sensor needs power.
-2. Set `d0` to the Daylight Sensor.
+2. Set `d0` to the Daylight Sensor and, if you want storm lighting, `d1` to a powered
+   Weather Station built outside, on the same network.
 3. Copy `RISE_DEG` and `SHIFT_MIN` from your clock script, if you changed them there.
 4. Paste `lights_on_when_dark.ic10` into the chip and run it.
 
@@ -106,8 +113,15 @@ To read a light's real hash, put the light on `d0` of a spare chip and run
 
 ## Notes
 
-- It goes by the sun's position, not by how bright it is. Storms and rooms with no
-  windows are not detected.
+- It goes by the sun's position, not by how bright it is. Storms are detected only
+  with the Weather Station on `d1`; rooms with no windows are not.
+- Weather Station `Mode` values (0 no storm, 1 storm incoming, 2 in storm) are from the
+  wiki (`catalog/devices/Weather_Station.json`) and two working community scripts; not
+  yet checked in this repo in-game. Set `d1` to the Weather Station only: the script
+  reads `Mode` from whatever is on `d1`.
+- The Weather Station must be **outside** and **powered**: indoors it never reports an
+  event, and unpowered its logic output does not work (wiki), so no storm is seen. Storm lighting needs the
+  Daylight Sensor working too (status `9` holds the lights as they are).
 - A sensor on a wall reports different angles: use `WALL 1` (a guess, see above).
 - Device notes: `docs/usage/daylight_sensor.md`
 
@@ -124,6 +138,10 @@ To read a light's real hash, put the light on `d0` of a spare chip and run
 - 2026-11-22: wall sensor support again, now for the sun time: `WALL 1` with
   `WALL_FACE` (default 180) and `WALL_TURN` (default 0), from the in-game sunrise
   readings. A guess until checked over a whole day.
+
+- 2026-11-23: optional Weather Station on `d1` turns the lights on during a storm
+  (owner's request), with `STORM_FROM`. To stay within 128 lines, header lines 2–5
+  were removed (comments first); their content is in this README.
 
 ## Status
 

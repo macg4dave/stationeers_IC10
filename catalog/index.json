@@ -314,6 +314,12 @@
       "itemHash": null
     },
     {
+      "wikiTitle": "Weather_Station",
+      "file": "devices/Weather_Station.json",
+      "itemName": "ItemKitWeatherStation",
+      "itemHash": 337505889
+    },
+    {
       "wikiTitle": "phase_change_device",
       "file": "devices/phase_change_device.json",
       "itemName": null,

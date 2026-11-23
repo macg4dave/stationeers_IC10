@@ -594,6 +594,87 @@ fn suit_helmet_auto_open_respects_a_manual_close() {
 }
 
 #[test]
+fn display_storm_countdown() {
+    let ws = share(
+        Device::new(&[("Mode", 0.0), ("NextWeatherEventTime", 754.0), ("Power", 1.0)])
+            .prefab("StructureWeatherStation"),
+    );
+    let led = share(
+        Device::new(&[("On", 0.0), ("Mode", 0.0), ("Setting", 0.0), ("Color", 0.0)])
+            .prefab("StructureConsoleLED5"),
+    );
+    // Mode 10 packs one ASCII character per byte, first character highest.
+    let text = |v: f64| {
+        let mut n = v as u64;
+        let mut out = Vec::new();
+        while n > 0 {
+            out.push((n % 256) as u8);
+            n /= 256;
+        }
+        out.iter().rev().map(|&b| b as char).collect::<String>()
+    };
+    let flash: Vec<_> = (0..2)
+        .map(|_| share(Device::new(&[("On", 0.0)]).prefab("StructureFlashingLight")))
+        .collect();
+    let lamp = share(Device::new(&[("On", 0.0)]).prefab("StructureWallLight"));
+    let mut c = flash
+        .iter()
+        .fold(chip("display_storm_countdown", &[("d0", &ws), ("d1", &led)]), |c, f| c.net(f))
+        .net(&lamp);
+    for (mode, secs, power, lit, why) in [
+        (0.0, 10_801.0, 1.0, 0.0, "storm over 3 h away: flashing lights off"),
+        (0.0, 10_800.0, 1.0, 1.0, "3 h before: flashing lights on"),
+        (1.0, 30.0, 1.0, 1.0, "storm coming: on"),
+        (2.0, 0.0, 1.0, 1.0, "in a storm: on"),
+        (0.0, 0.0, 0.0, 1.0, "unpowered station: left as they are"),
+        (0.0, 50_000.0, 1.0, 0.0, "storm over: off"),
+        (0.0, 0.0, 1.0, 0.0, "nothing scheduled: off"),
+    ] {
+        ws.set("Mode", mode);
+        ws.set("NextWeatherEventTime", secs);
+        ws.set("Power", power);
+        c.go(2);
+        let on: Vec<_> = flash.iter().map(|f| f.get("On")).collect();
+        assert_eq!(on, [lit, lit], "{why}");
+    }
+    assert_eq!(lamp.get("On"), 0.0, "only Flashing Lights are switched");
+    let sent = flash[0].writes_of("On").len();
+    c.go(10);
+    assert_eq!(flash[0].writes_of("On").len(), sent, "flashing lights not rewritten");
+    for (mode, secs, power, want, colour, why) in [
+        (0.0, 754.0, 1.0, "12:34", 2.0, "no storm: minutes:seconds, green"),
+        (0.0, 5.0, 1.0, "0:05", 2.0, "under a minute keeps two seconds digits"),
+        (1.0, 30.0, 1.0, "0:30", 5.0, "storm coming: yellow"),
+        (2.0, 0.0, 1.0, "STORM", 4.0, "in a storm: red"),
+        (0.0, 0.0, 1.0, "NONE", 2.0, "nothing scheduled"),
+        (0.0, 60_059.0, 1.0, "999:59", 2.0, "minutes stop at 999 to fit six characters"),
+        (0.0, 754.0, 0.0, "NO PWR", 1.0, "unpowered station: grey"),
+    ] {
+        ws.set("Mode", mode);
+        ws.set("NextWeatherEventTime", secs);
+        ws.set("Power", power);
+        c.go(2);
+        assert_eq!(
+            (text(led.get("Setting")).as_str(), led.get("Color"), led.get("Mode")),
+            (want, colour, 10.0),
+            "{why}"
+        );
+        assert_eq!((led.get("On"), c.status()), (1.0, mode), "{why}: display on, status = Mode");
+    }
+    let sent = led.writes_of("Setting").len();
+    c.go(10);
+    assert_eq!(led.writes_of("Setting").len(), sent, "no rewrite while nothing changes");
+    let wrong = share(Device::new(&[("Mode", 2.0)]).prefab("StructureGasSensor"));
+    c.set_pin("d0", &wrong);
+    c.go(4);
+    assert_eq!(
+        (c.status(), text(led.get("Setting")).as_str()),
+        (9.0, "NO PWR"),
+        "wrong d0: 9, hold"
+    );
+}
+
+#[test]
 fn display_clock_from_sun() {
     let led = || {
         share(
@@ -942,6 +1023,40 @@ fn lights_on_when_dark() {
     c.set_pin("d0", &wrong);
     c.go(6);
     assert_eq!((c.status(), lights[0].get("On")), (9.0, 0.0), "wrong device: lights hold");
+}
+
+#[test]
+fn lights_on_when_dark_storm() {
+    let src = std::fs::read_to_string(
+        ic10_tools::repo::root().join("scripts/lights_on_when_dark/lights_on_when_dark.ic10"),
+    )
+    .expect("script is readable");
+    // Weather Station Mode: 0 no storm, 1 storm coming, 2 in a storm (two working scripts).
+    for (from, hhmm, mode, want, why) in [
+        ("2", 1200.0, 0.0, 0.0, "midday, no storm: off"),
+        ("2", 1200.0, 2.0, 1.0, "midday storm: on"),
+        ("2", 1200.0, 1.0, 0.0, "storm only coming: off by default"),
+        ("1", 1200.0, 1.0, 1.0, "STORM_FROM 1: on when a storm is coming"),
+        ("2", 2300.0, 0.0, 1.0, "night, no storm: still on"),
+    ] {
+        let text = src.replace("define STORM_FROM 2", &format!("define STORM_FROM {from}"));
+        let (h, v) = sun_at(hhmm);
+        let sensor = share(
+            Device::new(&[("Horizontal", h), ("Vertical", v), ("On", 1.0)])
+                .prefab("StructureDaylightSensor"),
+        );
+        let ws = share(Device::new(&[("Mode", 0.0)]).prefab("StructureWeatherStation"));
+        let lamp = share(Device::new(&[("On", 0.0)]).prefab("StructureWallLight"));
+        let mut c = Chip::new(parse(&text)).pin("d0", &sensor).pin("d1", &ws).net(&lamp);
+        c.go(4);
+        ws.set("Mode", mode);
+        c.go(4);
+        assert_eq!((lamp.get("On"), c.status()), (want, want), "{why}");
+        ws.set("Mode", 0.0);
+        c.go(4);
+        let after = if hhmm == 1200.0 { 0.0 } else { 1.0 };
+        assert_eq!(lamp.get("On"), after, "{why}: storm over, back to the clock");
+    }
 }
 
 #[test]
