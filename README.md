@@ -17,6 +17,7 @@ Start here: `scripts/` (each script has a folder with a setup guide + an `.ic10`
 ## What's in this repo
 
 - `scripts/` - player-facing scripts (each script includes a `README.md` + a pasteable `.ic10`)
+- `script set/` - groups of independent single-chip scripts that do one job together (e.g. landing pad gas into tanks)
 - `modular scripts/` - modular multi-chip projects (master + worker IC10 files)
 - `src/`, `Cargo.toml` - Rust tooling: IC10 lint, simulator, repo checks (`cargo test`)
 - `catalog/` - local JSON catalog of device Logic I/O names/types (originally imported from the Stationeers wiki)

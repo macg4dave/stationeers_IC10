@@ -208,7 +208,11 @@ needs an in-game re-test; the column says what to look at first.
    status `2` after ~20 s instead of hanging.
 7. `room_vents_swap_air_when_hot`: cold start with vents running — they stop.
 8. `power_generator_on_low_battery`: runs from < 30 % to > 80 %.
-9. Everything else: one on/off cycle across its band; the housing shows the status
+9. `script set/landing_pad_gas_storage`: buy CO2; router `10` and the CO2 tank fills;
+   when the pad is empty `2`, then `1` after 5 s. Check that the pad output left ON
+   while idle does not upset a landing or a sale. With Waste full and gas left in the
+   main pipe, the purge chip goes `1` then `2` and vents.
+10. Everything else: one on/off cycle across its band; the housing shows the status
    number from its README.
 
 ## 11. Remaining technical debt

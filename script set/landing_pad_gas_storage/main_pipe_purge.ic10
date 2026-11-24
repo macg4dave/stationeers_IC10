@@ -1,0 +1,67 @@
+# main_pipe_purge - vent the main pipe when its gas has nowhere to go
+# line=Pipe Analyzer on the main pipe  purge=Digital Valve  vent=Active Vent
+# Purges while the pipe holds gas, no Volume Pump has run for 3 s and the tank
+# "Waste" is missing or >= 9.5 MPa. Stops as soon as the pipe is clear.
+# db Setting: 0=idle 1=gas stuck, waiting 2=purging 9=missing/error
+
+alias line d0
+alias purge d1
+alias vent d2
+alias kpa r0
+alias want r1
+alias cur r2
+alias ticks r3
+alias st r4
+
+define PUMP HASH("StructureVolumePump")
+define TANK HASH("StructurePipeAnalysizer")
+define WASTE HASH("Waste")
+define CLEAR_KPA 1
+define WASTE_FULL_KPA 9500
+define WAIT_TICKS 6
+
+main:
+yield
+move want 0
+move st 9
+bdns line apply
+bdns purge apply
+bdns vent apply
+l cur line Error
+bnez cur apply
+l kpa line Pressure
+slt st kpa CLEAR_KPA
+lb cur PUMP On Maximum
+or st st cur
+lbn cur TANK WASTE PrefabHash Sum
+snez cur cur
+lbn kpa TANK WASTE Pressure Maximum
+slt kpa kpa WASTE_FULL_KPA
+and cur cur kpa
+or st st cur
+add ticks ticks 1
+select ticks st 0 ticks
+sge want ticks WAIT_TICKS
+select st want 2 1
+select st ticks st 0
+
+apply:
+s db Setting st
+bdns purge vent_set
+l cur purge On
+beq cur want vent_set
+s purge On want
+vent_set:
+bdns vent main
+l cur vent Mode
+beqz cur mode_ok
+s vent Mode 0
+mode_ok:
+l cur vent On
+l kpa vent Open
+bne cur want write
+beq kpa want main
+write:
+s vent Open want
+s vent On want
+j main

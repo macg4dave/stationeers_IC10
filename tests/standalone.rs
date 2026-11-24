@@ -1,4 +1,4 @@
-//! Behaviour scenarios for `scripts/` (simulated, not in-game verified).
+//! Behaviour scenarios for `scripts/` and `script set/` (simulated, not in-game verified).
 //!
 //! Each test drives a script through what its README promises: threshold
 //! crossings, hysteresis bands, startup state and fault handling. Passing means the
@@ -517,6 +517,159 @@ fn landing_pad_methane_unload() {
     c.set_pin("d3", &dev(&[("Setting", 1.0)]));
     c.go(4);
     assert_eq!((pad.get("On"), c.status()), (1.0, 40.0), "manual override");
+}
+
+// ------------------------------------------------- script set: landing_pad_gas_storage
+
+const GAS_SET: &str = "script set/landing_pad_gas_storage";
+
+fn named(prefab: &str, name: &str, pairs: &[(&str, f64)]) -> Shared<Device> {
+    share(Device::new(pairs).prefab(prefab).named(name))
+}
+
+fn gas_pump(name: &str) -> Shared<Device> {
+    named("StructureVolumePump", name, &[("On", 0.0)])
+}
+
+fn gas_tank(name: &str, kpa: f64) -> Shared<Device> {
+    named("StructurePipeAnalysizer", name, &[("Pressure", kpa), ("Error", 0.0), ("On", 1.0)])
+}
+
+#[test]
+fn pad_gas_router() {
+    // The gas is identified in the main pipe; the pad output is only switched.
+    let gases = ["Oxygen", "Nitrogen", "CarbonDioxide", "Methane"];
+    let more = ["Hydrogen", "NitrousOxide", "Pollutant", "Steam"];
+    let pad = dev(&[("On", 0.0)]);
+    let ratios: Vec<(String, f64)> =
+        gases.iter().chain(&more).map(|g| (format!("Ratio{g}"), 0.0)).collect();
+    let fields: Vec<(&str, f64)> = ratios.iter().map(|(n, v)| (n.as_str(), *v)).collect();
+    let line = analyzer(20.0, 0.0, &fields);
+    let light = switchable(&[]);
+    let pumps = [gas_pump("Oxygen"), gas_pump("CarbonDioxide"), gas_pump("Waste")];
+    let tanks = [gas_tank("Oxygen", 0.0), gas_tank("CarbonDioxide", 0.0), gas_tank("Waste", 0.0)];
+    let pins = [("d0", &pad), ("d1", &line), ("d2", &light)];
+    let mut c = chip(&format!("{GAS_SET}/pad_gas_router.ic10"), &pins);
+    for d in pumps.iter().chain(&tanks) {
+        c = c.net(d);
+    }
+    let state = |c: &Chip| {
+        let on = |d: &Shared<Device>| d.get("On");
+        (c.status(), on(&pad), [on(&pumps[0]), on(&pumps[1]), on(&pumps[2])])
+    };
+    // main pipe (gas ratios, kPa), tank kPa (O2, CO2, Waste)
+    // -> (status, pad On, pump On [O2, CO2, Waste])
+    let step = |c: &mut Chip, pipe: &[(&str, f64)], kpa: f64, tank_kpa: [f64; 3]| {
+        for (name, _) in &ratios {
+            line.set(name, 0.0);
+        }
+        for (gas, ratio) in pipe {
+            line.set(&format!("Ratio{gas}"), *ratio);
+        }
+        line.set("Pressure", kpa);
+        for (t, kpa) in tanks.iter().zip(tank_kpa) {
+            t.set("Pressure", kpa);
+        }
+        c.go(4);
+        state(c)
+    };
+    let room = [5000.0; 3];
+    let co2 = [("CarbonDioxide", 1.0)];
+    let dirty = [("Oxygen", 0.95), ("CarbonDioxide", 0.05)];
+    let co2_full = [5000.0, 9700.0, 5000.0];
+    let waste_full = [5000.0, 5000.0, 9700.0];
+    for (pipe, kpa, tank_kpa, want, why) in [
+        (&[][..], 0.0, room, (2.0, 1.0, [0.0, 0.0, 0.0]), "pipe clear: pad on, checking"),
+        (&co2[..], 5000.0, room, (10.0, 1.0, [0.0, 1.0, 0.0]), "pure CO2 to the CO2 tank"),
+        (
+            &co2[..],
+            5000.0,
+            [5000.0, 10000.0, 5000.0],
+            (11.0, 0.0, [0.0, 0.0, 1.0]),
+            "CO2 tank full: pad waits, pipe clears to Waste",
+        ),
+        (&[][..], 0.0, co2_full, (30.0, 0.0, [0.0, 0.0, 0.0]), "pad waits while CO2 is full"),
+        (&[][..], 0.0, room, (2.0, 1.0, [0.0, 0.0, 0.0]), "CO2 tank has room: pad on"),
+        (&[("Oxygen", 1.0)][..], 5000.0, room, (10.0, 1.0, [1.0, 0.0, 0.0]), "O2 to O2 tank"),
+        (&[("Nitrogen", 1.0)][..], 5000.0, room, (10.0, 1.0, [0.0, 0.0, 1.0]), "no N2 tank"),
+        (&dirty[..], 5000.0, room, (10.0, 1.0, [0.0, 0.0, 1.0]), "dirty gas to Waste"),
+        (
+            &dirty[..],
+            5000.0,
+            [5000.0, 5000.0, 10000.0],
+            (32.0, 0.0, [0.0, 0.0, 0.0]),
+            "Waste full: pad waits, pipe left for the purge",
+        ),
+        (&[][..], 0.0, waste_full, (30.0, 0.0, [0.0, 0.0, 0.0]), "pad gas never vented"),
+        (&[][..], 0.0, room, (2.0, 1.0, [0.0, 0.0, 0.0]), "Waste has room: pad on"),
+        (&co2[..], 21000.0, room, (31.0, 0.0, [0.0, 1.0, 0.0]), "pipe over 20 MPa"),
+        (&co2[..], 19500.0, room, (31.0, 0.0, [0.0, 1.0, 0.0]), "pad off above 19 MPa"),
+        (&co2[..], 18000.0, room, (10.0, 1.0, [0.0, 1.0, 0.0]), "pad re-arms"),
+    ] {
+        assert_eq!(step(&mut c, pipe, kpa, tank_kpa), want, "{why}");
+    }
+    let waste_name = tanks[2].get("NameHash");
+    tanks[2].set("NameHash", 0.0);
+    let blocked = (32.0, 0.0, [0.0, 0.0, 0.0]);
+    assert_eq!(
+        step(&mut c, &dirty, 5000.0, room),
+        blocked,
+        "no Waste tank: pad off, pipe to purge"
+    );
+    let waits = (30.0, 0.0, [0.0, 0.0, 0.0]);
+    assert_eq!(step(&mut c, &[], 0.0, room), waits, "no Waste tank: dirty gas waits on the pad");
+    tanks[2].set("NameHash", waste_name);
+    for (pipe, tank_kpa, why) in [
+        (&co2[..], [5000.0, 10000.0, 5000.0], "CO2 tank full"),
+        (&dirty[..], [5000.0, 5000.0, 10000.0], "Waste full"),
+    ] {
+        assert_eq!(step(&mut c, pipe, 5000.0, room).1, 1.0, "{why}: unloading before");
+        for (t, kpa) in tanks.iter().zip(tank_kpa) {
+            t.set("Pressure", kpa);
+        }
+        c.go(1);
+        assert_eq!(pad.get("On"), 0.0, "{why}: pad off in the same tick");
+        step(&mut c, &[], 0.0, room);
+    }
+    step(&mut c, &[], 0.0, room);
+    assert_eq!(light.get("On"), 0.0, "not ready until the pipe stays clear");
+    c.go(8);
+    assert_eq!((c.status(), light.get("On")), (1.0, 1.0), "pipe clear for 5 s: ready");
+    line.set("Error", 1.0);
+    c.go(4);
+    assert_eq!(state(&c), (9.0, 0.0, [0.0, 0.0, 0.0]), "analyzer error stops pad and pumps");
+}
+
+#[test]
+fn main_pipe_purge() {
+    let line = analyzer(20.0, 5000.0, &[]);
+    let (valve, vent) = (switchable(&[]), switchable(&[("Mode", 1.0)]));
+    let (pump, waste) = (gas_pump("Waste"), gas_tank("Waste", 9600.0));
+    let pins = [("d0", &line), ("d1", &valve), ("d2", &vent)];
+    let mut c = chip(&format!("{GAS_SET}/main_pipe_purge.ic10"), &pins).net(&pump).net(&waste);
+    let state = |c: &Chip| (c.status(), valve.get("On"), vent.get("On"), vent.get("Open"));
+    c.go(3);
+    assert_eq!(state(&c), (1.0, 0.0, 0.0, 0.0), "gas stuck: waits before purging");
+    c.go(4);
+    assert_eq!(state(&c), (2.0, 1.0, 1.0, 1.0), "purges after 3 s");
+    assert_eq!(vent.get("Mode"), 0.0, "vent set to outward");
+    for (kpa, pump_on, waste_kpa, why) in [
+        (0.5, 0.0, 9600.0, "pipe clear stops the purge"),
+        (5000.0, 1.0, 9600.0, "a running pump is moving the gas"),
+        (5000.0, 0.0, 5000.0, "Waste has room"),
+    ] {
+        line.set("Pressure", kpa);
+        pump.set("On", pump_on);
+        waste.set("Pressure", waste_kpa);
+        c.go(10);
+        assert_eq!(state(&c), (0.0, 0.0, 0.0, 0.0), "{why}");
+    }
+    let mut no_waste = chip(&format!("{GAS_SET}/main_pipe_purge.ic10"), &pins).net(&pump);
+    no_waste.go(10);
+    assert_eq!(no_waste.status(), 2.0, "no Waste tank: purges");
+    line.set("Error", 1.0);
+    no_waste.go(4);
+    assert_eq!(state(&no_waste), (9.0, 0.0, 0.0, 0.0), "analyzer error closes the purge");
 }
 
 #[test]

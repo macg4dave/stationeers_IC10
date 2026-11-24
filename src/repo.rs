@@ -21,11 +21,12 @@ pub fn glob_sorted(base: &Path, pattern: &str) -> Vec<PathBuf> {
     out
 }
 
-/// Every shipped `.ic10` file (`scripts/` and `modular scripts/`).
+/// Every shipped `.ic10` file (`scripts/`, `script set/` and `modular scripts/`).
 pub fn scripts(root: &Path) -> Vec<PathBuf> {
-    let mut out = glob_sorted(&root.join("scripts"), "**/*.ic10");
-    out.extend(glob_sorted(&root.join("modular scripts"), "**/*.ic10"));
-    out
+    ["scripts", "script set", "modular scripts"]
+        .iter()
+        .flat_map(|dir| glob_sorted(&root.join(dir), "**/*.ic10"))
+        .collect()
 }
 
 pub fn rel(root: &Path, path: &Path) -> String {
@@ -149,6 +150,8 @@ const DOC_GLOBS: &[&str] = &[
     "catalog/README.md",
     "scripts/README.md",
     "scripts/*/README.md",
+    "script set/README.md",
+    "script set/*/README.md",
     "modular scripts/README.md",
     "modular scripts/*/*.md",
     "docs/**/*.md",
@@ -160,6 +163,7 @@ const ROOTED: &[&str] = &[
     "docs/",
     "modular scripts/",
     "scripts/",
+    "script set/",
     "src/",
     "tests/",
     "README.md",

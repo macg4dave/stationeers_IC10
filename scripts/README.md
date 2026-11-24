@@ -6,7 +6,8 @@ Single-chip, paste-ready Stationeers IC10 programs. Each lives in its own folder
 - `scripts/<name>/README.md` — pins, settings, status codes, setup
 
 Names follow `<where it lives>_<what it does>`. Old names are listed in
-`docs/renames.md`. Multi-chip systems live in `modular scripts/`.
+`docs/renames.md`. Groups of independent chips for one job live in `script set/`;
+multi-chip systems with shared memory live in `modular scripts/`.
 
 ## Conventions every script follows
 

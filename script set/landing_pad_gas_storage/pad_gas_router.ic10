@@ -1,0 +1,115 @@
+# pad_gas_router - landing pad gas to one tank per gas; dirty gas to Waste
+# Names, registers, status: script set/landing_pad_gas_storage/README.md
+alias pad d0
+alias line d1
+alias ready d2  # optional, light: ON when pad and main pipe are clear
+define PUMP HASH("StructureVolumePump")
+define TANK HASH("StructurePipeAnalysizer")
+define WASTE HASH("Waste")
+define GAS_MIN 0.999
+define CLEAR_KPA 1
+define LINE_MAX_KPA 20000
+define LINE_REARM_KPA 19000
+define FULL_KPA 10000
+define REOPEN_KPA 9500
+define READY_TICKS 10
+sb PUMP On 0
+main:
+yield
+move r9 9
+move r6 0
+move r10 0
+move r11 0
+bdns pad apply
+bdns line apply
+l r12 line Error
+bnez r12 apply
+move r5 WASTE
+# gas table: 3 lines per gas, the HASH name is the tank
+l r0 line RatioOxygen
+brlt r0 GAS_MIN 2
+move r5 HASH("Oxygen")
+l r0 line RatioNitrogen
+brlt r0 GAS_MIN 2
+move r5 HASH("Nitrogen")
+l r0 line RatioCarbonDioxide
+brlt r0 GAS_MIN 2
+move r5 HASH("CarbonDioxide")
+l r0 line RatioMethane
+brlt r0 GAS_MIN 2
+move r5 HASH("Methane")
+l r0 line RatioHydrogen
+brlt r0 GAS_MIN 2
+move r5 HASH("Hydrogen")
+l r0 line RatioNitrousOxide
+brlt r0 GAS_MIN 2
+move r5 HASH("NitrousOxide")
+l r0 line RatioPollutant
+brlt r0 GAS_MIN 2
+move r5 HASH("Pollutant")
+l r0 line RatioSteam
+brlt r0 GAS_MIN 2
+move r5 HASH("Steam")
+l r8 line Pressure
+beqz r7 unblocked
+move r6 r7
+jal tank
+select r7 r11 0 r7
+unblocked:
+sge r12 r8 CLEAR_KPA
+select r6 r12 r5 0
+seqz r10 r7
+beqz r6 idle
+move r15 0
+jal tank
+bnez r11 moving
+select r7 r12 r6 r7
+move r6 WASTE
+jal tank
+select r7 r11 r7 r6
+seqz r10 r7
+moving:
+select r9 r10 10 11
+select r9 r11 r9 32
+beqz r10 apply
+l r13 pad On
+select r12 r13 LINE_MAX_KPA LINE_REARM_KPA
+slt r10 r8 r12
+select r9 r10 r9 31
+j apply
+idle:
+add r15 r15 1
+select r15 r10 r15 0
+sge r9 r15 READY_TICKS
+select r9 r9 1 2
+select r9 r10 r9 30
+apply:
+s db Setting r9
+beq r6 r14 same
+sbn PUMP r14 On 0
+move r14 r6
+same:
+lbn r13 PUMP r6 On Maximum
+beq r13 r11 pump_ok
+sbn PUMP r6 On r11
+pump_ok:
+bdns pad pad_ok
+l r13 pad On
+beq r13 r10 pad_ok
+s pad On r10
+pad_ok:
+bdns ready main
+seq r12 r9 1
+l r13 ready On
+beq r13 r12 main
+s ready On r12
+j main
+tank:
+lbn r12 TANK r6 PrefabHash Sum
+snez r12 r12
+lbn r13 PUMP r6 On Maximum
+select r11 r13 FULL_KPA REOPEN_KPA
+lbn r13 TANK r6 Pressure Maximum
+slt r11 r13 r11
+and r11 r11 r12
+j ra

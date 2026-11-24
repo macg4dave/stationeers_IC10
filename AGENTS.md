@@ -13,6 +13,9 @@ for how to work here; `.github/copilot-instructions.md` only points back to it.
 ## Layout
 
 - `scripts/<name>/<name>.ic10` + `README.md` — single-chip scripts (index: `scripts/README.md`)
+- `script set/<set>/` — a group of independent single-chip scripts for one job (no shared
+  memory, no master); one `README.md` per set covers every chip (index: `script set/README.md`).
+  Same house style as `scripts/`; scenarios in `tests/standalone.rs`
 - `modular scripts/<feature>/` — multi-chip systems: master, workers, setup guard,
   `README.md` (contract + status codes), `Setup.md` (player steps)
 - `catalog/devices/*.json` — device LogicTypes, Mode values, prefab hashes (`catalog/README.md`)
